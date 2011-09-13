@@ -1,12 +1,12 @@
 ;;;; gnuplot.el -- drive gnuplot from within emacs
 
-;; Copyright (C) 1998 Phil Type and Bruce Ravel, 1999-2002 Bruce Ravel
+;; Copyright (C) 1998, 2011 Phil Type and Bruce Ravel, 1999-2002 Bruce Ravel
 
-;; Author:     Bruce Ravel <ravel@phys.washington.edu> and Phil Type
-;; Maintainer: Bruce Ravel <ravel@phys.washington.edu>
+;; Author:     Bruce Ravel <bruceravel1@gmail.com> and Phil Type
+;; Maintainer: Bruce Ravel <bruceravel1@gmail.com>
 ;; Created:    June 28 1998
-;; Updated:    December 13, 2002
-;; Version:    0.6.0
+;; Updated:    13 September 2011
+;; Version:    0.6.1
 ;; Keywords:   gnuplot, plotting
 
 ;; This file is not part of GNU Emacs.
@@ -111,7 +111,7 @@
 ;;                         ============
 ;;
 ;; A recent version of this file can be found at
-;;   http://feff.phys.washington.edu/~ravel/software/gnuplot-mode/
+;;   http://guthub.com/bruceravel/gnuplot-mode/
 ;;
 ;; To autoload gnuplot-mode on any file with gp extension, put this in
 ;; your .emacs file
@@ -278,6 +278,7 @@
 ;;        forward 2 lines at a time
 ;;  0.6.0 Dec 13 2002 <BR> Changed numbering scheme to accommodate
 ;;        gnuplot packaging requirements
+;;  0.6.1 Sep 13 2011 <BR> Moved to guthub, updated contact info
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Acknowledgements:
 ;;    David Batty       <DB> (numerous corrections)
@@ -376,8 +377,8 @@
 (defconst gnuplot-maintainer "Bruce Ravel")
 (defconst gnuplot-maintainer-email "ravel@phys.washington.edu")
 (defconst gnuplot-maintainer-url
-  "http://feff.phys.washington.edu/~ravel/software/gnuplot-mode/")
-(defconst gnuplot-version "0.6.0")
+  "http://github.com/bruceravel/gnuplot-mode/")
+(defconst gnuplot-version "0.6.1")
 
 (defgroup gnuplot nil
   "Gnuplot-mode for Emacs."
@@ -387,7 +388,7 @@
   :group 'local
   :link '(emacs-library-link :tag "Lisp File" "gnuplot.el")
   :link '(url-link :tag "Homepage"
-		   "http://feff.phys.washington.edu/~ravel/software/gnuplot-mode/")
+		   "http://guthub.com/bruceravel/gnuplot-mode/")
   :link '(custom-manual "(gnuplot)Top")
   :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el") )
 (defgroup gnuplot-insertions nil
@@ -2450,7 +2451,7 @@ The help functions, keyword completion, and several other features
 depend upon having the info file properly installed.  The info file
 can be made in the document directory of the gnuplot distribution or
 is available at the `gnuplot-mode' web page:
-    http://feff.phys.washington.edu/~ravel/software/gnuplot-mode/
+    http://guthub.com/bruceravel/gnuplot-mode/
 
 If the help function does not work properly, you may have an older
 version of the gnuplot info file.  Try the suggestion in the document
