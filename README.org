@@ -95,14 +95,10 @@ been modified to be consistent with that.
      distribution comes with two versions of info-look.el, the version
      from Emacs 20.2 patched to work correctly and the version from
      Emacs 20.3.  Here's what happens when you run make:
-
-       + If you use Emacs 19 or XEmacs 19, then the Makefile will compile the 20.2 version.
-
-       + If you use Emacs 20.2 or lower, the Makefile will compile the 20.2 version.
-
-       + If you use XEmacs 20 or higher, the Makefile will compile the 20.3 version.
-
-       + If you use Emacs 20.3 or higher, the Makefile won't compile any version.
+       1. If you use Emacs 19 or XEmacs 19, then the Makefile will compile the 20.2 version.
+       2. If you use Emacs 20.2 or lower, the Makefile will compile the 20.2 version.
+       3. If you use XEmacs 20 or higher, the Makefile will compile the 20.3 version.
+       4. If you use Emacs 20.3 or higher, the Makefile won't compile any version.
 
   7. The gnuplot-mode distribution comes with the version of the gnuplot
      info file that gets made by gnuplot 3.7.  Use it rather than the
@@ -139,10 +135,10 @@ been modified to be consistent with that.
      gnuplot use:
      [[http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-gnuplot.php]]
 
-     If you're interested, here are some of the threads I'm referring to:
-      - [[http://newsgroups.derkeiler.com/Archive/Comp/comp.emacs/2007-07/msg00159.html]]
-      - [[http://www.mail-archive.com/emacs-orgmode@gnu.org/msg14544.html]]
-      - [[http://groups.google.com/group/gnu.emacs.help/browse_thread/thread/53489131c79f62b3]]
+     If you're interested, here are some of the threads I'm referring to:\\
+     [[http://newsgroups.derkeiler.com/Archive/Comp/comp.emacs/2007-07/msg00159.html]]\\
+     [[http://www.mail-archive.com/emacs-orgmode@gnu.org/msg14544.html\\]]
+     [[http://groups.google.com/group/gnu.emacs.help/browse_thread/thread/53489131c79f62b3]]
 
      If you'd like to see my summary of the issues to the org-mode mailing list,
      it's here: [[http://thread.gmane.org/gmane.emacs.orgmode/30235]]
