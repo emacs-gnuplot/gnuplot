@@ -2190,37 +2190,46 @@ See the comments in `gnuplot-info-hook'."
   (setq gnuplot-keywords-pending nil)
   (if (featurep 'info-look)
       (progn
-	(cond ((boundp 'info-lookup-symbol-alist) ; older version
-	       (setq info-lookup-symbol-alist
-		     (append
-		      info-lookup-symbol-alist
-		      '((gnuplot-mode
-			 "[a-zA-Z][_a-zA-Z0-9]*" nil
-			 (("(gnuplot)Top"           nil "[_a-zA-Z0-9]+")
-			  ("(gnuplot)Commands"      nil "[_a-zA-Z0-9]+")
-			  ("(gnuplot)Functions"     nil "[_a-zA-Z0-9]+")
-			  ("(gnuplot)plot"          nil "[_a-zA-Z0-9]+")
-			  ("(gnuplot)set-show"      nil "[_a-zA-Z0-9]+")
-			  ("(gnuplot)data-file"     nil "[_a-zA-Z0-9]+")
-			  ("(gnuplot)smooth"        nil "[_a-zA-Z0-9]+")
-			  ("(gnuplot)style"         nil "[_a-zA-Z0-9]+")
-			  ("(gnuplot)terminal"      nil "[_a-zA-Z0-9]+")
-			  ;;("(gnuplot)General Index" nil "[_a-zA-Z0-9]+")
-			  ) "[_a-zA-Z0-9]+" ))) ))
-	      (t			; newer version
-	       (info-lookup-maybe-add-help
-		:mode 'gnuplot-mode :topic 'symbol
-		:regexp "[a-zA-Z][_a-zA-Z0-9]*"
-		:doc-spec '(("(gnuplot)Top"           nil "[_a-zA-Z0-9]+")
-			    ("(gnuplot)Commands"      nil "[_a-zA-Z0-9]+")
-			    ("(gnuplot)Functions"     nil "[_a-zA-Z0-9]+")
-			    ("(gnuplot)plot"          nil "[_a-zA-Z0-9]+")
-			    ("(gnuplot)set-show"      nil "[_a-zA-Z0-9]+")
-			    ("(gnuplot)data-file"     nil "[_a-zA-Z0-9]+")
-			    ("(gnuplot)smooth"        nil "[_a-zA-Z0-9]+")
-			    ("(gnuplot)style"         nil "[_a-zA-Z0-9]+")
-			    ("(gnuplot)terminal"      nil "[_a-zA-Z0-9]+")
-			    ) )))
+	;; TODO: should make this a function
+	(or gnuplot-program-version
+	    (progn
+	      (message "Determining gnuplot version number (sitting for 2 seconds)")
+	      (gnuplot-fetch-version-number)
+	      (sit-for 2)))
+
+	;; In the absence of evidence to the contrary, I'm guessing
+	;; the info file layout changed with gnuplot version 4 <jjo>
+	(let ((temp-info-lookup-doc-spec
+	       (if (>= (string-to-number gnuplot-program-version) 4.0)
+		   ;; New info-file layout - works with gnuplot 4.4
+		   '(("(gnuplot)Command_Index"   nil "[_a-zA-Z0-9]+")
+		     ("(gnuplot)Options_Index"   nil "[_a-zA-Z0-9]+")
+		     ("(gnuplot)Function_Index"  nil "[_a-zA-Z0-9]+")
+		     ("(gnuplot)Terminal_Index"  nil "[_a-zA-Z0-9]+"))
+
+		 ;; Old info-file layout
+		 '(("(gnuplot)Top"           nil "[_a-zA-Z0-9]+")
+		   ("(gnuplot)Commands"      nil "[_a-zA-Z0-9]+")
+		   ("(gnuplot)Functions"     nil "[_a-zA-Z0-9]+")
+		   ("(gnuplot)plot"          nil "[_a-zA-Z0-9]+")
+		   ("(gnuplot)set-show"      nil "[_a-zA-Z0-9]+")
+		   ("(gnuplot)data-file"     nil "[_a-zA-Z0-9]+")
+		   ("(gnuplot)smooth"        nil "[_a-zA-Z0-9]+")
+		   ("(gnuplot)style"         nil "[_a-zA-Z0-9]+")
+		   ("(gnuplot)terminal"      nil "[_a-zA-Z0-9]+")))))
+	  (cond ((boundp 'info-lookup-symbol-alist) ; older info-lookup version
+		 (setq info-lookup-symbol-alist
+		       (append
+			info-lookup-symbol-alist
+			`((gnuplot-mode
+			   "[a-zA-Z][_a-zA-Z0-9]*" nil
+			   ,temp-info-lookup-doc-spec "[_a-zA-Z0-9]+" )))))
+		(t			; newer version
+		 (info-lookup-maybe-add-help
+		  :mode 'gnuplot-mode :topic 'symbol
+		  :regexp "[a-zA-Z][_a-zA-Z0-9]*"
+		  :doc-spec temp-info-lookup-doc-spec))))
+
 	;; this hook is my best way of working with info-look and
 	;; allowing multiple versions of the gnuplot-info file.
 	;; yes, this is a hassle.
@@ -2232,14 +2241,13 @@ See the comments in `gnuplot-info-hook'."
 	  ;; user will not want them lying around
 	  (and (get-buffer "info dir")    (kill-buffer "info dir"))
 	  (and (get-buffer "info dir<2>") (kill-buffer "info dir<2>")))
-	(setq gnuplot-keywords (gnuplot-set-keywords-list))
-	)
+	(setq gnuplot-keywords (gnuplot-set-keywords-list)))
 
     ;; or do something sensible if info-look is not installed
     (defun info-lookup-interactive-arguments (symbol)
       (message
-       "Help is not available.  The gnuplot info file could not be found.")
-      (list nil nil))) )
+       "Help is not available.  info-look.el is not installed.")
+      (list nil nil))))
 
 
 (defun gnuplot-set-keywords-list ()
@@ -2280,7 +2288,8 @@ adapted from `lisp-complete-symbol'."
 	     (delete-region beg end)
 	     (insert completion))
 	   (let* ((list (all-completions pattern alist))
-		  (mess (format "%S could be one of %S" pattern list))
+		  (mess (format "%S could be one of %S" 
+				(substring-no-properties pattern) list))
 		  (orig (current-buffer))
 		  (buff (get-buffer-create " *gnuplot-completions*")))
 	     (if (= (length list) 1) (insert " "))
@@ -2322,13 +2331,12 @@ the frame."
 	(if symbol () (setq symbol "Commands"))
 	(info-lookup-symbol symbol mode)
 	(cond ((equal gnuplot-info-display 'window)
-	       (let ((sw (selected-window))
-		     (window-min-height 2))
-		 (other-window 1)
-		 (enlarge-window
-		  (min (- (count-lines (point-min) (point-max)) (window-height))
-		       (- (/ (frame-height) 2) (window-height))))
-		 (select-window sw)))
+	       (let ((window-min-height 2))
+		 (with-selected-window (get-buffer-window "*info*")
+		   (enlarge-window
+		    (min (- (count-screen-lines (point-min) (point-max)) (window-height))
+			 (- (/ (frame-height) 2) (window-height)))))))
+
 	      ((equal gnuplot-info-display 'frame)
 	       (switch-to-buffer buff)
 	       (delete-other-windows)
