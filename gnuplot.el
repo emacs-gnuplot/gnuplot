@@ -30,7 +30,7 @@
 ;; program's maintainer or write to: The Free Software Foundation,
 ;; Inc.; 675 Massachusetts Avenue; Cambridge, MA 02139, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; send bug reports to the author (ravel@phys.washington.edu)
+;; send bug reports to the author (bruceravel1@gmail.com)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Commentary:
 ;;
@@ -1633,6 +1633,8 @@ called by this function after all of STRING is sent to gnuplot."
 	(gnuplot-fetch-version-number)
 	(sit-for 2)))
   (setq gnuplot-comint-recent-buffer (current-buffer))
+
+  ;; Create a gnuplot frame if needed
   (if (equal gnuplot-display-process 'frame)
       (or (and gnuplot-process-frame
 	       (frame-live-p gnuplot-process-frame))
@@ -1641,38 +1643,38 @@ called by this function after all of STRING is sent to gnuplot."
 	    (select-frame gnuplot-process-frame)
 	    (switch-to-buffer gnuplot-buffer)
 	    (delete-other-windows)
-	    (select-frame frame))) )
-  (let ((buffer  (current-buffer))
-	(gbuffer (get-buffer gnuplot-buffer))
-	(list    (gnuplot-split-string string)))
-    (set-buffer gbuffer)
-    (goto-char (point-max))
-    ;; bruce asks: what is this next line for?
-    (set-marker (process-mark gnuplot-process) (point-marker))
-    (sleep-for (* 20 gnuplot-delay))
-    (while list
-      (insert (car list))
-      (comint-send-input)
-      (sleep-for gnuplot-delay)
-      (setq list (cdr list))
-      (goto-char (point-max)))
-    (set-buffer buffer)
+	    (select-frame frame))))
+
+  (let ((list (gnuplot-split-string string)))
+    (with-current-buffer (get-buffer gnuplot-buffer)
+      (goto-char (point-max))
+      ;; bruce asks: what is this next line for?
+      (set-marker (process-mark gnuplot-process) (point-marker))
+      (sleep-for (* 20 gnuplot-delay))
+      (while list
+	(insert (car list))
+	(comint-send-input)
+	(sleep-for gnuplot-delay)
+	(setq list (cdr list))
+	(goto-char (point-max))))
+
     (cond ((equal gnuplot-display-process 'window)
-	   (select-window (display-buffer gbuffer))
-	   (goto-char (point-max))
-	   (or (pos-visible-in-window-p (point) (selected-window))
-	       (recenter 5))
-	   (other-window 1))
+	   (gnuplot-display-and-recenter-gnuplot-buffer))
 	  ((equal gnuplot-display-process 'frame)
 	   ;;(raise-frame gnuplot-process-frame)
-	   (select-frame gnuplot-process-frame)
-	   (display-buffer gbuffer)
-	   (goto-char (point-max))
-	   (or (pos-visible-in-window-p (point) (selected-window))
-	       (recenter 5))))
-    ;;(process-send-string gnuplot-program string)
+	   (with-selected-frame gnuplot-process-frame
+	     (gnuplot-display-and-recenter-gnuplot-buffer))))
+
     (setq gnuplot-recently-sent text)
     (run-hooks 'gnuplot-after-plot-hook)))
+
+(defun gnuplot-display-and-recenter-gnuplot-buffer ()
+  "Make sure the gnuplot comint buffer is displayed, and
+move point to the end if necessary"
+  (save-selected-window
+    (select-window (display-buffer (get-buffer gnuplot-buffer)))
+    (goto-char (point-max))
+    (unless (pos-visible-in-window-p (point) (selected-window)) (recenter 5))))
 
 (defun gnuplot-send-region-to-gnuplot (&optional begin end text)
   "Sends a selected region to the gnuplot program.
