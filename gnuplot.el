@@ -1547,7 +1547,7 @@ operators are punctuation characters.")
 	   '("\\[\\([^]]+\\)\\]"
 	     1 font-lock-reference-face)
 					; variable/function definitions
-	   '("\\(\\<[a-z]+[a-z_0-9()]*\\)[ \t]*="
+	   '("\\(\\<[a-z]+[a-z_0-9(), \t]*\\)[ \t]*="
 	     1 font-lock-variable-name-face)
 					; built-in function names
 	   (cons (concat
@@ -1838,14 +1838,15 @@ buffer.  Further customization is possible via
   ;;(if (not (fboundp 'hilit-set-mode-patterns))
   (if (featurep 'font-lock)
       (progn
-	(make-variable-buffer-local 'font-lock-defaults)
-	(setq font-lock-defaults '(gnuplot-font-lock-keywords t t))
+	(set (make-local-variable 'font-lock-defaults)
+	     '(gnuplot-font-lock-keywords t t))
 	(if gnuplot-xemacs-p (turn-on-font-lock))))
   ;;(if (featurep 'kw-compl)
   ;;    (progn
   ;;	(setq kw-compl-list gnuplot-keywords
   ;;	      kw-compl-upper-case nil)
   ;;	(define-key comint-mode-map "\M-\r" 'kw-compl-abbrev)))
+  (make-local-variable 'comint-mode-map)
   (define-key comint-mode-map "\M-\C-p" 'gnuplot-plot-from-comint)
   (define-key comint-mode-map "\M-\C-f" 'gnuplot-save-and-plot-from-comint)
   (define-key comint-mode-map "\C-d"    'gnuplot-delchar-or-maybe-eof)
