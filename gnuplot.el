@@ -1864,7 +1864,10 @@ buffer.  Further customization is possible via
 	(process-kill-without-query gnuplot-process nil)
 	(save-excursion
 	  (set-buffer gnuplot-buffer)
-	  (make-local-hook 'kill-buffer-hook)
+	  (when (and (featurep 'xemacs)
+		     (fboundp 'make-local-hook))
+	    ;; XEmacs needs the call to make-local-hook
+	    (make-local-hook 'kill-buffer-hook))
 	  (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
 	  (gnuplot-comint-start-function)
           (make-local-variable 'comint-output-filter-functions)
