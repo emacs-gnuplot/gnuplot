@@ -111,7 +111,7 @@
 ;;                         ============
 ;;
 ;; A recent version of this file can be found at
-;;   http://guthub.com/bruceravel/gnuplot-mode/
+;;   http://github.com/bruceravel/gnuplot-mode/
 ;;
 ;; To autoload gnuplot-mode on any file with gp extension, put this in
 ;; your .emacs file
@@ -278,7 +278,7 @@
 ;;        forward 2 lines at a time
 ;;  0.6.0 Dec 13 2002 <BR> Changed numbering scheme to accommodate
 ;;        gnuplot packaging requirements
-;;  0.6.1 Sep 13 2011 <BR> Moved to guthub, updated contact info
+;;  0.6.1 Sep 13 2011 <BR> Moved to github, updated contact info
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Acknowledgements:
 ;;    David Batty       <DB> (numerous corrections)
@@ -388,7 +388,7 @@
   :group 'local
   :link '(emacs-library-link :tag "Lisp File" "gnuplot.el")
   :link '(url-link :tag "Homepage"
-		   "http://guthub.com/bruceravel/gnuplot-mode/")
+		   "http://github.com/bruceravel/gnuplot-mode/")
   :link '(custom-manual "(gnuplot)Top")
   :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el") )
 (defgroup gnuplot-insertions nil
@@ -2453,7 +2453,7 @@ The help functions, keyword completion, and several other features
 depend upon having the info file properly installed.  The info file
 can be made in the document directory of the gnuplot distribution or
 is available at the `gnuplot-mode' web page:
-    http://guthub.com/bruceravel/gnuplot-mode/
+    http://github.com/bruceravel/gnuplot-mode/
 
 If the help function does not work properly, you may have an older
 version of the gnuplot info file.  Try the suggestion in the document
