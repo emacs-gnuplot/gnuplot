@@ -1700,19 +1700,17 @@ Respects continuation lines.
 This sets `gnuplot-recently-sent' to 'line."
   (interactive)
   (cond ((equal major-mode 'gnuplot-mode)
-	 (let ((start (save-excursion (beginning-of-line)   (point-marker)))
-	       end
-	       ;(end   (save-excursion (beginning-of-line 2) (point-marker)))
-	       )
-           (save-excursion
-	     (goto-char start)
+	 (let (start end)
+	   (save-excursion 
+	     ;; go to start of continued command, or beginning of line
+	     ;; if this is not a continuation of a previous line <JJO>
+	     (gnuplot-back-to-continuation-beginning)
+	     (setq start (point))
 	     (end-of-line)
-	     (backward-char 1)
-	     (while (looking-at "\\\\")	; go to end of last continuation line
-	       (end-of-line 2)
-	       (backward-char 1))
+	     (while (looking-back "\\\\")	; go to end of last continuation line
+	       (end-of-line 2))
 	     (beginning-of-line 2)
-	     (setq end (point-marker)))
+	     (setq end (point)))
 	   (if (not (string-match "\\`\\s-*\\'"
 				  (buffer-substring-no-properties start end)))
 	       (gnuplot-send-region-to-gnuplot start end 'line))
@@ -2039,39 +2037,59 @@ Bound to \\[gnuplot-insert-filename]"
 			      default-directory)
 	  gnuplot-quote-character) )
 
-;; is this more complicated than it need be ...?
-;; this doesn't quite do plot lists correctly:
-;;   plot sin(x),\
-;;        cos(x)         # ok
-;;        set auto       # not ok, should be under "p" (but does it matter?)
-
+;; 
+;; Adjust indentation for the line containing point
 (defun gnuplot-indent-line ()
   "Set indentation in gnuplot buffer.
 For most lines, set indentation to previous level of indentation.
-Attempt to add additional indentation for continued plot and splot
-lines."
+Add additional indentation for continuation lines."
   (interactive)
-  (let ((indent 0))
-    (save-excursion
-      (save-excursion
-	(end-of-line 0)
-	(if (bobp) ()
-	  (re-search-backward "^[ \t]*." (point-min) "to_limit")
-	  (back-to-indentation)
-	  (setq indent (current-column))
-	  (if (looking-at "s?pl\\(o?\\|\\(ot\\)?\\)[ \t]+.?")
-	      (let ((plus (1- (length (match-string 0)))))
-		(end-of-line)
-		(backward-char 1)
-		(if (looking-at (regexp-quote "\\"))
-		    (setq indent  (+ plus indent)))))))
-      (if (= (current-indentation) indent)
-	  ()
-	(beginning-of-line)
-	(delete-horizontal-space)
-	(insert (make-string indent ? ))))
-    (if (looking-at "[ \t]+$")
-	(end-of-line))))
+  (let (indent)
+    (save-excursion 
+      (if (gnuplot-continuation-line-p)
+	  ;; This is a continuation line. Indent to the same level as
+	  ;; the second word on the line beginning this command (i.e.,
+	  ;; the first non-whitespace character after whitespace)
+	  (progn
+	    (gnuplot-back-to-continuation-beginning)
+	    (back-to-indentation) 
+	    (re-search-forward "[^[:space:]]+[[:space:]]+" (point-at-eol) 'end-at-limit)
+	    (setq indent (- (point) (point-at-bol))))
+
+	;; Not a continuation line; go back to the first non-blank,
+	;; non-continuation line and indent to the same level
+	(beginning-of-line 0)
+	(while (and (not (bobp))
+		    (or (gnuplot-continuation-line-p)
+			(looking-at "[[:space:]]*$")))
+	  (beginning-of-line 0))
+	(if (bobp)
+	    (setq indent 0)
+	  (setq indent (current-indentation)))))
+    
+    ;; Set indentation
+    (save-excursion 
+      (indent-line-to indent))
+
+    (let ((point-at-indent (+ (point-at-bol) indent)))
+      (when (< (point) point-at-indent) (goto-char point-at-indent)))))
+
+;; Check if line containing point is a continuation
+(defun gnuplot-continuation-line-p ()
+  "Return t if the line containing point is a continuation line"
+  (save-excursion
+    (end-of-line 0)
+    (looking-back "\\\\")))
+
+;; Move point back to start of continued command
+(defun gnuplot-back-to-continuation-beginning ()
+  "Move point to the beginning of the first line which this line is
+a continuation of.
+If this is not a continuation line, move point to beginning of line."
+  (interactive)
+  (beginning-of-line)
+  (while (gnuplot-continuation-line-p)
+    (beginning-of-line 0)))
 
 ;; FWIW, here are all the options which can be negated:
 ;; (insert (format "%s"
