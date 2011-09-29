@@ -315,9 +315,6 @@
 ;;    this is a pain because the nomenclature is really different in
 ;;    gnuplot than in `read-key-sequence'
 ;;
-;;; Bugs:
-;;
-;; -- indentation is not quite right (but close)
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Code:
@@ -364,6 +361,7 @@
   (condition-case ()
       (require 'info-look)
     (error nil)))
+
 ;; this just gets rid of an annoying compile time error message
 ;; (eval-when-compile
 ;;   (defun gnuplot-dummy ())
@@ -414,6 +412,7 @@ This is the last thing done by the functions for plotting a line, a
 region, a buffer, or a file."
   :group 'gnuplot-hooks
   :type 'hook)
+
 (defcustom gnuplot-info-hook nil
   "*Hook run before setting up the info-look interface.
 This hook is necessary to handle inconsistencies in versions of and
@@ -457,12 +456,21 @@ For the older version of info-look, do this:
 				    \"[_a-zA-Z0-9]+\" )))))))))"
   :group 'gnuplot-hooks
   :type 'hook)
+
 ;; comint hook suggested by <DB>
 (defcustom gnuplot-comint-setup-hook nil
   "*Hook run after setting up the gnuplot buffer in comint mode.
 So the configuration can be customised by the user."
   :group 'gnuplot-hooks
   :type 'hook)
+
+(defcustom gnuplot-comint-mode-hook nil
+  "*Hook run after setting up the gnuplot buffer in gnuplot-comint-mode.
+By default this runs the hook named `gnuplot-comint-setup-hook',
+for backward compatibility."
+  :group 'gnuplot-hooks
+  :type 'hook)
+
 (defvar gnuplot-recently-sent nil
   "This is a record of the most recent kind of text sent to gnuplot.
 It takes as its value nil, 'line, 'region, 'buffer, or 'file.  It is
@@ -475,7 +483,14 @@ useful for functions included in `gnuplot-after-plot-hook'.")
   :type 'string)
 (defvar gnuplot-program-version nil
   "Version number of gnuplot.
-This is found using `gnuplot-determine-gnuplot-version")
+This is using `gnuplot-fetch-version-number'.")
+(defvar gnuplot-program-major-version nil
+  "Major version number of gnuplot.
+This is found using `gnuplot-fetch-version-number'.")
+(defvar gnuplot-program-minor-version nil
+  "Minor version number of gnuplot.
+This is found using `gnuplot-fetch-version-number'.")
+
 (defcustom gnuplot-process-name "gnuplot"
   "Name given to the gnuplot buffer and process."
   :group 'gnuplot
@@ -549,7 +564,7 @@ Each time text is written in the gnuplot process buffer, lines are
 trimmed from the beginning of the buffer so that the buffer is this
 many lines long.  The lines are deleted after the most recent lines
 were interpretted by gnuplot.  Setting to 0 turns off this feature
-(i.e. no lines get trimmed)."
+\(i.e. no lines get trimmed)."
   :group 'gnuplot
   :type 'integer)
 (defcustom gnuplot-quote-character "\'"
@@ -622,7 +637,7 @@ you're not using that musty old thing, are you..."
   (define-key gnuplot-mode-map "\C-c\C-d" 'gnuplot-show-version)
   (define-key gnuplot-mode-map "\C-c\C-e" 'gnuplot-show-gnuplot-buffer)
   (define-key gnuplot-mode-map "\C-c\C-f" 'gnuplot-send-file-to-gnuplot)
-  (define-key gnuplot-mode-map "\C-c\C-h" 'gnuplot-info-lookup-symbol)
+  (define-key gnuplot-mode-map "\C-c\C-h"    'gnuplot-info-lookup-symbol)
   (define-key gnuplot-mode-map "\C-c\C-i" 'gnuplot-insert-filename)
   (define-key gnuplot-mode-map "\C-c\C-j" 'gnuplot-forward-script-line)
   (define-key gnuplot-mode-map "\C-c\C-k" 'gnuplot-kill-gnuplot-buffer)
@@ -634,8 +649,8 @@ you're not using that musty old thing, are you..."
   (define-key gnuplot-mode-map "\C-c\C-u" 'gnuplot-bug-report)
   (define-key gnuplot-mode-map "\C-c\C-v" 'gnuplot-send-line-and-forward)
   (define-key gnuplot-mode-map "\C-c\C-z" 'gnuplot-customize)
-  (define-key gnuplot-mode-map "\M-\r"    'gnuplot-complete-keyword)
-  (define-key gnuplot-mode-map "\M-\t"    'gnuplot-complete-keyword)
+  (define-key gnuplot-mode-map "\M-\r"    'completion-at-point)
+  (define-key gnuplot-mode-map "\M-\t"    'completion-at-point)
   (define-key gnuplot-mode-map "\C-i"     'indent-for-tab-command)
   (define-key gnuplot-mode-map "\C-m"     'newline-and-indent)
   ;;(define-key gnuplot-mode-map "\C-m"     'reindent-then-newline-and-indent)
@@ -1627,11 +1642,7 @@ nil, 'line, 'region, 'buffer, or 'file.  TEXT may be useful for
 functions in `gnuplot-after-plot-hook'.  `gnuplot-after-plot-hook' is
 called by this function after all of STRING is sent to gnuplot."
   (gnuplot-make-gnuplot-buffer)	; make sure a gnuplot buffer exists
-  (or gnuplot-program-version
-      (progn
-	(message "Determining gnuplot version number (sitting for 2 seconds)")
-	(gnuplot-fetch-version-number)
-	(sit-for 2)))
+  (gnuplot-fetch-version-number)
   (setq gnuplot-comint-recent-buffer (current-buffer))
 
   ;; Create a gnuplot frame if needed
@@ -1746,7 +1757,7 @@ Blank lines and commented lines are not included in the NUM count."
 		(or (looking-at "^\\s-*$")
 		    (looking-at "^\\s-*#")))
       (forward-line 1))
-    (setq num (1- num))) )
+    (setq num (1- num))))
 
 (defun gnuplot-send-buffer-to-gnuplot ()
   "Sends the entire buffer to the gnuplot program.
@@ -1773,21 +1784,20 @@ This inserts the contents of the most recently used gnuplot script
 into the process buffer and sends those lines to gnuplot.  It does
 this by copying the script line by line."
   (interactive)
-  (if (equal major-mode 'comint-mode)
-      (let (string list (buffer (current-buffer)))
-	(set-buffer gnuplot-comint-recent-buffer)
-	(setq string (buffer-substring-no-properties (point-min) (point-max))
-	      string (concat string "\n")
-	      list   (gnuplot-split-string string))
-	(set-buffer buffer)
-	(while list
-	  (insert (car list))
-	  (comint-send-input)
-	  (sleep-for gnuplot-delay)
-	  (setq list (cdr list)))
-	(comint-send-input))
-    (message
-     "`gnuplot-plot-from-comint' only works in the gnuplot process buffer")))
+  (if (not (buffer-live-p gnuplot-comint-recent-buffer))
+      (message "Script buffer has been deleted.")
+    (let (string list (buffer (current-buffer)))
+      (set-buffer gnuplot-comint-recent-buffer)
+      (setq string (buffer-substring-no-properties (point-min) (point-max))
+	    string (concat string "\n")
+	    list   (gnuplot-split-string string))
+      (set-buffer buffer)
+      (while list
+	(insert (car list))
+	(comint-send-input)
+	(sleep-for gnuplot-delay)
+	(setq list (cdr list)))
+      (comint-send-input))))
 
 (defun gnuplot-save-and-plot-from-comint ()
   "Send a current script to gnuplot from the process buffer.
@@ -1797,18 +1807,21 @@ file, prompting for a filename if one is not associated with the script
 buffer.  Then it sends a load command to gnuplot using the name of the
 file visited by the script buffer."
   (interactive)
-  (if (equal major-mode 'comint-mode)
-      (let (fname (buffer (current-buffer)))
-	(set-buffer gnuplot-comint-recent-buffer)
+  (if (not (buffer-live-p gnuplot-comint-recent-buffer))
+      (message "Script buffer has been deleted.")
+    (let (fname)
+      (with-current-buffer gnuplot-comint-recent-buffer
 	(save-buffer)
-	(setq fname (buffer-file-name))
-	(set-buffer buffer)
-	(goto-char (point-max))
-	(insert (format "load '%s'" fname))
-	(comint-send-input))
-    (message (concat "`gnuplot-save-and-plot-from-comint' only works "
-		     "in the gnuplot process buffer"))))
+	(setq fname (buffer-file-name)))
+      (goto-char (point-max))
+      (insert (format "load '%s'" fname))
+      (comint-send-input))))
 
+(defun gnuplot-pop-to-recent-buffer ()
+  "Switch to the most recently-plotted gnuplot script buffer."
+  (interactive)
+  (when (buffer-live-p gnuplot-comint-recent-buffer)
+    (pop-to-buffer gnuplot-comint-recent-buffer)))
 
 (defun gnuplot-trim-gnuplot-buffer ()
   "Trim lines form the beginning of the *gnuplot* buffer.
@@ -1829,35 +1842,85 @@ this function is attached to `gnuplot-after-plot-hook'"
 
 ;;; --- functions controlling the gnuplot process
 
-;; use of comint-setup-hook suggested by <DB>
-(defun gnuplot-comint-start-function ()
-  "Function run when comint/gnuplot started.
+;; Define gnuplot-comint-mode, the mode for the gnuplot process
+;; buffer, by deriving from comint-mode    
+(define-derived-mode gnuplot-comint-mode comint-mode "Gnuplot shell"
+  "Major mode for interacting with a gnuplot process in a buffer.
+
 This sets font-lock and keyword completion in the comint/gnuplot
-buffer.  Further customization is possible via
-`gnuplot-comint-setup-hook'."
-  ;;(if (not (fboundp 'hilit-set-mode-patterns))
+buffer."
+
   (if (featurep 'font-lock)
       (progn
 	(set (make-local-variable 'font-lock-defaults)
 	     '(gnuplot-font-lock-keywords t t))
 	(if gnuplot-xemacs-p (turn-on-font-lock))))
-  ;;(if (featurep 'kw-compl)
-  ;;    (progn
-  ;;	(setq kw-compl-list gnuplot-keywords
-  ;;	      kw-compl-upper-case nil)
-  ;;	(define-key comint-mode-map "\M-\r" 'kw-compl-abbrev)))
-  (make-local-variable 'comint-mode-map)
-  (define-key comint-mode-map "\M-\C-p" 'gnuplot-plot-from-comint)
-  (define-key comint-mode-map "\M-\C-f" 'gnuplot-save-and-plot-from-comint)
-  (define-key comint-mode-map "\C-d"    'gnuplot-delchar-or-maybe-eof)
-  (define-key comint-mode-map "\M-\r"   'gnuplot-complete-keyword)
-  (define-key comint-mode-map "\M-\t"   'gnuplot-complete-keyword)
-  (run-hooks 'gnuplot-comint-setup-hook))
 
+  ;; XEmacs needs the call to make-local-hook
+  (when (and (featurep 'xemacs)
+	     (fboundp 'make-local-hook))
+    (make-local-hook 'kill-buffer-hook))
+  (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
+
+  (make-local-variable 'comint-output-filter-functions) ; is this necessary?
+  (setq comint-output-filter-functions
+	(append comint-output-filter-functions
+		'(comint-postoutput-scroll-to-bottom
+		  gnuplot-protect-prompt-fn)))
+
+  (add-hook 'comint-dynamic-complete-functions 'gnuplot-comint-complete)
+
+  (easy-menu-define
+   gnuplot-comint-mode-menu gnuplot-comint-mode-map "Menu used in gnuplot-comint-mode"
+   gnuplot-comint-menu)
+  (easy-menu-add gnuplot-comint-mode-menu gnuplot-comint-mode-map))
+
+;; Key bindings for gnuplot-comint-mode
+(define-key gnuplot-comint-mode-map "\M-\C-p"	'gnuplot-plot-from-comint)
+(define-key gnuplot-comint-mode-map "\M-\C-f"	'gnuplot-save-and-plot-from-comint)
+(define-key gnuplot-comint-mode-map "\C-d"	'gnuplot-delchar-or-maybe-eof)
+(define-key gnuplot-comint-mode-map "\M-\r"	'comint-dynamic-complete)
+(define-key gnuplot-comint-mode-map "\M-\t"	'comint-dynamic-complete)
+(define-key gnuplot-comint-mode-map "\C-c\C-d"	'gnuplot-show-version)
+(define-key gnuplot-comint-mode-map "\C-c\C-h"	'gnuplot-info-lookup-symbol)
+(define-key gnuplot-comint-mode-map "\C-c\C-i"	'gnuplot-insert-filename)
+(define-key gnuplot-comint-mode-map "\C-c\C-n"	'gnuplot-negate-option)
+(define-key gnuplot-comint-mode-map "\C-c\C-p"	'gnuplot-show-gnuplot-version)
+(define-key gnuplot-comint-mode-map "\C-c\C-u"	'gnuplot-bug-report)
+(define-key gnuplot-comint-mode-map "\C-c\C-z"	'gnuplot-customize)
+(define-key gnuplot-comint-mode-map "\C-c\C-e"	'gnuplot-pop-to-recent-buffer)
+
+;; Menu for gnuplot-comint-mode
+(defvar gnuplot-comint-mode-menu nil
+  "Menu for `gnuplot-comint-mode'.")
+(defvar gnuplot-comint-menu nil)
+(setq gnuplot-comint-menu
+      '("Gnuplot"
+	["Plot most recent gnuplot buffer"		gnuplot-plot-from-comint
+	 (buffer-live-p gnuplot-comint-recent-buffer)]
+	["Save and plot most recent gnuplot buffer"	gnuplot-save-and-plot-from-comint
+	 (buffer-live-p gnuplot-comint-recent-buffer)]
+	"---"
+	["Insert filename at point"			gnuplot-insert-filename t]
+	["Negate set option"				gnuplot-negate-option t]
+	["Keyword help"					gnuplot-info-lookup-symbol
+	 (or gnuplot-keywords gnuplot-keywords-pending)]
+	["Switch to recent gnuplot script buffer"	gnuplot-pop-to-recent-buffer
+	 (buffer-live-p gnuplot-comint-recent-buffer)]
+	"---"
+	["Customize gnuplot"				gnuplot-customize t]
+	["Submit bug report"				gnuplot-bug-report t]
+	["Show gnuplot-mode version"			gnuplot-show-version t]
+	["Show gnuplot version"				gnuplot-show-gnuplot-version t]
+	"---"
+	["Kill gnuplot"					gnuplot-kill-gnuplot-buffer t]
+	))
+
+;; Switch to the gnuplot program buffer
 (defun gnuplot-make-gnuplot-buffer ()
   "Switch to the gnuplot program buffer or create one if none exists."
   (or (and gnuplot-process (get-process gnuplot-process)
-	   gnuplot-buffer (get-buffer gnuplot-buffer))
+	   gnuplot-buffer (buffer-name gnuplot-buffer))
       (progn
 	(message "Starting gnuplot plotting program...")
 	(setq gnuplot-buffer (make-comint gnuplot-process-name gnuplot-program)
@@ -1865,51 +1928,52 @@ buffer.  Further customization is possible via
 	(process-kill-without-query gnuplot-process nil)
 	(save-excursion
 	  (set-buffer gnuplot-buffer)
-	  (when (and (featurep 'xemacs)
-		     (fboundp 'make-local-hook))
-	    ;; XEmacs needs the call to make-local-hook
-	    (make-local-hook 'kill-buffer-hook))
-	  (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
-	  (gnuplot-comint-start-function)
-          (make-local-variable 'comint-output-filter-functions)
-          (setq comint-output-filter-functions
-                (append comint-output-filter-functions
-                        '(comint-postoutput-scroll-to-bottom
-                          gnuplot-protect-prompt-fn)))
+	  (gnuplot-comint-mode)
 	  (message "Starting gnuplot plotting program...Done")))))
 
-
 (defun gnuplot-fetch-version-number ()
-  ;;(interactive)
-  (message "gnuplot-mode %s -- determining gnuplot version ......"
-	   gnuplot-version)
-  (let* ((command (concat "echo \"show version\" | " gnuplot-program))
-	 (process (start-process-shell-command "gnuplot-version"
-					       "*gnuplot-version*"
-					       command)))
-    (set-process-sentinel process 'gnuplot-determine-version-number)))
+  "Determine the installed version of the gnuplot program.
 
-(defun gnuplot-determine-version-number (process event)
-  (save-excursion
-    (let (version)
-      (if (string-match "SPEEDBAR" (format "%S" (current-buffer))) ;; <WZ>
-	  (if (fboundp 'speedbar-switch-buffer-attached-frame)
-	      (speedbar-switch-buffer-attached-frame "*gnuplot-version*")
-	    (progn
-	      (speedbar-select-attached-frame)
-	      (switch-to-buffer "*gnuplot-version*")))
-	(switch-to-buffer "*gnuplot-version*"))
-      (goto-char (point-min))
-      (re-search-forward "[Vv]ersion\\s-+" (point-max) t)
-      (if (looking-at "[0-9]\\.[0-9]+")
-	  (setq version (match-string 0))
-	(setq version "3.7"))
-      (kill-buffer (get-buffer "*gnuplot-version*"))
-      ;;(and (interactive-p) (message "You are using gnuplot version %s" version))
-      (setq gnuplot-program-version version
-	    gnuplot-three-eight-p (>= (string-to-number gnuplot-program-version) 3.8))
-      (gnuplot-setup-menu-and-toolbar)
-      )))
+If `gnuplot-program-version' is already set, does
+nothing. Otherwise, runs `gnuplot-program' with the '--version'
+option, expecting to get a string beginning with something like
+\"gnuplot N.N ...\"
+
+Sets the variables `gnuplot-program-version',
+`gnuplot-program-major-version', `gnuplot-program-minor-version',
+and `gnuplot-three-eight-p'.
+
+If the version number cannot be determined by this method, it
+defaults to 3.7."
+
+  (unless gnuplot-program-version
+    (message "gnuplot-mode %s -- determining gnuplot version ......"
+	     gnuplot-version)
+    ;; It's simpler and faster to use "gnuplot --version" instead of
+    ;; piping and parsing the output of "show version"; hopefully this
+    ;; also works with older versions? <jjo>
+    (let* ((command (concat gnuplot-program " --version"))
+	   (version-string (shell-command-to-string command)))
+      (if (string-match "gnuplot\\s-+\\([0-9]+\\)\\.\\([0-9]+\\)" version-string)
+	  (progn
+	    (setq gnuplot-program-version (concat (match-string 1 version-string)
+						  "."
+						  (match-string 2 version-string))
+		  gnuplot-program-major-version (string-to-number
+						 (match-string 1 version-string))
+		  gnuplot-program-minor-version (string-to-number
+						 (match-string 2 version-string))
+		  gnuplot-three-eight-p
+		  (>= (string-to-number gnuplot-program-version) 3.8)))
+
+	;; Guess v3.7 otherwise
+	(setq gnuplot-program-version "3.7"
+	      gnuplot-program-major-version 3
+	      gnuplot-program-minor-version 7
+	      gnuplot-three-eight-p nil)
+	(message "Warning: could not determine gnuplot version, guessing 3.7")))
+      
+    (gnuplot-setup-menu-and-toolbar)))
 
 (defun gnuplot-setup-menu-and-toolbar ()
   ;; set up the menubar (possibly dependent on version number)
@@ -1923,41 +1987,7 @@ buffer.  Further customization is possible via
 	(error nil)))
   (message "gnuplot-mode %s (gnuplot %s) -- report bugs with %S"
 	   gnuplot-version gnuplot-program-version
-	   (substitute-command-keys "\\[gnuplot-bug-report]"))
-  )
-
-
-
-;; (defun gnuplot-determine-gnuplot-version ()
-;;   "Figure out which version of gnuplot we are running."
-;;   (interactive)
-;;   (cond (gnuplot-gnuplot-version
-;; 	 (setq comint-process-echoes nil          ;; t
-;; 	       gnuplot-program-version gnuplot-gnuplot-version))
-;; 	(t
-;; 	 (let ((counter 0))
-;; 	   (save-excursion
-;; 	     (set-buffer gnuplot-buffer)
-;; 	     (goto-char (point-min))
-;; 	     ;; it may take a while for emacs to display the gnuplot start-up
-;; 	     ;; message.  since we need this to determine the version number
-;; 	     ;; and hence the value of `comint-process-echoes', we must wait
-;; 	     ;; for this to happen.
-;; 	     (while (and (equal (point-max) (point-min)) (< 10 counter))
-;; 	       (1+ counter)
-;; 	       (sleep-for 0.1))
-;; 	     (if (re-search-forward "[Vv]ersion" (point-max) t)
-;; 		 (progn
-;; 		   (cond ((or (looking-at "\\s-*3.8") (looking-at "\\s-*4"))
-;; 			  (setq comint-process-echoes nil          ;; t
-;; 				gnuplot-program-version "3.8"))
-;; 			 ((looking-at "\\s-*3.7")
-;; 			  (setq comint-process-echoes nil          ;; t
-;; 				gnuplot-program-version "3.7"))
-;; 			 (t
-;; 			  (setq comint-process-echoes nil
-;; 				gnuplot-program-version "3.5") )))
-;; 	       (setq comint-process-echoes gnuplot-echo-command-line-flag)))))))
+	   (substitute-command-keys "\\[gnuplot-bug-report]")))
 
 (defun gnuplot-protect-prompt-fn (string)
   "Prevent the Gnuplot prompt from being deleted or overwritten.
@@ -2041,7 +2071,7 @@ Bound to \\[gnuplot-insert-filename]"
 			      default-directory)
 	  gnuplot-quote-character) )
 
-;; 
+
 ;; Adjust indentation for the line containing point
 (defun gnuplot-indent-line ()
   "Set indentation in gnuplot buffer.
@@ -2184,23 +2214,19 @@ This checks if the set option is one which has a negated form."
 ;; modified with suggestion from <MS>
 (defun gnuplot-setup-info-look ()
   "Setup info-look in the gnuplot buffer.
+
 Also set the variable `gnuplot-keywords' and do something sensible if
 info-look was not available.
 See the comments in `gnuplot-info-hook'."
   (interactive)
   (setq gnuplot-keywords-pending nil)
   (if (featurep 'info-look)
-      (progn
-	;; TODO: should make this a function
-	(or gnuplot-program-version
-	    (progn
-	      (message "Determining gnuplot version number (sitting for 2 seconds)")
-	      (gnuplot-fetch-version-number)
-	      (sit-for 2)))
+      (progn 
+	(gnuplot-fetch-version-number)
 
 	;; In the absence of evidence to the contrary, I'm guessing
 	;; the info file layout changed with gnuplot version 4 <jjo>
-	(let ((temp-info-lookup-doc-spec
+	 (let ((doc-spec
 	       (if (>= (string-to-number gnuplot-program-version) 4.0)
 		   ;; New info-file layout - works with gnuplot 4.4
 		   '(("(gnuplot)Command_Index"   nil "[_a-zA-Z0-9]+")
@@ -2224,12 +2250,18 @@ See the comments in `gnuplot-info-hook'."
 			info-lookup-symbol-alist
 			`((gnuplot-mode
 			   "[a-zA-Z][_a-zA-Z0-9]*" nil
-			   ,temp-info-lookup-doc-spec "[_a-zA-Z0-9]+" )))))
+			   ,doc-spec "[_a-zA-Z0-9]+" )))))
 		(t			; newer version
-		 (info-lookup-maybe-add-help
+		 (info-lookup-add-help
 		  :mode 'gnuplot-mode :topic 'symbol
 		  :regexp "[a-zA-Z][_a-zA-Z0-9]*"
-		  :doc-spec temp-info-lookup-doc-spec))))
+		  :doc-spec doc-spec)
+		 ;; allow help lookup from the comint buffer as well <jjo>
+		 (info-lookup-add-help
+		  :mode 'gnuplot-comint-mode :topic 'symbol
+		  :regexp "[a-zA-Z][_a-zA-Z0-9]*"
+		  :doc-spec doc-spec)
+		(message "hi dere"))))
 
 	;; this hook is my best way of working with info-look and
 	;; allowing multiple versions of the gnuplot-info file.
@@ -2265,13 +2297,12 @@ Return a list of keywords."
 	    list  (cdr list)))
     (delete "nil" store)
     store ))
-
-
-(defun gnuplot-complete-keyword ()
+  
+(defun gnuplot-completion-at-point ()
   "Perform completion on keyword preceding point.
-This is a pretty simple minded completion function.  It is loosely
-adapted from `lisp-complete-symbol'."
-  (interactive)
+
+Uses the cache of keywords generated by info-lookup. See
+`gnuplot-setup-info-look'."
   (if gnuplot-keywords-pending		; <HW>
       (gnuplot-setup-info-look))
   (let* ((end (point))
@@ -2279,34 +2310,28 @@ adapted from `lisp-complete-symbol'."
 	 (patt (buffer-substring beg end))
 	 (pattern (if (string-match "\\([^ \t]*\\)\\s-+$" patt)
 		      (match-string 1 patt) patt))
-	 (alist (mapcar 'list gnuplot-keywords))
-	 (completion (try-completion pattern alist)))
-    (cond ((eq completion t))
-	  ((null completion)
-	   (message "No gnuplot keywords complete \"%s\"" pattern))
-	  (t
-	   (when (not (string= pattern completion))
-	     (delete-region beg end)
-	     (insert completion))
-	   (let* ((list (all-completions pattern alist))
-		  (mess (format "%S could be one of %S" 
-				(substring-no-properties pattern) list))
-		  (orig (current-buffer))
-		  (buff (get-buffer-create " *gnuplot-completions*")))
-	     (if (= (length list) 1) (insert " "))
-	     (if (< (length mess) (frame-width))
-		 (if (> (length list) 1) (message mess))
-	       (switch-to-buffer-other-window buff)
-	       (insert mess)
-	       (fill-region (point-min) (point-max))
-	       (goto-char (point-min))
-	       (enlarge-window
-		(+ 2 (- (count-lines (point-min) (point-max))
-			(window-height))))
-	       (sit-for (max (length list) 15))
-	       (switch-to-buffer orig)
-	       (kill-buffer buff)
-	       (delete-other-windows) ))) )))
+	 (completions (all-completions pattern gnuplot-keywords)))
+    (if completions
+	(list beg end completions)
+      (message "No gnuplot keywords complete '%s'" pattern)
+      nil)))
+
+(defun gnuplot-comint-complete ()
+  "Complete the keyword preceding point in the gnuplot comint buffer.
+
+Uses the cache of keywords generated by info-lookup and
+`comint-dynamic-simple-complete' to handle the actual
+completion."
+  (let ((completions (gnuplot-completion-at-point)))
+    (if completions
+	(let* ((beg (nth 0 completions))
+	       (end (nth 1 completions))
+	       (candidates (nth 2 completions))
+	       (completion-base-position (list beg end)))
+	  (comint-dynamic-simple-complete
+	   (buffer-substring-no-properties beg end)
+	   candidates))
+      nil)))
 
 (defun gnuplot-info-lookup-symbol (symbol &optional mode)
   "Wrapper for `info-lookup-symbol'.
@@ -2325,17 +2350,22 @@ the frame."
 	 (t
 	  (list nil (message
        "Help is not available.  The gnuplot info file could not be found.")))))
+
   (if (and (featurep 'info-look) gnuplot-keywords)
       (let ((buff (current-buffer))
 	    (info-lookup-other-window-flag
 	     (if gnuplot-info-display t nil)))
 	(if symbol () (setq symbol "Commands"))
 	(info-lookup-symbol symbol mode)
-	(cond ((equal gnuplot-info-display 'window)
-	       (let ((window-min-height 2))
-		 (with-selected-window (get-buffer-window "*info*")
+	(cond ((equal gnuplot-info-display 'window) 
+	       ;; Adjust window height only if the frame is split 
+	       ;; horizontally, so as not to mess up the minibuffer <jjo>
+	       ;; we can't use shrink-window-if-larger-than-buffer here
+	       ;; because it doesn't work with Info mode's narrowing
+	       (with-selected-window (get-buffer-window "*info*")
+		 (unless (window-full-height-p)
 		   (enlarge-window
-		    (min (- (count-screen-lines (point-min) (point-max)) (window-height))
+		    (min (- (count-screen-lines (point-min) (point-max)) (window-height) -1)
 			 (- (/ (frame-height) 2) (window-height)))))))
 
 	      ((equal gnuplot-info-display 'frame)
@@ -2347,7 +2377,7 @@ the frame."
 	       (select-frame gnuplot-info-frame)
 	       (raise-frame gnuplot-info-frame)
 	       (if gnuplot-xemacs-p (setq toolbar-info-frame gnuplot-info-frame))
-	       (switch-to-buffer "*info*") )) )))
+	       (switch-to-buffer "*info*"))))))
 
 
 (defun gnuplot-insert (string)
@@ -2494,7 +2524,7 @@ web page for more details.
 
 There are several known shortcomings of `gnuplot-mode', version 0.5g
 and up.  Many of the shortcomings involve the graphical interface
-(refered to as the GUI) to setting arguments to plot options.  Here is
+\(refered to as the GUI) to setting arguments to plot options.  Here is
 a list:
 
  1.  Currently there is no way for `gnuplot-mode' to know if information
@@ -2527,6 +2557,7 @@ a list:
   (set (make-local-variable 'comment-column) 32)
   (set (make-local-variable 'comment-start-skip) "#[ \t]*")
   (set (make-local-variable 'indent-line-function) 'gnuplot-indent-line)
+  (add-hook 'completion-at-point-functions 'gnuplot-completion-at-point nil t)
   (set-syntax-table gnuplot-mode-syntax-table)
   (if (or (fboundp 'hilit-set-mode-patterns)
 	  (equal gnuplot-keywords-when 'immediately)) ; <HW>
@@ -2540,11 +2571,10 @@ a list:
 	 `(("#.*$" nil comment)
 	   ("\\([a-zA-Z0-9_-]+\\)\\(([^)]*)\\)?\\s *=" nil define)
 	   ,(list keywords 'nil 'keyword)
-	   (hilit-string-find ?\\ string)
-	   ))) )
-  ;;(if (featurep 'kw-compl)		; old-style keyword completion
-  ;;    (setq kw-compl-list gnuplot-keywords
-  ;;	    kw-compl-upper-case nil)) ; gnuplot keywords must be lower case
+	   (hilit-string-find ?\\ string)))))
+
+
+
   (if gnuplot-xemacs-p			; deal with font-lock
       (if (fboundp 'turn-on-font-lock) (turn-on-font-lock))
     (progn
@@ -2556,7 +2586,7 @@ a list:
 ;; 	       (require 'xpm)
 ;; 	       (gnuplot-make-toolbar-function))
 ;; 	(error nil)))
-  (if (fboundp 'widget-create)		; gunplot-gui
+  (if (fboundp 'widget-create)		; gnuplot-gui
       (condition-case ()
   	  (require 'gnuplot-gui)
   	(error nil)))
@@ -2593,6 +2623,7 @@ following in your .emacs file:
 (defun gnuplot-show-gnuplot-version ()
   "Show gnuplot program and version number in echo area"
   (interactive)
+  (gnuplot-fetch-version-number)
   (message "You are calling gnuplot %s as %s" gnuplot-program-version gnuplot-program))
 
 
