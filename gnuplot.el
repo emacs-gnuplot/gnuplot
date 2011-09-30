@@ -1935,9 +1935,8 @@ buffer."
   "Determine the installed version of the gnuplot program.
 
 If `gnuplot-program-version' is already set, does
-nothing. Otherwise, runs `gnuplot-program' with the '--version'
-option, expecting to get a string beginning with something like
-\"gnuplot N.N ...\"
+nothing. Otherwise, runs `gnuplot-program' and searches the text
+printed at startup for a string like \"Version N.N\".
 
 Sets the variables `gnuplot-program-version',
 `gnuplot-program-major-version', `gnuplot-program-minor-version',
@@ -1945,34 +1944,33 @@ and `gnuplot-three-eight-p'.
 
 If the version number cannot be determined by this method, it
 defaults to 3.7."
-
   (unless gnuplot-program-version
     (message "gnuplot-mode %s -- determining gnuplot version ......"
 	     gnuplot-version)
-    ;; It's simpler and faster to use "gnuplot --version" instead of
-    ;; piping and parsing the output of "show version"; hopefully this
-    ;; also works with older versions? <jjo>
-    (let* ((command (concat gnuplot-program " --version"))
-	   (version-string (shell-command-to-string command)))
-      (if (string-match "gnuplot\\s-+\\([0-9]+\\)\\.\\([0-9]+\\)" version-string)
+    (with-temp-buffer
+      (insert "show version")
+      (call-process-region (point-min) (point-max)
+			   gnuplot-program t (current-buffer))
+      (goto-char (point-min))
+      (if (and (re-search-forward "[Vv]ersion\\s-+" (point-max) t)
+	       (looking-at "\\([0-9]\\)\\.\\([0-9]+\\)"))
 	  (progn
-	    (setq gnuplot-program-version (concat (match-string 1 version-string)
-						  "."
-						  (match-string 2 version-string))
+	    (setq gnuplot-program-version (match-string 0)
 		  gnuplot-program-major-version (string-to-number
-						 (match-string 1 version-string))
+						 (match-string 1))
 		  gnuplot-program-minor-version (string-to-number
-						 (match-string 2 version-string))
+						 (match-string 2))
 		  gnuplot-three-eight-p
 		  (>= (string-to-number gnuplot-program-version) 3.8)))
 
-	;; Guess v3.7 otherwise
+	;; Guess v3.7 if something went wrong
+	(message "Warning: could not determine gnuplot version, guessing 3.7")
 	(setq gnuplot-program-version "3.7"
 	      gnuplot-program-major-version 3
 	      gnuplot-program-minor-version 7
-	      gnuplot-three-eight-p nil)
-	(message "Warning: could not determine gnuplot version, guessing 3.7")))
-      
+	      gnuplot-three-eight-p nil)))
+    
+    ;; Setup stuff that depends on version number
     (gnuplot-setup-menu-and-toolbar)))
 
 (defun gnuplot-setup-menu-and-toolbar ()
