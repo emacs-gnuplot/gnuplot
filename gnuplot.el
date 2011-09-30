@@ -1718,7 +1718,9 @@ This sets `gnuplot-recently-sent' to 'line."
 	     (gnuplot-back-to-continuation-beginning)
 	     (setq start (point))
 	     (end-of-line)
-	     (while (looking-back "\\\\")	; go to end of last continuation line
+	     (while (save-excursion
+		      (backward-char)
+		      (looking-at "\\\\"))	; go to end of last continuation line
 	       (end-of-line 2))
 	     (beginning-of-line 2)
 	     (setq end (point)))
@@ -2085,7 +2087,7 @@ Add additional indentation for continuation lines."
 	  (progn
 	    (gnuplot-back-to-continuation-beginning)
 	    (back-to-indentation) 
-	    (re-search-forward "[^[:space:]]+[[:space:]]+" (point-at-eol) 'end-at-limit)
+	    (re-search-forward "\\S-+\\s-+" (point-at-eol) 'end-at-limit)
 	    (setq indent (- (point) (point-at-bol))))
 
 	;; Not a continuation line; go back to the first non-blank,
@@ -2093,7 +2095,7 @@ Add additional indentation for continuation lines."
 	(beginning-of-line 0)
 	(while (and (not (bobp))
 		    (or (gnuplot-continuation-line-p)
-			(looking-at "[[:space:]]*$")))
+			(looking-at "\\s-*$")))
 	  (beginning-of-line 0))
 	(if (bobp)
 	    (setq indent 0)
@@ -2110,8 +2112,12 @@ Add additional indentation for continuation lines."
 (defun gnuplot-continuation-line-p ()
   "Return t if the line containing point is a continuation line"
   (save-excursion
-    (end-of-line 0)
-    (looking-back "\\\\")))
+    (condition-case ()
+	(progn
+	  (end-of-line 0)
+	  (backward-char)
+	  (looking-at "\\\\"))
+      (error nil))))
 
 ;; Move point back to start of continued command
 (defun gnuplot-back-to-continuation-beginning ()
