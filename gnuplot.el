@@ -2012,14 +2012,16 @@ buffer."
     (make-local-hook 'kill-buffer-hook))
   (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
 
-  (make-local-variable 'comint-output-filter-functions) ; is this necessary?
-  (setq comint-output-filter-functions
-	(append comint-output-filter-functions
-		'(comint-postoutput-scroll-to-bottom
-		  gnuplot-protect-prompt-fn)))
+  (add-hook 'comint-output-filter-functions
+	    'comint-postoutput-scroll-to-bottom
+	    nil t)
+  (add-hook 'comint-output-filter-functions
+	    'gnuplot-protect-prompt-fn
+	    nil t)
 
   (add-hook 'comint-dynamic-complete-functions 'gnuplot-comint-complete)
 
+  ;; Set up menu (see below)
   (easy-menu-define
    gnuplot-comint-mode-menu gnuplot-comint-mode-map "Menu used in gnuplot-comint-mode"
    gnuplot-comint-menu)
