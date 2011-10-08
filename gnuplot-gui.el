@@ -917,14 +917,12 @@ frame.  Bound to \\[gnuplot-gui-set-options-and-insert]
 Note that \"cntrparam\" is not currently supported."
   (interactive)
   (when (fboundp 'widget-create)
-    (let ((begin  (save-excursion (beginning-of-line) (point-marker)))
+    (let ((begin  (gnuplot-point-at-beginning-of-command))
 	  (end    (save-excursion (end-of-line)       (point-marker)))
 	  (termin (concat "\\(,\\s-*" (regexp-quote "\\") "\\|;\\)"))
 	  (set nil) (term nil))
       (save-excursion
 	;; there can be more then one command per line
-	(if (search-backward ";" begin "to_limit")
-	    (progn (forward-char  1) (setq begin (point-marker))))
 	(if (re-search-forward termin end "to_limit")
 	    (progn (backward-char (length (match-string 1)))
 		   (setq end (point-marker))))

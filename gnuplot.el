@@ -1503,111 +1503,259 @@ static char *help_btn[] = {
 
 (defvar gnuplot-mode-syntax-table nil
   "Syntax table in use in `gnuplot-mode' buffers.
-This is the same as the standard syntax table except that ' is a
-string quote character, ` and _ are word characters, and math
-operators are punctuation characters.")
-(if gnuplot-mode-syntax-table
-    ()
+This is the same as the standard syntax table except that ` and _
+are word characters, and math operators are punctuation
+characters.")
+(unless gnuplot-mode-syntax-table
   (setq gnuplot-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?* "."  gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?+ "."  gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?- "."  gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?/ "."  gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?% "."  gnuplot-mode-syntax-table)
-  ;;(modify-syntax-entry ?& "."  gnuplot-mode-syntax-table) ; rarely used
-  ;;(modify-syntax-entry ?^ "."  gnuplot-mode-syntax-table) ; operators
-  ;;(modify-syntax-entry ?| "."  gnuplot-mode-syntax-table) ; in gnuplot,
-  ;;(modify-syntax-entry ?& "."  gnuplot-mode-syntax-table) ; (by me,
-  ;;(modify-syntax-entry ?? "."  gnuplot-mode-syntax-table) ;  anyway...)
-  ;;(modify-syntax-entry ?~ "."  gnuplot-mode-syntax-table) ;
-  (modify-syntax-entry ?' "\"" gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?` "w"  gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?_ "w"  gnuplot-mode-syntax-table))
+  (with-syntax-table gnuplot-mode-syntax-table
+    (modify-syntax-entry ?* ".")
+    (modify-syntax-entry ?+ ".")
+    (modify-syntax-entry ?- ".")
+    (modify-syntax-entry ?/ ".")
+    (modify-syntax-entry ?% ".")
+    ;;(modify-syntax-entry ?& "." ) ; rarely used
+    ;;(modify-syntax-entry ?^ "." ) ; operators
+    ;;(modify-syntax-entry ?| "." ) ; in gnuplot,
+    ;;(modify-syntax-entry ?& "." ) ; (by me,
+    ;;(modify-syntax-entry ?? "." ) ;  anyway...)
+    ;;(modify-syntax-entry ?~ "." ) ;
 
+    ;; gnuplot's shell-like rules for string quoting (and comments)
+    ;; are not what the Emacs sexp parser expects, so we scan for
+    ;; strings and comments explicitly in `gnuplot-scan-multiline'.
+    ;; Make the character class of `"', `'', and `\' punctuation so
+    ;; the parser doesn't interfere with this. <jjo>
+    (modify-syntax-entry ?\" ".")
+    (modify-syntax-entry ?' ".")
+    (modify-syntax-entry ?` "." )
+    (modify-syntax-entry ?_ "w" )
+    (modify-syntax-entry ?\\ ".")))
 
-(defvar gnuplot-font-lock-keywords nil)
-(defvar gnuplot-font-lock-keywords-1 nil)
-(defvar gnuplot-font-lock-keywords-2 nil)
+;; Macro to generate efficient regexps for keyword matching (at
+;; compile-time if byte-compiling)
+;;
+;; These regular expressions treat the gnuplot vocabulary as complete
+;; words.  Although gnuplot will recognise unique abbreviations, these
+;; regular expressions will not.
+(defmacro gnuplot-make-regexp (list)
+  `(eval-when-compile
+     (regexp-opt ,list 'words)))
 
-;; used make-regexp to generate the regular expression strings
-;; this is all pattern based
-;; (insert (format "%s"
-;;  		(regexp-quote
-;;  		 (make-regexp
-;; 		  '("abs" "acos" "acosh" "arg" "asin" "asinh" "atan"
-;; 		    "atan2" "atanh" "besj0" "besj1" "besy0" "besy1"
-;; 		    "ceil" "cos" "cosh" "erf" "erfc" "exp" "floor"
-;; 		    "gamma" "ibeta" "inverf" "igamma" "imag" "invnorm"
-;; 		    "int" "lgamma" "log" "log10" "norm" "rand" "real"
-;; 		    "sgn" "sin" "sinh" "sqrt" "tan" "tanh" "column"
-;; 		    "tm_hour" "tm_mday" "tm_min" "tm_mon" "tm_sec"
-;; 		    "tm_wday" "tm_yday" "tm_year" "valid")))))
+;; Lists of gnuplot keywords for syntax coloring etc.
+(defvar gnuplot-keywords-builtin-functions
+  '("abs" "acosh" "acos" "arg" "asinh" "asin" "atan" "atanh" "atan2" "besj1" "besj0" "besy1" "besy0" "ceil" "column" "cosh" "cos" "erfc" "erf" "exp" "floor" "gamma" "ibeta" "igamma" "imag" "int" "inverf" "invnorm" "lgamma" "log" "log10" "norm" "rand" "real" "sgn" "sinh" "sin" "sqrt" "tanh" "tan" "tm_hour" "tm_mday" "tm_min" "tm_mon" "tm_sec" "tm_wday" "tm_yday" "tm_year" "valid")
+  "List of GNUPLOT built-in functions, as strings.
+
+These are highlighted using `font-lock-function-name-face'.")
+
+(defvar gnuplot-keywords-plotting
+  '("axes" "every" "index" "lw" "lt" "ls" "linestyle" "linetype" "linewidth" "notitle" "pt" "ps" "pointsize" "pointtype" "smooth" "thru" "title" "using" "with")
+  "List of GNUPLOT keywords associated with plotting, as strings.
+
+These are highlighted using `font-lock-type-face'.
+This list does not include plotting styles -- for that, see 
+`gnuplot-keywords-plotting-styles'")
+
+(defvar gnuplot-keywords-plotting-styles
+  '("boxerrorbars" "boxes" "boxxyerrorbars" "candlesticks" "dots" "errorbars" "financebars" "fsteps" "histeps" "impulses" "lines" "linespoints" "points" "steps" "vector" "xerrorbars" "xyerrorbars" "yerrorbars")
+  "List of GNUPLOT plotting styles, as strings.
+
+These are highlighted using `font-lock-function-name-face'.")
+
+(defvar gnuplot-keywords-misc
+  '("bind" "cd" "clear" "exit" "fit" "help" "history" "load" "pause" "print" "pwd" "quit" "replot" "save" "set" "show" "unset")
+  "List of GNUPLOT miscellaneous commands, as strings.
+
+These are highlighted using `font-lock-reference-face'.")
+
+(defvar gnuplot-keywords-negatable-options
+  '("arrow" "autoscale" "border" "clabel" "clip" "contour" "dgrid3d" "grid" "hidden3d" "historysize" "key" "label" "linestyle" "logscale" "mouse" "multiplot" "mx2tics" "mxtics" "my2tics" "mytics" "mztics" "offsets" "polar" "surface" "timestamp" "title" "x2dtics" "x2mtics" "x2tics" "x2zeroaxis" "xdtics" "xmtics" "xtics" "xzeroaxis" "y2dtics" "y2mtics" "y2tics" "y2zeroaxis" "ydtics" "ymtics" "ytics" "yzeroaxis" "zdtics" "zmtics" "ztics" "zzeroaxis")
+
+  "List of gnuplot options which can be negated using `gnuplot-negate-option'")
+
+(defvar gnuplot-negatable-options-regexp
+  (gnuplot-make-regexp gnuplot-keywords-negatable-options))
 
 ;; Set up colorization for gnuplot.
 ;; This handles font-lock for emacs and xemacs.
 ;; hilit19 is handled in `gnuplot-mode'.
-;; These regular expressions treat the gnuplot vocabulary as complete
-;; words.  Although gnuplot will recognise unique abbreviations, these
-;; regular expressions will not."
-(if (featurep 'font-lock)		; <KL>
-    (setq gnuplot-font-lock-keywords
-	  (list
-					; comments
-	   '("#.*$" . font-lock-comment-face)
-					; quoted things
-	   ;'("['\"]\\([^'\"\n]*\\)['\"]"
-	   ;  1 font-lock-string-face)
-	   '("'[^'\n]*'?" . font-lock-string-face)
-					; stuff in brackets, sugg. by <LB>
-	   '("\\[\\([^]]+\\)\\]"
-	     1 font-lock-reference-face)
-					; variable/function definitions
-	   '("\\(\\<[a-z]+[a-z_0-9(), \t]*\\)[ \t]*="
-	     1 font-lock-variable-name-face)
-					; built-in function names
-	   (cons (concat
-		  "\\<\\("
-		  "a\\(bs\\|cosh\?\\|rg\\|sinh\?\\|"
-		  "tan\\(\\|\[2h\]\\)\\)\\|"
-		  "bes\\(j\[01\]\\|y\[01\]\\)\\|"
-		  "c\\(eil\\|o\\(lumn\\|sh\?\\)\\)\\|"
-		  "e\\(rfc\?\\|xp\\)\\|floor\\|gamma\\|"
-		  "i\\(beta\\|gamma\\|mag\\|"
-		  "n\\(t\\|v\\(erf\\|norm\\)\\)\\)\\|"
-		  "l\\(gamma\\|og\\(\\|10\\)\\)\\|"
-		  "norm\\|r\\(and\\|eal\\)\\|"
-		  "s\\(gn\\|inh\?\\|qrt\\)\\|"
-		  "t\\(anh\?\\|m_\\(hour\\|m\\(day\\|in\\|on\\)\\|"
-		  "sec\\|wday\\|y\\(day\\|ear\\)\\)\\)\\|"
-		  "valid"
-		  "\\)\\>")
-		 font-lock-function-name-face)
-					; reserved words associated with
-					; plotting <AL>
-	   '("\\<\\(axes\\|every\\|index\\|l\\(\[stw\]\\|ine\\(style\\|type\\|width\\)\\)\\|notitle\\|p\\(\[st\]\\|oint\\(size\\|type\\)\\)\\|smooth\\|t\\(hru\\|itle\\)\\|using\\|with\\)\\>" . font-lock-type-face)
-	   '("\\<\\(box\\(e\\(rrorbars\\|s\\)\\|xyerrorbars\\)\\|candlesticks\\|dots\\|errorbars\\|f\\(inancebars\\|steps\\)\\|histeps\\|impulses\\|lines\\(\\|points\\)\\|points\\|steps\\|vector\\|x\\(errorbars\\|yerrorbars\\)\\|yerrorbars\\)\\>" . font-lock-function-name-face)
-					; (s)plot -- also thing (s)plotted
-	   '("\\<s?plot\\>" . font-lock-keyword-face)
-	   '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
-	     1 font-lock-variable-name-face)
-					; other common commands
-					; miscellaneous commands
-	   (cons (concat "\\<\\("
-			 "bind\\|"
-			 "c\\(d\\|lear\\)\\|exit\\|fit\\|h\\(elp\\|istory\\)\\|load\\|"
-			 "p\\(ause\\|rint\\|wd\\)\\|quit\\|replot\\|"
-			 "s\\(ave\\|et\\|how\\)\\|unset"
-			 "\\)\\>\\|!.*$")
-		 font-lock-reference-face))
-	  gnuplot-font-lock-keywords-1 gnuplot-font-lock-keywords
-	  gnuplot-font-lock-keywords-2 gnuplot-font-lock-keywords) )
+(defvar gnuplot-font-lock-keywords nil)
+(defvar gnuplot-font-lock-syntactic-keywords nil)
+(defvar gnuplot-font-lock-defaults nil)
 
-(if (and gnuplot-xemacs-p (featurep 'font-lock))
-    (put 'gnuplot-mode 'font-lock-defaults
-	 '((gnuplot-font-lock-keywords
-	    gnuplot-font-lock-keywords-1
-	    gnuplot-font-lock-keywords-2)
-	   t t ((?_ . "w")) )))
+(when (featurep 'font-lock)		; <KL>
+  (let ((keywords
+	 (list
+	  ;; stuff in brackets, sugg. by <LB>
+	  '("\\[\\([^]]+\\)\\]" 1 font-lock-reference-face)
+
+	  ;; variable/function definitions
+	  '("\\(\\<[a-z]+[a-z_0-9(), \t]*\\)[ \t]*=" 1
+	    font-lock-variable-name-face)
+
+	  ;; built-in function names
+	  (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
+		font-lock-function-name-face)
+
+	  ;; reserved words associated with plotting <AL>
+	  (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
+		font-lock-type-face)
+	  (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
+		font-lock-function-name-face)
+
+	  ;; (s)plot -- also thing (s)plotted
+	  '("\\<s?plot\\>" . font-lock-keyword-face)
+	  '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
+	    1 font-lock-variable-name-face)
+
+	  ;; other common commands
+	  (cons (gnuplot-make-regexp gnuplot-keywords-misc)
+		font-lock-reference-face)
+	  (cons "!.*$" font-lock-reference-face)))
+	
+	;; Comments and strings are colorized syntactically after
+	;; scanning with `gnuplot-scan-multiline', see below <jjo>
+	(syntactic-keywords 
+	 '((gnuplot-scan-strings (1 "|" nil t) (2 "|" nil t))
+	   (gnuplot-scan-comments (1 "!" nil t) (2 "!" nil t)))))
+	
+    (setq gnuplot-font-lock-defaults 
+	  `(,keywords
+	    nil				; Use syntactic fontification
+	    t				; Use case folding
+	    nil				; No extra syntax
+	    ;; call `gnuplot-beginning-of-continuation'
+	    ;; to find a safe place to begin syntactic highlighting
+	    beginning-of-defun
+
+	    ;; Set the following:
+	    (font-lock-multiline . t)
+	    (font-lock-syntactic-keywords ,@syntactic-keywords)))
+  
+    ;; Set up font-lock for Xemacs
+    ;; For GNU Emacs, this is done in `gnuplot-mode'
+    (if (and gnuplot-xemacs-p (featurep 'font-lock)) 
+	(put 'gnuplot-mode 'font-lock-defaults
+	     gnuplot-font-lock-defaults))))
+
+;; Scanning functions for font-lock
+(defun gnuplot-scan-strings (limit)
+  (gnuplot-scan-multiline 'string limit))
+
+(defun gnuplot-scan-comments (limit)
+  (gnuplot-scan-multiline 'comment limit))
+	     
+(defun gnuplot-scan-multiline (type limit)
+  "Function used by font-lock to search for strings and comments
+in gnuplot buffers.
+
+TYPE should be either 'string or 'comment. LIMIT is the search
+limit passed by font-lock."
+  ;; Gnuplot shell-like strings and comments don't quite agree with
+  ;; Emacs' built-in sexp parser:
+  ;;
+  ;; - strings can continue over several lines, but only by using a
+  ;; backslash to escape the newline
+  ;; 
+  ;; - double quoted strings can contain escaped quotes \" and escaped
+  ;;   backslashes \\, but there's no way to quote the delimiter in
+  ;;   single quoted strings
+  ;; 
+  ;; - strings can end at newline without needing a closing delimiter
+  ;; 
+  ;; - comments continue over continuation lines
+  ;; 
+  ;; Trying to write a regexp to match these rules is horrible, so we
+  ;; use this matching function instead <jjo>
+  (let* ((searching-for-string-p (eq type 'string))
+	 (re (cond (searching-for-string-p "'\\|\"")
+		   (t "#")))
+	 (begin (search-forward-regexp re limit t)))
+    ;; Skip over anything which is already inside a string
+    (while (and (gnuplot-in-string (1- (point)))
+    		(setq begin (search-forward re limit t))))
+
+    (if (not begin)
+	nil				; Nothing found on this line
+      (let ((begin (1- begin))
+	    (limit (point-at-eol))
+	    (end nil) (end-at-eobp nil)
+	    (re
+	     (cond ((not searching-for-string-p) nil)
+		   ((string= (match-string 0) "'") "'")
+		   ((string= (match-string 0) "\"") "\\\\\"\\|\\\\\\\\\\|\"")))) 
+	(while (not end)
+	  (if (and (bolp) (eolp))	; Empty continuation line:
+	      (setq end (1+ (point)))	; end at newline
+	    (if searching-for-string-p
+		(setq end (search-forward-regexp re limit 'go-to-limit))
+	      (end-of-line))	    ; Comments end only at end-of-line
+	    
+	    (if end
+		(when (and searching-for-string-p
+			   (or (string= (match-string 0) "\\\"")
+			       (string= (match-string 0) "\\\\")))
+		  (setq end nil))   ; Skip over escapes and look again
+	      
+	      ;; We got to EOL without finding an ending delimiter
+	      (if (eobp)
+		  (setq end (point)
+			end-at-eobp t)	; string/comment ends at EOB
+		;; Otherwise see if the line is continued with a backslash
+		(if (save-excursion (backward-char) (looking-at "\\\\"))
+		    (progn		; yes, check out next line
+		      (beginning-of-line 2)
+		      (setq limit (point-at-eol)))
+		  (setq end (point-at-eol))))))) ; no, string ends at EOL
+
+	;; Set the match data: (match-string 0) is the whole
+	;; string with delimiters, (match-string 1) is the opening
+	;; quote or #, (match-string 2) is the closing quote or
+	;; newline.
+	(let ((begin-marker		(copy-marker begin))
+	      (begin-quote-marker	(copy-marker (1+ begin)))
+	      (end-quote-marker		(copy-marker (1- end)))
+	      (end-marker		(copy-marker end)))
+	  (if end-at-eobp
+	      (set-match-data  ; Don't mark an end of construct at EOB
+	       (list begin-marker end-marker
+		     begin-marker begin-quote-marker)) 
+	    (set-match-data
+	     (list begin-marker end-marker
+		   begin-marker begin-quote-marker
+		   end-quote-marker end-marker)))
+	  
+	  ;; Mark multiline constructs for font-lock
+	  (and (> (count-lines begin-marker end-marker) 1)
+	       (add-text-properties begin-marker end-marker '(font-lock-multiline t)))
+
+	  ;; Let font-lock know we found a match
+	  t)))))
+
+(defun gnuplot-in-string (&optional where)
+  "Returns non-nil if the text at WHERE is within a string.
+
+If WHERE is omitted, defaults to text at point.
+This is a simple wrapper for `syntax-ppss'."
+  (save-excursion
+    (and where (goto-char where))
+    (let ((parse-state (syntax-ppss)))
+      (nth 3 parse-state))))
+
+(defun gnuplot-in-comment (&optional where)
+  "Returns non-nil if the text at WHERE is within a comment.
+
+If WHERE is omitted, defaults to text at point.
+This is a simple wrapper for `syntax-ppss'."
+  (save-excursion
+    (and where (goto-char where))
+    (let ((parse-state (syntax-ppss)))
+      (nth 4 parse-state))))
+
+(defun gnuplot-in-string-or-comment (&optional where)
+  (or (gnuplot-in-string where)
+      (gnuplot-in-comment where)))
 
 ;; these two lines get rid of an annoying compile time error
 ;; message.  that function gets non-trivially defalias-ed in
@@ -1715,7 +1863,7 @@ This sets `gnuplot-recently-sent' to 'line."
 	   (save-excursion 
 	     ;; go to start of continued command, or beginning of line
 	     ;; if this is not a continuation of a previous line <JJO>
-	     (gnuplot-back-to-continuation-beginning)
+	     (gnuplot-beginning-of-continuation)
 	     (setq start (point))
 	     (end-of-line)
 	     (while (save-excursion
@@ -1826,7 +1974,7 @@ file visited by the script buffer."
     (pop-to-buffer gnuplot-comint-recent-buffer)))
 
 (defun gnuplot-trim-gnuplot-buffer ()
-  "Trim lines form the beginning of the *gnuplot* buffer.
+  "Trim lines from the beginning of the *gnuplot* buffer.
 This keeps that buffer from growing excessively in size.  Normally,
 this function is attached to `gnuplot-after-plot-hook'"
   (if (> gnuplot-buffer-max-size 0)
@@ -1846,17 +1994,17 @@ this function is attached to `gnuplot-after-plot-hook'"
 
 ;; Define gnuplot-comint-mode, the mode for the gnuplot process
 ;; buffer, by deriving from comint-mode    
-(define-derived-mode gnuplot-comint-mode comint-mode "Gnuplot shell"
+(define-derived-mode gnuplot-comint-mode comint-mode "Gnuplot interaction"
   "Major mode for interacting with a gnuplot process in a buffer.
 
 This sets font-lock and keyword completion in the comint/gnuplot
 buffer."
 
-  (if (featurep 'font-lock)
-      (progn
-	(set (make-local-variable 'font-lock-defaults)
-	     '(gnuplot-font-lock-keywords t t))
-	(if gnuplot-xemacs-p (turn-on-font-lock))))
+  (if gnuplot-xemacs-p			; deal with font-lock
+      (if (fboundp 'turn-on-font-lock) (turn-on-font-lock))
+    (progn
+      (setq font-lock-defaults gnuplot-font-lock-defaults)
+      (set (make-local-variable 'parse-sexp-lookup-properties) t)))
 
   ;; XEmacs needs the call to make-local-hook
   (when (and (featurep 'xemacs)
@@ -2079,27 +2227,30 @@ For most lines, set indentation to previous level of indentation.
 Add additional indentation for continuation lines."
   (interactive)
   (let (indent)
-    (save-excursion 
-      (if (gnuplot-continuation-line-p)
-	  ;; This is a continuation line. Indent to the same level as
-	  ;; the second word on the line beginning this command (i.e.,
-	  ;; the first non-whitespace character after whitespace)
-	  (progn
-	    (gnuplot-back-to-continuation-beginning)
-	    (back-to-indentation) 
-	    (re-search-forward "\\S-+\\s-+" (point-at-eol) 'end-at-limit)
-	    (setq indent (- (point) (point-at-bol))))
+    (if (gnuplot-in-string (beginning-of-line))
+	;; Continued strings begin at left margin
+	(setq indent 0)
+      (save-excursion 
+	(if (gnuplot-continuation-line-p)
+	    ;; This is a continuation line. Indent to the same level as
+	    ;; the second word on the line beginning this command (i.e.,
+	    ;; the first non-whitespace character after whitespace)
+	    (progn
+	      (gnuplot-beginning-of-continuation)
+	      (back-to-indentation) 
+	      (re-search-forward "\\S-+\\s-+" (point-at-eol) 'end-at-limit)
+	      (setq indent (- (point) (point-at-bol))))
 
-	;; Not a continuation line; go back to the first non-blank,
-	;; non-continuation line and indent to the same level
-	(beginning-of-line 0)
-	(while (and (not (bobp))
-		    (or (gnuplot-continuation-line-p)
-			(looking-at "\\s-*$")))
-	  (beginning-of-line 0))
-	(if (bobp)
-	    (setq indent 0)
-	  (setq indent (current-indentation)))))
+	  ;; Not a continuation line; go back to the first non-blank,
+	  ;; non-continuation line and indent to the same level
+	  (beginning-of-line 0)
+	  (while (and (not (bobp))
+		      (or (gnuplot-continuation-line-p)
+			  (looking-at "\\s-*$")))
+	    (beginning-of-line 0))
+	  (if (bobp)
+	      (setq indent 0)
+	    (setq indent (current-indentation))))))
     
     ;; Set indentation
     (save-excursion 
@@ -2108,9 +2259,14 @@ Add additional indentation for continuation lines."
     (let ((point-at-indent (+ (point-at-bol) indent)))
       (when (< (point) point-at-indent) (goto-char point-at-indent)))))
 
+;;
+;; Functions for finding the start and end of continuation blocks
+;; (a bunch of 
+;;
+
 ;; Check if line containing point is a continuation
 (defun gnuplot-continuation-line-p ()
-  "Return t if the line containing point is a continuation line"
+  "Return t if the line containing point is a continuation of the previous line."
   (save-excursion
     (condition-case ()
 	(progn
@@ -2119,48 +2275,115 @@ Add additional indentation for continuation lines."
 	  (looking-at "\\\\"))
       (error nil))))
 
-;; Move point back to start of continued command
-(defun gnuplot-back-to-continuation-beginning ()
-  "Move point to the beginning of the first line which this line is
-a continuation of.
-If this is not a continuation line, move point to beginning of line."
-  (interactive)
+;; Move point to start of continuation block
+(defun gnuplot-beginning-of-continuation ()
+  "Move point to the beginning of the continuation lines containing point.
+
+If not in a continuation line, move point to beginning of line."
   (beginning-of-line)
   (while (gnuplot-continuation-line-p)
     (beginning-of-line 0)))
 
-;; FWIW, here are all the options which can be negated:
-;; (insert (format "%s"
-;; 		(regexp-quote
-;; 		 (make-regexp
-;; 		  '("arrow" "autoscale" "border" "clabel" "clip"
-;; 		    "contour" "dgrid3d" "grid" "hidden3d" "key" "label"
-;; 		    "linestyle" "logscale" "multiplot" "mxtics"
-;; 		    "mytics" "mztics" "mx2tics" "my2tics"
-;; 		    "offsets" "polar" "surface" "timestamp" "title"
-;; 		    "xdtics" "ydtics" "zdtics" "x2dtics" "y2dtics"
-;; 		    "xmtics" "ymtics" "zmtics" "x2mtics" "y2mtics"
-;; 		    "xtics" "ytics" "ztics" "x2tics" "y2tics"
-;; 		    "xzeroaxis" "yzeroaxis" "zzeroaxis" "x2zeroaxis"
-;; 		    "y2zeroaxis")))))
+;; Move point to end of continuation block
+(defun gnuplot-end-of-continuation ()
+  "Move point to the end of the continuation lines containing point.
+
+If there are no continuation lines, move point to end-of-line."
+  (end-of-line)
+  (catch 'eob
+    (while (save-excursion (backward-char)
+			   (looking-at "\\\\"))
+      (end-of-line 2)
+      (if (eobp) (throw 'eob nil)))))
+
+;; Save-excursion wrappers for the above to return point at beginning
+;; or end of continuation
+(defun gnuplot-point-at-beginning-of-continuation ()
+  "Return value of point at beginning of the continued block containing point.
+
+If there are no continuation lines, returns point-at-bol."
+  (save-excursion
+    (gnuplot-beginning-of-continuation)
+    (point)))
+
+(defun gnuplot-point-at-end-of-continuation ()
+  "Return value of point at the end of the continued block containing point.
+
+If there are no continuation lines, returns point-at-eol."
+  (save-excursion
+    (gnuplot-end-of-continuation)
+    (point)))
+
+;; We also treat a block of continuation lines as a 'defun' for
+;; movement purposes
+(defun gnuplot-beginning-of-defun (&optional arg)
+  (if (not arg) (setq arg 1))
+  (if (> arg 0) 			
+      (catch 'bob		; go to beginning of ARGth prev. defun
+	(dotimes (n arg)
+	  (when (= (point)
+		   (gnuplot-point-at-beginning-of-continuation))
+	    (forward-line -1)
+	    (if (bobp) (throw 'bob t))
+	    (while (looking-at "^\\s-*$")
+	      (forward-line -1)
+	      (if (bobp) (throw 'bob t))))
+	  (gnuplot-beginning-of-continuation))
+	t)
+
+    (catch 'eob		  ; find beginning of (-ARG)th following defun
+      (dotimes (n (- arg))
+	(gnuplot-end-of-continuation)
+	(forward-line)
+	(if (eobp) (throw 'eob t))
+	(while (looking-at "^\\s-*$")
+	  (forward-line)
+	  (if (eobp) (throw 'eob t)))))))
+
+;; Movement to start or end of command, including multiple commands
+;; separated by semicolons
+(defun gnuplot-beginning-of-command ()
+  "Move point to beginning of command containing point."
+  (let ((limit (gnuplot-point-at-beginning-of-continuation)))
+    (search-backward ";" limit 'lim)
+    (while
+	(gnuplot-in-string-or-comment)
+      (search-backward ";" limit 'lim)))
+  (skip-chars-forward ";")
+  (skip-syntax-forward "-"))
+
+(defun gnuplot-end-of-command ()
+  "Move point to end of command containing point."
+  (let ((limit (gnuplot-point-at-end-of-continuation)))
+    (search-forward ";" limit 'lim)
+    (while
+	(gnuplot-in-string-or-comment)
+      (search-forward ";" limit 'lim)))
+  (backward-char))
+
+(defun gnuplot-point-at-beginning-of-command ()
+  "Return position at the beginning of command containing point."
+  (save-excursion (gnuplot-beginning-of-command) (point)))
+
+(defun gnuplot-point-at-end-of-command ()
+  "Return position at the end of command containing point."
+  (save-excursion (gnuplot-end-of-command) (point)))
 
 (defun gnuplot-negate-option ()
   "Append \"no\" to or remove \"no\" from the set option on the current line.
-This checks if the set option is one which has a negated form."
+This checks if the set option is one which has a negated form.
+
+Negatable options are defined in `gnuplot-keywords-negatable-options'."
   (interactive)
-  (let ((begin (save-excursion (beginning-of-line) (point-marker)))
-	(end   (save-excursion (end-of-line)       (point-marker)))
-	(regex "a\\(rrow\\|utoscale\\)\\|border\\|c\\(l\\(abel\\|ip\\)\\|ontour\\)\\|dgrid3d\\|grid\\|hi\\(dden3d\\|storysize\\)\\|key\\|l\\(abel\\|inestyle\\|ogscale\\)\\|m\\(ouse\\|ultiplot\\|x\\(2tics\\|tics\\)\\|y\\(2tics\\|tics\\)\\|ztics\\)\\|offsets\\|polar\\|surface\\|ti\\(mestamp\\|tle\\)\\|x\\(2\\(dtics\\|mtics\\|tics\\|zeroaxis\\)\\|dtics\\|mtics\\|tics\\|zeroaxis\\)\\|y\\(2\\(dtics\\|mtics\\|tics\\|zeroaxis\\)\\|dtics\\|mtics\\|tics\\|zeroaxis\\)\\|z\\(dtics\\|mtics\\|tics\\|zeroaxis\\)"))
+  (gnuplot-fetch-version-number)
+  (let ((begin (gnuplot-point-at-beginning-of-command))
+	(end   (gnuplot-point-at-end-of-command))
+	(regex gnuplot-negatable-options-regexp))
     (save-excursion
-      (if (search-backward ";" begin t)
-	  (progn (forward-char  1) (setq begin (point-marker))))
-      (if (search-forward  ";" end   t)
-	  (progn (forward-char -1) (setq end   (point-marker))))
       (goto-char begin)
       (skip-syntax-forward "-" end)
       (if (looking-at "\\(un\\)?set\\s-+")
-	  (cond ((and gnuplot-program-version
-		      (> (string-to-number gnuplot-program-version) 3.7))
+	  (cond ((> (string-to-number gnuplot-program-version) 3.7)
 		 (cond ((looking-at "unset")
 			(delete-char 2))
 		       ((looking-at (concat "set\\s-+\\(" regex "\\)"))
@@ -2561,8 +2784,14 @@ a list:
   (set (make-local-variable 'comment-column) 32)
   (set (make-local-variable 'comment-start-skip) "#[ \t]*")
   (set (make-local-variable 'indent-line-function) 'gnuplot-indent-line)
+
+  (set (make-local-variable 'beginning-of-defun-function) 'gnuplot-beginning-of-defun)
+  (set (make-local-variable 'end-of-defun-function) 'gnuplot-end-of-continuation)
+
   (add-hook 'completion-at-point-functions 'gnuplot-completion-at-point nil t)
+
   (set-syntax-table gnuplot-mode-syntax-table)
+
   (if (or (fboundp 'hilit-set-mode-patterns)
 	  (equal gnuplot-keywords-when 'immediately)) ; <HW>
       (gnuplot-setup-info-look)) ;; <SE>
@@ -2577,19 +2806,12 @@ a list:
 	   ,(list keywords 'nil 'keyword)
 	   (hilit-string-find ?\\ string)))))
 
-
-
   (if gnuplot-xemacs-p			; deal with font-lock
       (if (fboundp 'turn-on-font-lock) (turn-on-font-lock))
     (progn
-      (make-variable-buffer-local 'font-lock-defaults)
-      (setq font-lock-defaults '(gnuplot-font-lock-keywords t t))))
-;;   (if (and gnuplot-xemacs-p gnuplot-toolbar-display-flag)
-;;       (condition-case ()		; deal with the toolbar
-;; 	  (and (require 'toolbar)
-;; 	       (require 'xpm)
-;; 	       (gnuplot-make-toolbar-function))
-;; 	(error nil)))
+      (setq font-lock-defaults gnuplot-font-lock-defaults)
+      (set (make-local-variable 'parse-sexp-lookup-properties) t)))
+
   (if (fboundp 'widget-create)		; gnuplot-gui
       (condition-case ()
   	  (require 'gnuplot-gui)
