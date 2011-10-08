@@ -2193,19 +2193,19 @@ When `gnuplot-display-process' is nil this will switch to
 the gnuplot process buffer.  When that variable is non-nil, the
 gnuplot process buffer will be displayed in a window."
   (interactive)
-  (if (and gnuplot-buffer (get-buffer gnuplot-buffer))
-      (cond ((equal gnuplot-display-process 'window)
-	     (switch-to-buffer-other-window gnuplot-buffer))
-	    ((equal gnuplot-display-process 'frame)
-	     (or (and gnuplot-process-frame
-		      (frame-live-p gnuplot-process-frame))
-		 (setq gnuplot-process-frame (make-frame)))
-	     (raise-frame gnuplot-process-frame)
-	     (select-frame gnuplot-process-frame)
-	     (switch-to-buffer gnuplot-buffer))
-	    (t
-	     (switch-to-buffer gnuplot-buffer)))
-    (message "There is not an active Gnuplot process.")))
+  (unless (and gnuplot-buffer (get-buffer gnuplot-buffer))
+    (gnuplot-make-gnuplot-buffer))
+  (cond ((equal gnuplot-display-process 'window)
+	 (switch-to-buffer-other-window gnuplot-buffer))
+	((equal gnuplot-display-process 'frame)
+	 (or (and gnuplot-process-frame
+		  (frame-live-p gnuplot-process-frame))
+	     (setq gnuplot-process-frame (make-frame)))
+	 (raise-frame gnuplot-process-frame)
+	 (select-frame gnuplot-process-frame)
+	 (switch-to-buffer gnuplot-buffer))
+	(t
+	 (switch-to-buffer gnuplot-buffer))))
 
 
 ;;; --- miscellaneous functions: insert file name, indentation, negation
