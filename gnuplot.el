@@ -2185,7 +2185,8 @@ STRING is the text as originally inserted in the comint buffer."
 
 (defun gnuplot-close-down ()
   "Tidy up when deleting the gnuplot buffer."
-  (if (eq (process-status gnuplot-process) 'run);; <SE>
+  (if (and gnuplot-process
+	   (eq (process-status gnuplot-process) 'run)) ; <SE>
       (kill-process gnuplot-process))
   (setq gnuplot-process nil
         gnuplot-buffer nil))
