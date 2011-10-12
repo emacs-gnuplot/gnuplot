@@ -2374,21 +2374,22 @@ If there are no continuation lines, returns point-at-eol."
 (defun gnuplot-beginning-of-command ()
   "Move point to beginning of command containing point."
   (let ((limit (gnuplot-point-at-beginning-of-continuation)))
-    (search-backward ";" limit 'lim)
     (while
-	(gnuplot-in-string-or-comment)
-      (search-backward ";" limit 'lim)))
-  (skip-chars-forward ";")
-  (skip-syntax-forward "-"))
+	(and
+	 (search-backward ";" limit 'lim)
+	 (gnuplot-in-string-or-comment)))
+    (skip-chars-forward ";")
+    (skip-syntax-forward "-")))
 
 (defun gnuplot-end-of-command ()
   "Move point to end of command containing point."
   (let ((limit (gnuplot-point-at-end-of-continuation)))
-    (search-forward ";" limit 'lim)
     (while
-	(gnuplot-in-string-or-comment)
-      (search-forward ";" limit 'lim)))
-  (backward-char))
+	(and
+	 (search-forward ";" limit 'lim)
+	 (gnuplot-in-string-or-comment)))
+    (skip-chars-backward ";")
+    (skip-syntax-backward "-")))
 
 (defun gnuplot-point-at-beginning-of-command ()
   "Return position at the beginning of command containing point."
