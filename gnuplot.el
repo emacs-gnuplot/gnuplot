@@ -1691,8 +1691,9 @@ limit passed by font-lock."
 		   (t "#")))
 	 (begin (search-forward-regexp re limit t)))
     ;; Skip over anything which is already inside a string
-    (while (and (gnuplot-in-string (1- (point)))
-    		(setq begin (search-forward re limit t))))
+    (when (> (point) (point-min))
+      (while (and (gnuplot-in-string (1- (point)))
+		  (setq begin (search-forward-regexp re limit t)))))
 
     (if (not begin)
 	nil				; Nothing found on this line
@@ -1768,16 +1769,18 @@ limit passed by font-lock."
 
 If WHERE is omitted, defaults to text at point.
 This is a simple wrapper for `syntax-ppss'."
-  (let ((parse-state (syntax-ppss where)))
-    (nth 3 parse-state)))
+  (save-excursion
+    (let ((parse-state (syntax-ppss where)))
+      (nth 3 parse-state))))
 
 (defun gnuplot-in-comment (&optional where)
   "Returns non-nil if the text at WHERE is within a comment.
 
 If WHERE is omitted, defaults to text at point.
 This is a simple wrapper for `syntax-ppss'."
-  (let ((parse-state (syntax-ppss where)))
-    (nth 4 parse-state)))
+  (save-excursion
+    (let ((parse-state (syntax-ppss where)))
+      (nth 4 parse-state))))
 
 (defun gnuplot-in-string-or-comment (&optional where)
   (or (gnuplot-in-string where)
