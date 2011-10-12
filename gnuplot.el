@@ -595,6 +595,7 @@ to the empty string."
   "A list of keywords used in GNUPLOT.
 These are set by `gnuplot-set-keywords-list' from the values in
 `info-lookup-cache'.")
+(defvar gnuplot-keywords-alist nil) ;; For all-completions
 (defvar gnuplot-keywords-pending t	;; <HW>
   "A boolean which gets toggled when the info file is probed.")
 (defcustom gnuplot-keywords-when 'deferred ;; 'immediately
@@ -628,9 +629,9 @@ you're not using that musty old thing, are you..."
 ;;; --- key bindings and menus
 
 (defvar gnuplot-mode-map nil)
-(if gnuplot-mode-map
-    ()
+(unless gnuplot-mode-map
   (setq gnuplot-mode-map (make-sparse-keymap))
+
   (define-key gnuplot-mode-map "\C-c\C-b" 'gnuplot-send-buffer-to-gnuplot)
   (define-key gnuplot-mode-map "\C-c\C-c" 'comment-region) ; <RF>
   (define-key gnuplot-mode-map "\C-c\C-o" 'gnuplot-gui-set-options-and-insert)
@@ -649,10 +650,16 @@ you're not using that musty old thing, are you..."
   (define-key gnuplot-mode-map "\C-c\C-u" 'gnuplot-bug-report)
   (define-key gnuplot-mode-map "\C-c\C-v" 'gnuplot-send-line-and-forward)
   (define-key gnuplot-mode-map "\C-c\C-z" 'gnuplot-customize)
-  (define-key gnuplot-mode-map "\M-\r"    'completion-at-point)
-  (define-key gnuplot-mode-map "\M-\t"    'completion-at-point)
   (define-key gnuplot-mode-map "\C-i"     'indent-for-tab-command)
   (define-key gnuplot-mode-map "\C-m"     'newline-and-indent)
+
+  (let ((completion-function
+	 (if (featurep 'xemacs)
+	     'gnuplot-xemacs-completion-at-point
+	   'completion-at-point)))
+    (define-key gnuplot-mode-map "\M-\r"    completion-function)
+    (define-key gnuplot-mode-map "\M-\t"    completion-function))
+
   ;;(define-key gnuplot-mode-map "\C-m"     'reindent-then-newline-and-indent)
   ;;(if (featurep 'kw-compl)
   ;;    (define-key gnuplot-mode-map "\M-\r" 'kw-compl-abbrev)))
@@ -661,7 +668,7 @@ you're not using that musty old thing, are you..."
 	   'gnuplot-gui-mouse-set))
 	(t
 	 (define-key gnuplot-mode-map [S-mouse-2]
-	   'gnuplot-gui-mouse-set))) )
+	   'gnuplot-gui-mouse-set))))
 
 (defvar gnuplot-mode-menu nil)
 (defvar gnuplot-menu nil
@@ -1508,29 +1515,43 @@ are word characters, and math operators are punctuation
 characters.")
 (unless gnuplot-mode-syntax-table
   (setq gnuplot-mode-syntax-table (make-syntax-table))
-  (with-syntax-table gnuplot-mode-syntax-table
-    (modify-syntax-entry ?* ".")
-    (modify-syntax-entry ?+ ".")
-    (modify-syntax-entry ?- ".")
-    (modify-syntax-entry ?/ ".")
-    (modify-syntax-entry ?% ".")
-    ;;(modify-syntax-entry ?& "." ) ; rarely used
-    ;;(modify-syntax-entry ?^ "." ) ; operators
-    ;;(modify-syntax-entry ?| "." ) ; in gnuplot,
-    ;;(modify-syntax-entry ?& "." ) ; (by me,
-    ;;(modify-syntax-entry ?? "." ) ;  anyway...)
-    ;;(modify-syntax-entry ?~ "." ) ;
 
-    ;; gnuplot's shell-like rules for string quoting (and comments)
-    ;; are not what the Emacs sexp parser expects, so we scan for
-    ;; strings and comments explicitly in `gnuplot-scan-multiline'.
-    ;; Make the character class of `"', `'', and `\' punctuation so
-    ;; the parser doesn't interfere with this. <jjo>
-    (modify-syntax-entry ?\" ".")
-    (modify-syntax-entry ?' ".")
-    (modify-syntax-entry ?` "." )
-    (modify-syntax-entry ?_ "w" )
-    (modify-syntax-entry ?\\ ".")))
+  (modify-syntax-entry ?* "." gnuplot-mode-syntax-table)
+  (modify-syntax-entry ?+ "." gnuplot-mode-syntax-table)
+  (modify-syntax-entry ?- "." gnuplot-mode-syntax-table)
+  (modify-syntax-entry ?/ "." gnuplot-mode-syntax-table)
+  (modify-syntax-entry ?% "." gnuplot-mode-syntax-table)
+  (modify-syntax-entry ?= "." gnuplot-mode-syntax-table)
+  (modify-syntax-entry ?: "." gnuplot-mode-syntax-table)
+  ;;(modify-syntax-entry ?& "." gnuplot-mode-syntax-table ) ; rarely used
+  ;;(modify-syntax-entry ?^ "." gnuplot-mode-syntax-table ) ; operators
+  ;;(modify-syntax-entry ?| "." gnuplot-mode-syntax-table ) ; in gnuplot,
+  ;;(modify-syntax-entry ?& "." gnuplot-mode-syntax-table ) ; (by me,
+  ;;(modify-syntax-entry ?? "." gnuplot-mode-syntax-table ) ;  anyway...)
+  ;;(modify-syntax-entry ?~ "." gnuplot-mode-syntax-table ) ;
+
+  (modify-syntax-entry ?_ "w" gnuplot-mode-syntax-table )
+
+  ;; gnuplot's shell-like rules for string quoting (and comments)
+  ;; are not what the Emacs sexp parser expects, so in GNU Emacs
+  ;; we can do better by scanning for strings and comments
+  ;; explicitly in `gnuplot-scan-multiline'. Make the character
+  ;; class of `"', `'', and `\' punctuation so the parser doesn't
+  ;; interfere with this. <jjo>
+  ;;
+  ;; I don't know if the hooks to make this work exist in
+  ;; Xemacs, so in that case we'll rely on the built-in
+  ;; parser :-(
+  (if (featurep 'xemacs)
+      (progn
+	(modify-syntax-entry ?\' "\"" gnuplot-mode-syntax-table)
+	(modify-syntax-entry ?# "<" gnuplot-mode-syntax-table)
+	(modify-syntax-entry ?\n ">" gnuplot-mode-syntax-table)) 
+
+    (modify-syntax-entry ?\" "." gnuplot-mode-syntax-table)
+    (modify-syntax-entry ?\' "w" gnuplot-mode-syntax-table)
+    (modify-syntax-entry ?` "." gnuplot-mode-syntax-table)
+    (modify-syntax-entry ?\\ "." gnuplot-mode-syntax-table)))
 
 ;; Macro to generate efficient regexps for keyword matching (at
 ;; compile-time if byte-compiling)
@@ -1585,59 +1606,55 @@ These are highlighted using `font-lock-reference-face'.")
 (defvar gnuplot-font-lock-defaults nil)
 
 (when (featurep 'font-lock)		; <KL>
-  (let ((keywords
-	 (list
-	  ;; stuff in brackets, sugg. by <LB>
-	  '("\\[\\([^]]+\\)\\]" 1 font-lock-reference-face)
+  (setq gnuplot-font-lock-keywords
+	(list
+	 ;; stuff in brackets, sugg. by <LB>
+	 '("\\[\\([^]]+\\)\\]" 1 font-lock-reference-face)
 
-	  ;; variable/function definitions
-	  '("\\(\\<[a-z]+[a-z_0-9(), \t]*\\)[ \t]*=" 1
-	    font-lock-variable-name-face)
+	 ;; variable/function definitions
+	 '("\\(\\<[a-z]+[a-z_0-9(),\t]*\\)[ \t]*=" 1
+	   font-lock-variable-name-face)
 
-	  ;; built-in function names
-	  (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
-		font-lock-function-name-face)
+	 ;; built-in function names
+	 (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
+	       font-lock-function-name-face)
 
-	  ;; reserved words associated with plotting <AL>
-	  (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
-		font-lock-type-face)
-	  (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
-		font-lock-function-name-face)
+	 ;; reserved words associated with plotting <AL>
+	 (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
+	       font-lock-type-face)
+	 (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
+	       font-lock-function-name-face)
 
-	  ;; (s)plot -- also thing (s)plotted
-	  '("\\<s?plot\\>" . font-lock-keyword-face)
-	  '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
-	    1 font-lock-variable-name-face)
+	 ;; (s)plot -- also thing (s)plotted
+	 '("\\<s?plot\\>" . font-lock-keyword-face)
+	 ;; '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
+	 ;;   1 font-lock-variable-name-face)
 
-	  ;; other common commands
-	  (cons (gnuplot-make-regexp gnuplot-keywords-misc)
-		font-lock-reference-face)
-	  (cons "!.*$" font-lock-reference-face)))
+	 ;; other common commands
+	 (cons (gnuplot-make-regexp gnuplot-keywords-misc)
+	       font-lock-reference-face)
+	 (cons "!.*$" font-lock-reference-face)))
 	
 	;; Comments and strings are colorized syntactically after
 	;; scanning with `gnuplot-scan-multiline', see below <jjo>
-	(syntactic-keywords 
-	 '((gnuplot-scan-strings (1 "|" nil t) (2 "|" nil t))
-	   (gnuplot-scan-comments (1 "!" nil t) (2 "!" nil t)))))
+  (setq gnuplot-font-lock-syntactic-keywords 
+	'((gnuplot-scan-strings (1 "|" nil t) (2 "|" nil t))
+	  (gnuplot-scan-comments (1 "!" nil t) (2 "!" nil t))))
 	
-    (setq gnuplot-font-lock-defaults 
-	  `(,keywords
-	    nil				; Use syntactic fontification
-	    t				; Use case folding
-	    nil				; No extra syntax
-	    ;; call `gnuplot-beginning-of-continuation'
-	    ;; to find a safe place to begin syntactic highlighting
-	    beginning-of-defun
-
-	    ;; Set the following:
-	    (font-lock-multiline . t)
-	    (font-lock-syntactic-keywords ,@syntactic-keywords)))
+  (setq gnuplot-font-lock-defaults 
+	'(gnuplot-font-lock-keywords
+	  nil				; Use syntactic fontification
+	  t				; Use case folding
+	  nil				; No extra syntax
+	  ;; calls `gnuplot-beginning-of-continuation'
+	  ;; to find a safe place to begin syntactic highlighting
+	  beginning-of-defun))
   
-    ;; Set up font-lock for Xemacs
-    ;; For GNU Emacs, this is done in `gnuplot-mode'
-    (if (and gnuplot-xemacs-p (featurep 'font-lock)) 
-	(put 'gnuplot-mode 'font-lock-defaults
-	     gnuplot-font-lock-defaults))))
+  ;; Set up font-lock for Xemacs
+  ;; For GNU Emacs, this is done in `gnuplot-mode'
+  (if (and gnuplot-xemacs-p (featurep 'font-lock)) 
+      (put 'gnuplot-mode 'font-lock-defaults
+	   gnuplot-font-lock-defaults)))
 
 ;; Scanning functions for font-lock
 (defun gnuplot-scan-strings (limit)
@@ -1668,6 +1685,7 @@ limit passed by font-lock."
   ;; 
   ;; Trying to write a regexp to match these rules is horrible, so we
   ;; use this matching function instead <jjo>
+
   (let* ((searching-for-string-p (eq type 'string))
 	 (re (cond (searching-for-string-p "'\\|\"")
 		   (t "#")))
@@ -1733,25 +1751,33 @@ limit passed by font-lock."
 	  ;; Let font-lock know we found a match
 	  t)))))
 
+;; XEmacs doesn't have syntax-ppss
+(if (featurep 'xemacs)
+    (defun syntax-ppss (&optional pos)
+      (save-excursion
+	(unless pos (setq pos (point)))
+	(let ((begin
+	       (save-excursion
+		 (goto-char pos)
+		 (gnuplot-point-at-beginning-of-continuation))))
+	  (parse-partial-sexp begin pos)))))
+
+;; Parsing utilities to tell if we are inside a string or comment
 (defun gnuplot-in-string (&optional where)
   "Returns non-nil if the text at WHERE is within a string.
 
 If WHERE is omitted, defaults to text at point.
 This is a simple wrapper for `syntax-ppss'."
-  (save-excursion
-    (and where (goto-char where))
-    (let ((parse-state (syntax-ppss)))
-      (nth 3 parse-state))))
+  (let ((parse-state (syntax-ppss where)))
+    (nth 3 parse-state)))
 
 (defun gnuplot-in-comment (&optional where)
   "Returns non-nil if the text at WHERE is within a comment.
 
 If WHERE is omitted, defaults to text at point.
 This is a simple wrapper for `syntax-ppss'."
-  (save-excursion
-    (and where (goto-char where))
-    (let ((parse-state (syntax-ppss)))
-      (nth 4 parse-state))))
+  (let ((parse-state (syntax-ppss where)))
+    (nth 4 parse-state)))
 
 (defun gnuplot-in-string-or-comment (&optional where)
   (or (gnuplot-in-string where)
@@ -2503,7 +2529,9 @@ See the comments in `gnuplot-info-hook'."
 	  ;; user will not want them lying around
 	  (and (get-buffer "info dir")    (kill-buffer "info dir"))
 	  (and (get-buffer "info dir<2>") (kill-buffer "info dir<2>")))
-	(setq gnuplot-keywords (gnuplot-set-keywords-list)))
+	(setq gnuplot-keywords (gnuplot-set-keywords-list))
+	(setq gnuplot-keywords-alist	; needed for all-completions
+	      (mapcar 'list gnuplot-keywords)))
 
     ;; or do something sensible if info-look is not installed
     (defun info-lookup-interactive-arguments (symbol)
@@ -2526,12 +2554,28 @@ Return a list of keywords."
 	    list  (cdr list)))
     (delete "nil" store)
     store ))
-  
-(defun gnuplot-completion-at-point ()
+
+(defun gnuplot-xemacs-completion-at-point ()
   "Perform completion on keyword preceding point.
 
+This binds `comint-dynamic-complete-functions' to
+`gnuplot-comint-complete' and uses `comint-dynamic-complete' to do the
+real work."
+  ;; This actually would work in GNU Emacs too, but that seems a bit
+  ;; hackish when completion-at-point exists
+  (interactive)
+  (let ((comint-dynamic-complete-functions
+	 '(gnuplot-comint-complete)))
+    (comint-dynamic-complete)))
+
+(defun gnuplot-completion-at-point ()
+  "Return completions of keyword preceding point.
+
 Uses the cache of keywords generated by info-lookup. See
-`gnuplot-setup-info-look'."
+`gnuplot-setup-info-look'. If not nil, the return value is in the form
+\(BEGIN END COMPLETIONS) where BEGIN and END are buffer 
+positions and COMPLETIONS is a list."
+ 
   (if gnuplot-keywords-pending		; <HW>
       (gnuplot-setup-info-look))
   (let* ((end (point))
@@ -2539,11 +2583,11 @@ Uses the cache of keywords generated by info-lookup. See
 	 (patt (buffer-substring beg end))
 	 (pattern (if (string-match "\\([^ \t]*\\)\\s-+$" patt)
 		      (match-string 1 patt) patt))
-	 (completions (all-completions pattern gnuplot-keywords)))
+	 (completions (all-completions pattern gnuplot-keywords-alist)))
     (if completions
 	(list beg end completions)
       (message "No gnuplot keywords complete '%s'" pattern)
-      nil)))
+      nil))) 
 
 (defun gnuplot-comint-complete ()
   "Complete the keyword preceding point in the gnuplot comint buffer.
@@ -2551,6 +2595,8 @@ Uses the cache of keywords generated by info-lookup. See
 Uses the cache of keywords generated by info-lookup and
 `comint-dynamic-simple-complete' to handle the actual
 completion."
+  (if gnuplot-keywords-pending		; <HW>
+      (gnuplot-setup-info-look))
   (let ((completions (gnuplot-completion-at-point)))
     (if completions
 	(let* ((beg (nth 0 completions))
@@ -2592,9 +2638,9 @@ the frame."
 	       ;; we can't use shrink-window-if-larger-than-buffer here
 	       ;; because it doesn't work with Info mode's narrowing
 	       (with-selected-window (get-buffer-window "*info*")
-		 (unless (window-full-height-p)
+		 (unless (gnuplot-window-full-height-p)
 		   (enlarge-window
-		    (min (- (count-screen-lines (point-min) (point-max)) (window-height) -1)
+		    (min (- (count-lines (point-min) (point-max)) (window-height) -1)
 			 (- (/ (frame-height) 2) (window-height)))))))
 
 	      ((equal gnuplot-info-display 'frame)
@@ -2608,6 +2654,15 @@ the frame."
 	       (if gnuplot-xemacs-p (setq toolbar-info-frame gnuplot-info-frame))
 	       (switch-to-buffer "*info*"))))))
 
+;; XEmacs doesn't have window-full-height-p
+(if (featurep 'xemacs)
+    ;; The below is taken from GNU Emacs window.el
+    (defun gnuplot-window-full-height-p (&optional window)
+      (unless window
+	(setq window (selected-window)))
+      (= (window-height window)
+	 (window-height (frame-root-window (window-frame window)))))
+  (defalias 'gnuplot-window-full-height-p 'window-full-height-p))
 
 (defun gnuplot-insert (string)
   "Insert STRING at point and display help for for STRING.
@@ -2790,7 +2845,8 @@ a list:
   (set (make-local-variable 'beginning-of-defun-function) 'gnuplot-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) 'gnuplot-end-of-continuation)
 
-  (add-hook 'completion-at-point-functions 'gnuplot-completion-at-point nil t)
+  (unless (featurep 'xemacs)
+    (add-hook 'completion-at-point-functions 'gnuplot-completion-at-point nil t))
 
   (set-syntax-table gnuplot-mode-syntax-table)
 
@@ -2812,7 +2868,11 @@ a list:
       (if (fboundp 'turn-on-font-lock) (turn-on-font-lock))
     (progn
       (setq font-lock-defaults gnuplot-font-lock-defaults)
+      (set (make-local-variable 'font-lock-syntactic-keywords)
+	   gnuplot-font-lock-syntactic-keywords)
+      (set (make-local-variable 'font-lock-multiline) t)
       (set (make-local-variable 'parse-sexp-lookup-properties) t)))
+
 
   (if (fboundp 'widget-create)		; gnuplot-gui
       (condition-case ()
