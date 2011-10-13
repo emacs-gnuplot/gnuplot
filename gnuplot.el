@@ -2327,11 +2327,12 @@ If not in a continuation line, move point to beginning of line."
 
 If there are no continuation lines, move point to end-of-line."
   (end-of-line)
-  (catch 'eob
-    (while (save-excursion (backward-char)
-			   (looking-at "\\\\"))
-      (end-of-line 2)
-      (if (eobp) (throw 'eob nil)))))
+  (unless (bobp)
+    (catch 'eob
+      (while (save-excursion (backward-char)
+			     (looking-at "\\\\"))
+	(end-of-line 2)
+	(if (eobp) (throw 'eob nil))))))
 
 ;; Save-excursion wrappers for the above to return point at beginning
 ;; or end of continuation
