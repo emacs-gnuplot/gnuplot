@@ -2264,7 +2264,7 @@ For most lines, set indentation to previous level of indentation.
 Add additional indentation for continuation lines."
   (interactive)
   (let (indent)
-    (if (gnuplot-in-string (beginning-of-line))
+    (if (gnuplot-in-string (point-at-bol))
 	;; Continued strings begin at left margin
 	(setq indent 0)
       (save-excursion 
