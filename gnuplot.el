@@ -1508,50 +1508,48 @@ static char *help_btn[] = {
 
 ;;; --- syntax colorization, syntax table
 
-(defvar gnuplot-mode-syntax-table nil
+(defvar gnuplot-mode-syntax-table
+  (let ((table (make-syntax-table)))
+    (modify-syntax-entry ?* "." table)
+    (modify-syntax-entry ?+ "." table)
+    (modify-syntax-entry ?- "." table)
+    (modify-syntax-entry ?/ "." table)
+    (modify-syntax-entry ?% "." table)
+    (modify-syntax-entry ?= "." table)
+    (modify-syntax-entry ?: "." table)
+    (modify-syntax-entry ?& "." table ) ; rarely used
+    (modify-syntax-entry ?^ "." table ) ; operators
+    (modify-syntax-entry ?| "." table ) ; in gnuplot,
+    (modify-syntax-entry ?& "." table ) ; (by me,
+    (modify-syntax-entry ?? "." table ) ;  anyway...)
+    (modify-syntax-entry ?~ "." table ) ;
+
+    (modify-syntax-entry ?_ "w" table )
+
+    ;; In GNU Emacs we scan for strings and comments ourselves in
+    ;; `gnuplot-scan-after-change'.  I can't get this to work in xemacs,
+    ;; so there we'll make ", ', and # delimiters as normal, and use the
+    ;; built-in parser
+    (if (featurep 'xemacs)
+	(progn
+	  (modify-syntax-entry ?\' "\"" table)
+	  (modify-syntax-entry ?# "<" table)
+	  (modify-syntax-entry ?\n ">" table)
+	  (modify-syntax-entry ?\\ "\\" table))
+
+      ;; GNU Emacs: Make ", ', and # punctuation, so the built-in parser
+      ;; doesn't interfere with them
+      (modify-syntax-entry ?\" "." table)
+      (modify-syntax-entry ?\' "." table)
+      (modify-syntax-entry ?` "." table)
+      (modify-syntax-entry ?\\ "." table))
+
+    table)
+
   "Syntax table in use in `gnuplot-mode' buffers.
 This is the same as the standard syntax table except that ` and _
 are word characters, and math operators are punctuation
 characters.")
-(unless gnuplot-mode-syntax-table
-  (setq gnuplot-mode-syntax-table (make-syntax-table))
-
-  (modify-syntax-entry ?* "." gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?+ "." gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?- "." gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?/ "." gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?% "." gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?= "." gnuplot-mode-syntax-table)
-  (modify-syntax-entry ?: "." gnuplot-mode-syntax-table)
-  ;;(modify-syntax-entry ?& "." gnuplot-mode-syntax-table ) ; rarely used
-  ;;(modify-syntax-entry ?^ "." gnuplot-mode-syntax-table ) ; operators
-  ;;(modify-syntax-entry ?| "." gnuplot-mode-syntax-table ) ; in gnuplot,
-  ;;(modify-syntax-entry ?& "." gnuplot-mode-syntax-table ) ; (by me,
-  ;;(modify-syntax-entry ?? "." gnuplot-mode-syntax-table ) ;  anyway...)
-  ;;(modify-syntax-entry ?~ "." gnuplot-mode-syntax-table ) ;
-
-  (modify-syntax-entry ?_ "w" gnuplot-mode-syntax-table )
-
-  ;; gnuplot's shell-like rules for string quoting (and comments)
-  ;; are not what the Emacs sexp parser expects, so in GNU Emacs
-  ;; we can do better by scanning for strings and comments
-  ;; explicitly in `gnuplot-scan-multiline'. Make the character
-  ;; class of `"', `'', and `\' punctuation so the parser doesn't
-  ;; interfere with this. <jjo>
-  ;;
-  ;; I don't know if the hooks to make this work exist in
-  ;; Xemacs, so in that case we'll rely on the built-in
-  ;; parser :-(
-  (if (featurep 'xemacs)
-      (progn
-	(modify-syntax-entry ?\' "\"" gnuplot-mode-syntax-table)
-	(modify-syntax-entry ?# "<" gnuplot-mode-syntax-table)
-	(modify-syntax-entry ?\n ">" gnuplot-mode-syntax-table)) 
-
-    (modify-syntax-entry ?\" "." gnuplot-mode-syntax-table)
-    (modify-syntax-entry ?\' "w" gnuplot-mode-syntax-table)
-    (modify-syntax-entry ?` "." gnuplot-mode-syntax-table)
-    (modify-syntax-entry ?\\ "." gnuplot-mode-syntax-table)))
 
 ;; Macro to generate efficient regexps for keyword matching (at
 ;; compile-time if byte-compiling)
@@ -1633,14 +1631,8 @@ These are highlighted using `font-lock-reference-face'.")
 	 ;; other common commands
 	 (cons (gnuplot-make-regexp gnuplot-keywords-misc)
 	       font-lock-reference-face)
-	 (cons "!.*$" font-lock-reference-face)))
-	
-	;; Comments and strings are colorized syntactically after
-	;; scanning with `gnuplot-scan-multiline', see below <jjo>
-  (setq gnuplot-font-lock-syntactic-keywords 
-	'((gnuplot-scan-strings (1 "|" nil t) (2 "|" nil t))
-	  (gnuplot-scan-comments (1 "!" nil t) (2 "!" nil t))))
-	
+	 (cons "!.*$" font-lock-reference-face))) ; what is this for? jjo
+      
   (setq gnuplot-font-lock-defaults 
 	'(gnuplot-font-lock-keywords
 	  nil				; Use syntactic fontification
@@ -1652,67 +1644,74 @@ These are highlighted using `font-lock-reference-face'.")
   
   ;; Set up font-lock for Xemacs
   ;; For GNU Emacs, this is done in `gnuplot-mode'
-  (if (and gnuplot-xemacs-p (featurep 'font-lock)) 
+  (if gnuplot-xemacs-p
       (put 'gnuplot-mode 'font-lock-defaults
 	   gnuplot-font-lock-defaults)))
 
-;; Scanning functions for font-lock
-(defun gnuplot-scan-strings (limit)
-  (gnuplot-scan-multiline 'string limit))
+;; Gnuplot's shell-like strings and comments don't quite agree with
+;; Emacs' built-in sexp parser:
+;;
+;; - strings can continue over several lines, but only by using a
+;;   backslash to escape the newline
+;; 
+;; - double quoted strings can contain escaped quotes \" and escaped
+;;   backslashes \\, but there's no way to quote the delimiter in
+;;   single quoted strings
+;; 
+;; - strings can end at newline without needing a closing delimiter
+;; 
+;; - comments continue over continuation lines
+;; 
+;; Trying to write a regexp to match these rules is horrible, so we
+;; use this matching function instead (in GNU Emacs - I can't figure out
+;; how to do this in XEmacs.)
+(defun gnuplot-scan-after-change (begin end &optional unused)
+  "Scan a gnuplot script buffer for strings and comments.
 
-(defun gnuplot-scan-comments (limit)
-  (gnuplot-scan-multiline 'comment limit))
-	     
-(defun gnuplot-scan-multiline (type limit)
-  "Function used by font-lock to search for strings and comments
-in gnuplot buffers.
+This is called once on the whole buffer when gnuplot-mode is turned on,
+and installed as a hook in `after-change-functions'."
+  (save-excursion
+    (setq end (progn
+		(goto-char end)
+		(gnuplot-point-at-end-of-continuation))
+	  begin (progn
+		  (goto-char begin)
+		  (gnuplot-beginning-of-continuation)
+		  (point)))
 
-TYPE should be either 'string or 'comment. LIMIT is the search
-limit passed by font-lock."
-  ;; Gnuplot shell-like strings and comments don't quite agree with
-  ;; Emacs' built-in sexp parser:
-  ;;
-  ;; - strings can continue over several lines, but only by using a
-  ;; backslash to escape the newline
-  ;; 
-  ;; - double quoted strings can contain escaped quotes \" and escaped
-  ;;   backslashes \\, but there's no way to quote the delimiter in
-  ;;   single quoted strings
-  ;; 
-  ;; - strings can end at newline without needing a closing delimiter
-  ;; 
-  ;; - comments continue over continuation lines
-  ;; 
-  ;; Trying to write a regexp to match these rules is horrible, so we
-  ;; use this matching function instead <jjo>
+    (remove-text-properties begin (min (1+ end) (point-max))
+			    '(syntax-table nil))
 
-  (let* ((searching-for-string-p (eq type 'string))
-	 (re (cond (searching-for-string-p "'\\|\"")
-		   (t "#")))
-	 (begin (search-forward-regexp re limit t)))
-    ;; Skip over anything which is already inside a string
-    (when (> (point) (point-min))
-      (while (and (gnuplot-in-string (1- (point)))
-		  (setq begin (search-forward-regexp re limit t)))))
+    (while (gnuplot-scan-next-string-or-comment end))))
 
+(defun gnuplot-scan-next-string-or-comment (limit)
+  "Put appropriate syntax-table text properties on the next comment or string.
+
+Scans forward from point as far as LIMIT (which should be at the
+end of a line). Leaves point at the end of the comment or string,
+or at LIMIT if nothing was found. Returns t if a comment or
+string was found, otherwise nil."
+  (let ((begin (search-forward-regexp "[#'\"]" limit 'go-to-limit)))
     (if (not begin)
-	nil				; Nothing found on this line
-      (let ((begin (1- begin))
-	    (limit (point-at-eol))
-	    (end nil) (end-at-eobp nil)
-	    (re
-	     (cond ((not searching-for-string-p) nil)
-		   ((string= (match-string 0) "'") "'")
-		   ((string= (match-string 0) "\"") "\\\\\"\\|\\\\\\\\\\|\"")))) 
+	nil
+      (let* ((begin (1- begin))
+	     (end nil)
+	     (opener (match-string 0))
+	     (limit (point-at-eol))
+	     (end-at-eob-p nil)
+	     (re
+	      (cond ((string= opener "#") nil)
+		    ((string= opener "'") "'")
+		    ((string= opener "\"") "\\\\\"\\|\\\\\\\\\\|\"")))) 
 	(while (not end)
-	  (if (and (bolp) (eolp))	; Empty continuation line:
-	      (setq end (1+ (point)))	; end at newline
-	    (if searching-for-string-p
+	  (if (and (not (eobp)) (bolp) (eolp))	; Empty continuation line:
+	      (setq end (point))	; end at newline
+	    (if re
 		(setq end (search-forward-regexp re limit 'go-to-limit))
 	      (end-of-line))	    ; Comments end only at end-of-line
 	    
 	    (if end
-		(when (and searching-for-string-p
+		(when (and re
 			   (or (string= (match-string 0) "\\\"")
 			       (string= (match-string 0) "\\\\")))
 		  (setq end nil))   ; Skip over escapes and look again
@@ -1720,57 +1719,55 @@ limit passed by font-lock."
 	      ;; We got to EOL without finding an ending delimiter
 	      (if (eobp)
 		  (setq end (point)
-			end-at-eobp t)	; string/comment ends at EOB
+			end-at-eob-p t) ; string/comment ends at EOB
 		;; Otherwise see if the line is continued with a backslash
 		(if (save-excursion (backward-char) (looking-at "\\\\"))
 		    (progn		; yes, check out next line
 		      (beginning-of-line 2)
 		      (setq limit (point-at-eol)))
-		  (setq end (point-at-eol))))))) ; no, string ends at EOL
+		  (setq end (1+ (point-at-eol)))))))) ; no, string ends at EOL
 
-	;; Set the match data: (match-string 0) is the whole
-	;; string with delimiters, (match-string 1) is the opening
-	;; quote or #, (match-string 2) is the closing quote or
-	;; newline.
+	;; Set the syntax properties
 	(let ((begin-marker		(copy-marker begin))
 	      (begin-quote-marker	(copy-marker (1+ begin)))
 	      (end-quote-marker		(copy-marker (1- end)))
 	      (end-marker		(copy-marker end)))
-	  (if end-at-eobp
-	      (set-match-data  ; Don't mark an end of construct at EOB
-	       (list begin-marker end-marker
-		     begin-marker begin-quote-marker)) 
-	    (set-match-data
-	     (list begin-marker end-marker
-		   begin-marker begin-quote-marker
-		   end-quote-marker end-marker)))
 	  
+	  (let ((syntax (if (string= opener "#") 
+			    '(syntax-table (14))  ; 'comment fence'
+			  '(syntax-table (15))))) ; 'string fence'
+	    (add-text-properties begin-marker begin-quote-marker syntax)
+	    (unless end-at-eob-p
+	      (add-text-properties end-quote-marker end-marker syntax)))
+	
 	  ;; Mark multiline constructs for font-lock
-	  (and (> (count-lines begin-marker end-marker) 1)
-	       (add-text-properties begin-marker end-marker '(font-lock-multiline t)))
+	  (add-text-properties begin-marker end-marker '(font-lock-multiline t))))
 
-	  ;; Let font-lock know we found a match
-	  t)))))
+      ;; We found something
+      t)))
+
+
+;; Parsing utilities to tell if we are inside a string or comment
 
 ;; XEmacs doesn't have syntax-ppss
 (if (featurep 'xemacs)
-    (defun syntax-ppss (&optional pos)
+    (defun gnuplot-syntax-ppss (&optional pos)
       (save-excursion
 	(unless pos (setq pos (point)))
 	(let ((begin
 	       (save-excursion
 		 (goto-char pos)
 		 (gnuplot-point-at-beginning-of-continuation))))
-	  (parse-partial-sexp begin pos)))))
+	  (parse-partial-sexp begin pos))))
+  (defalias 'gnuplot-syntax-ppss 'syntax-ppss))
 
-;; Parsing utilities to tell if we are inside a string or comment
 (defun gnuplot-in-string (&optional where)
   "Returns non-nil if the text at WHERE is within a string.
 
 If WHERE is omitted, defaults to text at point.
 This is a simple wrapper for `syntax-ppss'."
   (save-excursion
-    (let ((parse-state (syntax-ppss where)))
+    (let ((parse-state (gnuplot-syntax-ppss where)))
       (nth 3 parse-state))))
 
 (defun gnuplot-in-comment (&optional where)
@@ -1779,12 +1776,19 @@ This is a simple wrapper for `syntax-ppss'."
 If WHERE is omitted, defaults to text at point.
 This is a simple wrapper for `syntax-ppss'."
   (save-excursion
-    (let ((parse-state (syntax-ppss where)))
+    (let ((parse-state (gnuplot-syntax-ppss where)))
       (nth 4 parse-state))))
 
 (defun gnuplot-in-string-or-comment (&optional where)
-  (or (gnuplot-in-string where)
-      (gnuplot-in-comment where)))
+  "Returns non-nil if the text at WHERE is within a string or comment.
+
+If WHERE is omitted, defaults to text at point.
+This is a simple wrapper for `syntax-ppss'."
+
+  (save-excursion
+    (let ((parse-state (gnuplot-syntax-ppss where)))
+      (or (nth 3 parse-state)
+	  (nth 4 parse-state)))))
 
 ;; these two lines get rid of an annoying compile time error
 ;; message.  that function gets non-trivially defalias-ed in
@@ -2033,7 +2037,8 @@ buffer."
       (if (fboundp 'turn-on-font-lock) (turn-on-font-lock))
     (progn
       (setq font-lock-defaults gnuplot-font-lock-defaults)
-      (set (make-local-variable 'parse-sexp-lookup-properties) t)))
+      (set (make-local-variable 'parse-sexp-lookup-properties) t)
+      (add-hook 'after-change-functions 'gnuplot-scan-after-change nil t)))
 
   ;; XEmacs needs the call to make-local-hook
   (when (and (featurep 'xemacs)
@@ -2870,11 +2875,12 @@ a list:
 	   (hilit-string-find ?\\ string)))))
 
   (if gnuplot-xemacs-p			; deal with font-lock
-      (if (fboundp 'turn-on-font-lock) (turn-on-font-lock))
+      (when (fboundp 'turn-on-font-lock)
+	(turn-on-font-lock))
     (progn
+      (gnuplot-scan-after-change (point-min) (point-max))
+      (add-hook 'after-change-functions 'gnuplot-scan-after-change nil t)
       (setq font-lock-defaults gnuplot-font-lock-defaults)
-      (set (make-local-variable 'font-lock-syntactic-keywords)
-	   gnuplot-font-lock-syntactic-keywords)
       (set (make-local-variable 'font-lock-multiline) t)
       (set (make-local-variable 'parse-sexp-lookup-properties) t)))
 
