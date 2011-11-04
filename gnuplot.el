@@ -1610,8 +1610,8 @@ These are highlighted using `font-lock-reference-face'.")
 	 '("\\[\\([^]]+\\)\\]" 1 font-lock-reference-face)
 
 	 ;; variable/function definitions
-	 '("\\(\\<[a-z]+[a-z_0-9(),\t]*\\)[ \t]*=" 1
-	   font-lock-variable-name-face)
+	 '("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
+	   1 font-lock-variable-name-face)
 
 	 ;; built-in function names
 	 (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
@@ -2298,7 +2298,6 @@ Add additional indentation for continuation lines."
 
 ;;
 ;; Functions for finding the start and end of continuation blocks
-;; (a bunch of 
 ;;
 
 ;; Check if line containing point is a continuation
@@ -2864,6 +2863,7 @@ a list:
   (if (or (fboundp 'hilit-set-mode-patterns)
 	  (equal gnuplot-keywords-when 'immediately)) ; <HW>
       (gnuplot-setup-info-look)) ;; <SE>
+
   (if (fboundp 'hilit-set-mode-patterns) ; deal with hilit19 (ho hum!)
       (let ((keywords (concat "\\b\\(" (mapconcat 'identity
 						  gnuplot-keywords "\\|")
