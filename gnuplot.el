@@ -1655,8 +1655,8 @@ These are highlighted using `font-lock-reference-face'.")
 ;;   backslash to escape the newline
 ;; 
 ;; - double quoted strings can contain escaped quotes \" and escaped
-;;   backslashes \\, but there's no way to quote the delimiter in
-;;   single quoted strings
+;;   backslashes \\, while single quotes can escape the quote by
+;;   doubling '' and backslash is not special (except at eol)
 ;; 
 ;; - strings can end at newline without needing a closing delimiter
 ;; 
@@ -1701,7 +1701,7 @@ string was found, otherwise nil."
 	     (end-at-eob-p nil)
 	     (re
 	      (cond ((string= opener "#") nil)
-		    ((string= opener "'") "'")
+		    ((string= opener "'") "''?")
 		    ((string= opener "\"") "\\\\\"\\|\\\\\\\\\\|\"")))) 
 	(while (not end)
 	  (if (and (not (eobp)) (bolp) (eolp))	; Empty continuation line:
@@ -1712,8 +1712,10 @@ string was found, otherwise nil."
 	    
 	    (if end
 		(when (and re
-			   (or (string= (match-string 0) "\\\"")
-			       (string= (match-string 0) "\\\\")))
+			   (let ((m (match-string 0)))
+			     (or (string= m "\\\"")
+				 (string= m "\\\\")
+				 (string= m "''"))))
 		  (setq end nil))   ; Skip over escapes and look again
 	      
 	      ;; We got to EOL without finding an ending delimiter
