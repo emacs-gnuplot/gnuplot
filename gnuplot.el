@@ -2115,6 +2115,16 @@ buffer."
 	(save-excursion
 	  (set-buffer gnuplot-buffer)
 	  (gnuplot-comint-mode)
+      ;; 'local does not automatically make hook buffer-local in XEmacs.
+      (if (featurep 'xemacs)
+          (make-local-hook 'kill-buffer-hook))
+      (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
+	  (gnuplot-comint-start-function)
+          (make-local-variable 'comint-output-filter-functions)
+          (setq comint-output-filter-functions
+                (append comint-output-filter-functions
+                        '(comint-postoutput-scroll-to-bottom
+                          gnuplot-protect-prompt-fn)))
 	  (message "Starting gnuplot plotting program...Done")))))
 
 (defun gnuplot-fetch-version-number ()
