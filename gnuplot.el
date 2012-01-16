@@ -1551,8 +1551,7 @@ This is the same as the standard syntax table except that ` and _
 are word characters, and math operators are punctuation
 characters.")
 
-;; Macro to generate efficient regexps for keyword matching (at
-;; compile-time if byte-compiling)
+;; Macro to generate efficient regexps for keyword matching
 ;;
 ;; These regular expressions treat the gnuplot vocabulary as complete
 ;; words.  Although gnuplot will recognise unique abbreviations, these
