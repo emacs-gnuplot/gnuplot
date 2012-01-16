@@ -1551,15 +1551,13 @@ This is the same as the standard syntax table except that ` and _
 are word characters, and math operators are punctuation
 characters.")
 
-;; Macro to generate efficient regexps for keyword matching (at
-;; compile-time if byte-compiling)
+;; Macro to generate efficient regexps for keyword matching
 ;;
 ;; These regular expressions treat the gnuplot vocabulary as complete
 ;; words.  Although gnuplot will recognise unique abbreviations, these
 ;; regular expressions will not.
 (defmacro gnuplot-make-regexp (list)
-  `(eval-when-compile
-     (regexp-opt ,list 'words)))
+  `(regexp-opt ,list 'words))
 
 ;; Lists of gnuplot keywords for syntax coloring etc.
 (defvar gnuplot-keywords-builtin-functions
@@ -2117,6 +2115,16 @@ buffer."
 	(save-excursion
 	  (set-buffer gnuplot-buffer)
 	  (gnuplot-comint-mode)
+      ;; 'local does not automatically make hook buffer-local in XEmacs.
+      (if (featurep 'xemacs)
+          (make-local-hook 'kill-buffer-hook))
+      (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
+	  (gnuplot-comint-start-function)
+          (make-local-variable 'comint-output-filter-functions)
+          (setq comint-output-filter-functions
+                (append comint-output-filter-functions
+                        '(comint-postoutput-scroll-to-bottom
+                          gnuplot-protect-prompt-fn)))
 	  (message "Starting gnuplot plotting program...Done")))))
 
 (defun gnuplot-fetch-version-number ()
