@@ -1558,8 +1558,7 @@ characters.")
 ;; words.  Although gnuplot will recognise unique abbreviations, these
 ;; regular expressions will not.
 (defmacro gnuplot-make-regexp (list)
-  `(eval-when-compile
-     (regexp-opt ,list 'words)))
+  `(regexp-opt ,list 'words))
 
 ;; Lists of gnuplot keywords for syntax coloring etc.
 (defvar gnuplot-keywords-builtin-functions
