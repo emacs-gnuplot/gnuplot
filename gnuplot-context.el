@@ -119,8 +119,9 @@
 ;; The other pattern forms combine simpler patterns, much like regular
 ;; expressions:
 ;;
-;;    (sequence { :eldoc "eldoc string" }
-;;              { :info "info page" }
+;;    (sequence { (:eldoc "eldoc string") }
+;;              { (:info "info page") }
+;;              { (:no-info) }
 ;; 	     PATTERN PATTERN... )
 ;; 	Match all the PATTERNs in sequence or fail. Sequences can also
 ;; 	have optional ElDoc strings and info pages associated with
@@ -138,12 +139,6 @@
 ;;    (many PATTERN)
 ;;	Match PATTERN as many times as possible, like regexp
 ;;	`*'. Backtracks if a later part of the pattern fails.
-;;    
-;;    (lazy-many PATTERN)
-;;	Similar to "many", but match as few times as possible, like
-;;	regexp `*?'. This has the side effect of preferring whatever
-;;	pattern comes afterwards for determining ElDoc and info
-;;	strings; see the rule for "plot-expression" for an example.
 ;;
 ;;    (maybe PATTERN)
 ;; 	Match PATTERN 0 or 1 times, like regexp `?'.
@@ -260,7 +255,7 @@ These have to be compiled from the Gnuplot source tree using
 					  :end (match-end 0))))))
 	      rules))))
 
-(defun gnuplot-tokenize ()
+(defun gnuplot-tokenize (&optional completing-p)
   "Tokenize the Gnuplot command at point. Returns a list of `gnuplot-token' objects."
   (let ((p (point)))
     (save-excursion
@@ -313,7 +308,10 @@ These have to be compiled from the Gnuplot source tree using
 				   :start parse-limit
 				   :end parse-limit)))
 	  (when (not gnuplot-token-at-point)
-	    (setq gnuplot-token-at-point end-of-input))
+	    (setq gnuplot-token-at-point
+		  (if completing-p
+		      end-of-input
+		    (car tokens))))
 
 	  (nreverse (cons end-of-input tokens)))))))
 
@@ -366,8 +364,15 @@ These have to be compiled from the Gnuplot source tree using
 ;;    (choice OFFSET)
 ;; 	Push a backtracking entry for location PC + OFFSET onto the
 ;; 	backtracking stack. Backtracking entries save the contents of
-;; 	the call stack, position in the token list, and the values of
-;; 	capture groups.
+;; 	the call stack, position in the token list, the values of
+;; 	capture groups, and the record of loop progress (see below).
+;;
+;;    (check-progress)
+;;      Break out of infinite loops, like (many (many ...)).  Checks
+;;      an alist of conses (pc . tokens) for the position in the token
+;;      stream the last time this instruction was reached, and breaks
+;;      out of the loop if stuck in the same place; otherwise pushes a
+;;      new entry onto the list.
 ;;
 ;;    (fail)
 ;; 	Pop the most recent backtracking entry and continue from
@@ -416,14 +421,19 @@ These have to be compiled from the Gnuplot source tree using
       ;; Don't add non-words to completion lists
       (let ((wordp (string-match-p "^\\sw\\(\\sw\\|\\s_\\)*$" pat)))
 	`((literal ,pat ,(not wordp)))))
-   
+     
      ;; Symbols match token types or calls to other patterns
      ((symbolp pat)
       (case pat
 	((any) `((any)))
 	((name number string) `((token-type ,pat)))
 	(t `((call ,pat)))))
-   
+     
+     ;; Syntactic sugar: write sequences (sequence ...) as vectors [...]
+     ((vectorp pat)
+      (gnuplot-compile-pattern
+       (append '(sequence) pat '())))
+
      ;; Other forms combine simpler patterns
      (t
       (let ((type (car pat)))
@@ -442,8 +452,11 @@ These have to be compiled from the Gnuplot source tree using
 		   (setq eldoc-push `((push eldoc ,eldoc))
 			 eldoc-pop `((pop eldoc))))
 	       (if info
-		   (setq info-push `((push info ,info))
-			 info-pop `((pop info))))
+		   (if (eq info :no-info)
+		       (setq info-push '((push no-scan t))
+			     info-pop '((pop no-scan)))
+		     (setq info-push `((push info ,info))
+			   info-pop `((pop info)))))
 	       (apply 'append
 		      `(,info-push
 			,eldoc-push
@@ -469,7 +482,7 @@ These have to be compiled from the Gnuplot source tree using
 		    (pat2-l (length pat2-c)))
 	       `((choice ,(+ pat1-l 2))
 		 ,@pat1-c
-		 (jump ,(+ pat2-l 1))
+		 (commit ,(+ pat2-l 1))
 		 ,@pat2-c)))))
 
 	  ;; Repetition (*)
@@ -477,19 +490,10 @@ These have to be compiled from the Gnuplot source tree using
 	   (let* ((pat1 (cons 'sequence (cdr pat)))
 		  (pat1-c (gnuplot-compile-pattern pat1))
 		  (pat1-l (length pat1-c)))
-	     `((choice ,(+ pat1-l 2))
+	     `((choice ,(+ pat1-l 3))
+	       (check-progress)		; bail out of infinite loops
 	       ,@pat1-c
-	       (jump ,(- (+ pat1-l 1))))))
-
-	  ;; Non-greedy-repetition (*?)
-	  ((lazy-many)
-	   (let* ((pat1 (cons 'sequence (cdr pat)))
-		  (pat1-c (gnuplot-compile-pattern pat1))
-		  (pat1-l (length pat1-c)))
-	     `((choice 2)
-	       (jump ,(+ pat1-l 2))
-	       ,@pat1-c
-	       (jump ,(- (+ pat1-l 2))))))
+	       (commit ,(- (+ pat1-l 2))))))
 
 	  ;; Optional (?)
 	  ((maybe)
@@ -520,7 +524,7 @@ These have to be compiled from the Gnuplot source tree using
 	     `((save-start ,name)
 	       ,@pat1-c
 	       (save-end ,name))))
-	
+	  
 	  ;; Use the first token as an info keyword
 	  ((info-keyword)
 	   (let* ((pat1 (cons 'sequence (cdr pat)))
@@ -541,15 +545,16 @@ These have to be compiled from the Gnuplot source tree using
   ;; Takes the cdr of the sequence form, returns a list (PATTERNS ELDOC
   ;; INFO).
   (defun gnuplot-filter-arg-list (args)  
-    (destructuring-bind
-	(&rest arg-list &key eldoc &key info &allow-other-keys) args
-      (let ((accum '()))
-	(while arg-list
-	  (if (memq (car arg-list) '(:eldoc :info))
-	      (pop arg-list)
-	    (push (car arg-list) accum))
-	  (pop arg-list))
-	(list (reverse accum) eldoc info))))
+    (let ((accum '())
+	  (eldoc nil) (info nil))
+      (dolist (item args)
+	(let ((type (car-safe item)))
+	  (case type
+	    ((:eldoc) (setq eldoc (cadr item)))
+	    ((:no-info) (setq info :no-info)) ; inhibit stack scanning
+	    ((:info) (setq info (cadr item)))
+	    (t (push item accum)))))
+      (list (reverse accum) eldoc info)))
 
   ;; Helper function for compiling (kw...) patterns
   ;; Takes the cdr of the kw form, returns a list (REGEXP KEYWORD)
@@ -577,7 +582,7 @@ These have to be compiled from the Gnuplot source tree using
       `(either ,(cadr pat)
 	       ,(gnuplot-either-helper
 		 (cons 'either (cddr pat))))))
-    
+  
   ;; Compile the grammar (a list of rule-pattern pairs (RULE PATTERN))
   ;; into a single vector of matching-machine instructions. Compiles
   ;; each pattern individually, then "links" them into one vector,
@@ -641,9 +646,8 @@ These have to be compiled from the Gnuplot source tree using
     (let ((max-lisp-eval-depth 600))
       (gnuplot-compile-grammar
        '((expression
-	  (sequence infix-expression
-		    (maybe "?" expression ":" expression)))
-    
+	  [infix-expression (maybe "?" expression ":" expression)])
+	 
 	 (prefix-operator
 	  (either "!" "~" "-" "+"))
 
@@ -652,24 +656,21 @@ These have to be compiled from the Gnuplot source tree using
 		  "&" "^" "|" "&&" "||"))
 
 	 (infix-expression
-	  (sequence
-	   (many prefix-operator)
+	  [(many prefix-operator)
 	   primary-expression
-	   (many infix-operator expression)))
+	   (many infix-operator expression)])
 
 	 (primary-expression
-	  (sequence
-	   (either number string parenthesized-expression
+	  [(either number string parenthesized-expression
 		   column-ref complex-number function-call name)
 	   (many "!")
 	   (maybe "**" infix-expression)
-	   (maybe substring-range)))
+	   (maybe substring-range)])
 
 	 (function-call
 	  (either
 	   (info-keyword
-	    (sequence 
-	     (either "abs" "acos" "acosh" "arg" "asin" "asinh" "atan" "atan2" "atanh"
+	    [(either "abs" "acos" "acosh" "arg" "asin" "asinh" "atan" "atan2" "atanh"
 		     "besj0" "besj1" "besy0" "besy1" "ceil" "column" "columnhead"
 		     "cos" "cosh" "defined" "erf" "erfc" "exists" "exp" "floor"
 		     "gamma" "gprintf" "ibeta" "igamma" "imag" "int" "inverf"
@@ -678,44 +679,44 @@ These have to be compiled from the Gnuplot source tree using
 		     "strlen" "strptime" "strstrt" "substr" "tan" "tanh" "timecolumn"
 		     "tm_hour" "tm_mday" "tm_min" "tm_mon" "tm_sec" "tm_wday"
 		     "tm_yday" "tm_year" "valid" "value" "word" "words" "rand")
-	     parenthesized-expression))
-	   (sequence :info "elliptic_integrals"
-		     (either "EllipticK" "EllipticE" "EllipticPi")
-		     parenthesized-expression)))
+	     parenthesized-expression])
+	   [(:info "elliptic_integrals")
+	    (either "EllipticK" "EllipticE" "EllipticPi")
+	    parenthesized-expression]
+	   [name
+	    parenthesized-expression]))
 
 	 (parenthesized-expression
-	  (sequence "(" comma-list ")"))
+	  ["(" comma-list ")"])
 
 	 (complex-number
-	  (sequence
-	   "{" number "," number "}"))
+	  ["{" (maybe "-") number "," (maybe "-") number "}"])
 
 	 (column-ref
-	  (sequence "$" number))
+	  ["$" number])
 
 	 (substring-range-component
 	  (maybe (either "*" expression)))
 
 	 (substring-range
-	  (sequence "[" (delimited-list substring-range-component ":" 2 2) "]"))
+	  ["[" (delimited-list substring-range-component ":" 2 2) "]"])
 
 ;;; Assignments
 	 (lhs
-	  (sequence name
-		    (maybe "(" (delimited-list name "," 1) ")")))
+	  [name (maybe "(" (delimited-list name "," 1) ")")])
 
 	 (assignment
-	  (sequence lhs "=" (either lhs expression)))
+	  [lhs "=" (either assignment expression)])
 
 ;;; Lists of expressions
 	 (comma-list
-	  (delimited-list expression ","))
+	  (delimited-list (either assignment expression) ","))
 
 	 (colon-list
 	  (delimited-list expression ":"))
 
 	 (tuple
-	  (sequence "(" (delimited-list expression "," 2 3) ")"))
+	  ["(" (delimited-list expression "," 2 3) ")"])
 
 ;;; Commands
 	 (command
@@ -724,82 +725,76 @@ These have to be compiled from the Gnuplot source tree using
 		   set-command cd-command call-command simple-command
 		   eval-command load-command lower-raise-command pause-command
 		   save-command system-command test-command undefine-command
-		   update-command)))
+		   update-command assignment)))
 
 ;;; PLOT, SPLOT commands
 	 (plot-command
-	  (sequence
-	   (kw ("pl" . "ot"))
-      
+	  [(kw ("pl" . "ot"))
+	   
 	   (either
 	    ;; Parametric ranges
-	    (sequence
-	     (assert (gnuplot-guess-parametric-p))
-	     (maybe t-axis-range) (maybe x-axis-range) (maybe y-axis-range))
+	    [(assert (gnuplot-guess-parametric-p))
+	     (maybe t-axis-range) (maybe x-axis-range) (maybe y-axis-range)]
 
 	    ;; Non-parametric ranges
-	    (sequence (maybe x-axis-range) (maybe y-axis-range)))
+	    [(maybe x-axis-range) (maybe y-axis-range)])
 
-	   plot-body))
+	   plot-body])
 
 	 (splot-command
-	  (sequence 
-	   ;; This capturing group lets `gnuplot-find-using-eldoc' know
+	  [ ;; This capturing group lets `gnuplot-find-using-eldoc' know
 	   ;; that this is an splot command
 	   (capture :splot-command (kw ("spl" . "ot")))
 
 	   (either
 	    ;; Parametric ranges
-	    (sequence
-	     (assert (gnuplot-guess-parametric-p))
+	    [(assert (gnuplot-guess-parametric-p))
 	     (maybe u-axis-range) (maybe v-axis-range)
-	     (maybe x-axis-range) (maybe y-axis-range) (maybe z-axis-range))
+	     (maybe x-axis-range) (maybe y-axis-range) (maybe z-axis-range)]
 
 	    ;; Non-parametric ranges
-	    (sequence
-	     (maybe x-axis-range) (maybe y-axis-range) (maybe z-axis-range)))
+	    [(maybe x-axis-range) (maybe y-axis-range) (maybe z-axis-range)])
 
-	   plot-body))
-    
+	   plot-body])
+	 
 	 ;; Axis ranges
 	 (axis-range-component
 	  (maybe (either "*" expression)))
 
 	 (axis-range-body
 	  (delimited-list axis-range-component ":" 2 3))
-    
+	 
 	 (axis-range
-	  (sequence
-	   :info "ranges"
-	   "[" (maybe (maybe name "=") axis-range-body) "]"))
-    
-	 (x-axis-range (sequence :eldoc "X RANGE: [{<dummy>=}<min>:<max>]" axis-range))
-	 (y-axis-range (sequence :eldoc "Y RANGE: [{<dummy>=}<min>:<max>]" axis-range))
-	 (z-axis-range (sequence :eldoc "Z RANGE: [{<dummy>=}<min>:<max>]" axis-range))
-	 (t-axis-range (sequence :eldoc "T RANGE: [{<dummy>=}<min>:<max>]" axis-range))
-	 (u-axis-range (sequence :eldoc "U RANGE: [{<dummy>=}<min>:<max>]" axis-range))
-	 (v-axis-range (sequence :eldoc "V RANGE: [{<dummy>=}<min>:<max>]" axis-range))
+	  [(:info "ranges")
+	   "[" (maybe (maybe name "=") axis-range-body) "]"])
+	 
+	 (x-axis-range [(:eldoc "X RANGE: [{<dummy>=}<min>:<max>]") axis-range])
+	 (y-axis-range [(:eldoc "Y RANGE: [{<dummy>=}<min>:<max>]") axis-range])
+	 (z-axis-range [(:eldoc "Z RANGE: [{<dummy>=}<min>:<max>]") axis-range])
+	 (t-axis-range [(:eldoc "T RANGE: [{<dummy>=}<min>:<max>]") axis-range])
+	 (u-axis-range [(:eldoc "U RANGE: [{<dummy>=}<min>:<max>]") axis-range])
+	 (v-axis-range [(:eldoc "V RANGE: [{<dummy>=}<min>:<max>]") axis-range])
 
 	 ;; Body of a plot/splot command. Should really be different for
 	 ;; parametric vs non-parametric, but that's too hard.
 	 (plot-body
 	  (delimited-list
-	   (sequence (maybe iteration-spec) plot-expression plot-modifiers)
+	   [(maybe iteration-spec) plot-expression plot-modifiers]
 	   ","))
 
-	 ;; Iteration: for [ ... ]
+	 ;; Iteration: for [... ]
 	 (iteration-spec
-	  (sequence
-					; :eldoc "for [<var> = <min> : <max> {:<step>}]"
-	   :info "iteration"
-	   "for" "[" name "=" (delimited-list expression ":" 2 3) "]"))
-   
+	  [(:info "iteration")
+	   "for" "[" name
+	   (either ["=" (delimited-list expression ":")]
+		   ["in" expression])
+	   "]"])
+	 
 	 ;; Expressions to plot can be preceded by any number of
 	 ;; assignments, with or without commas
 	 (plot-expression
-	  (sequence
-	   (lazy-many (sequence assignment (maybe ",")))
-	   expression))
+	  [(many [(:no-info) assignment (maybe ",")])
+	   expression])
 
 ;;; Plot/splot modifiers
 	 ;; These should probably be more different for plot and splot ...
@@ -810,223 +805,196 @@ These have to be compiled from the Gnuplot source tree using
 	   (either
 	    ;; simple one-word modifiers
 	    (kw "nohidden3d") (kw "nocontours") (kw "nosurface")
-       
+	    
 	    ;; word followed by expression
-	    (sequence
-	     (either
+	    [(either
 	      (kw ("lines" . "tyle") "ls")
 	      (kw ("linet" . "ype") "lt")
 	      (kw ("linew" . "idth") "lw")
 	      (kw ("pointt" . "ype") "pt")
 	      (kw ("points" . "ize") "ps")
 	      (kw ("pointi" . "nterval") "pi"))
-	     expression)
+	     expression]
 
 	    ;; others defined below
 	    title-modifier notitle-modifier axes-modifier with-modifier
 	    linecolor-modifier fillstyle-modifier)))
 
 	 (title-modifier
-	  (sequence 
-	   (kw ("t" . "itle")) expression))
-    
+	  [(kw ("t" . "itle")) expression])
+	 
 	 (notitle-modifier
-	  (sequence
-	   :info "title"
+	  [(:info "title")
 	   (kw ("not" . "itle"))
-	   (maybe string)))
+	   (maybe string)])
 
 	 (axes-modifier
-	  (sequence
-	   (kw ("ax" . "es")) (either "x1y1" "x1y2" "x2y1" "x2y2")))
+	  [(kw ("ax" . "es")) (either "x1y1" "x1y2" "x2y1" "x2y2")])
 
 	 (linecolor-modifier
-	  (sequence (kw "linecolor" "lc") color-spec))
+	  [(kw ("linec" . "olor") "lc") color-spec])
 
 	 (fillstyle-modifier
-	  (sequence
-	   (kw "fillstyle" "fs")
-	   (either
-	    "empty"
-	    (sequence
-	     "transparent"
-	     (maybe (either "pattern" "solid") expression)
-	     (maybe (either "noborder" (sequence "border" expression)))))))
+	  [(kw "fillstyle" "fs")
+	   ;; fill-style also used by "set style fill"
+	   fill-style])
+	 
+	 (fill-style
+	  (either
+	   "empty"
+	   ["transparent"
+	    (maybe (either "pattern" "solid") expression)
+	    (maybe (either "noborder" ["border" expression]))]))
 
 	 (color-spec
 	  (either
 	   "variable"
 
-	   (sequence
-	    "palette"
-	    (either "z" (sequence (either "frac" "cb") expression)))
+	   ["palette"
+	    (either "z" [(either "frac" "cb") expression])]
 
-	   (sequence
-	    "rgbcolor"
-	    (either "variable" string))))
+	   [(kw ("rgb" . "color"))
+	    (either "variable" string)]))
 
 	 (with-modifier
-	  (sequence
-	   :info "plotting_styles"
+	  [(:info "plotting_styles")
 	   (kw ("w" . "ith"))
-      
-	   (capture
-	    :with-style
-	    (info-keyword
-	     (either
-	      ;; Simple styles that take no arguments
-	      (kw ("l" . "ines")) (kw ("i" . "mpulses")) (kw ("p" . "oints"))
-	      (kw ("linesp" . "oints") "lp") (kw ("d" . "ots")) (kw ("yerrorl" . "ines"))
-	      (kw ("errorl" . "ines")) (kw ("xerrorl" . "ines")) (kw ("xyerrorl" . "ines"))
-	      (kw ("ye" . "rrorbars")) (kw ("e" . "rrorbars")) (kw ("xe" . "rrorbars"))
-	      (kw ("xye" . "rrorbars")) (kw "boxes") (kw ("hist" . "ograms"))
-	      (kw ("boxer" . "rorbars")) (kw ("boxx" . "yerrorbars")) (kw ("st" . "eps"))
-	      (kw ("fs" . "teps")) (kw ("his" . "teps")) (kw ("fin" . "ancebars"))
-	      (kw ("can" . "dlesticks")) (kw ("pm" . "3d")) (kw "labels") 
-	      (kw ("cir" . "cles"))
-	 
-	      ;; Image styles all use the same info page
-	      (sequence
-	       :info "image"
-	       (either (kw ("ima" . "ge"))
-		       (kw ("rgbima" . "ge"))
-		       (kw ("rgba" . "lpha"))))
-	 
-	      ;; More complicated styles defined below
-	      filledcurves-style-clause
-	      vectors-style-clause)))))
+	   
+	   ;; plotting-style also used for "set style data"
+	   (capture :with-style plotting-style)])
+
+	 (plotting-style
+	  (info-keyword
+	   (either
+	    ;; Simple styles that take no arguments
+	    (kw ("l" . "ines")) (kw ("i" . "mpulses")) (kw ("p" . "oints"))
+	    (kw ("linesp" . "oints") "lp") (kw ("d" . "ots")) (kw ("yerrorl" . "ines"))
+	    (kw ("errorl" . "ines")) (kw ("xerrorl" . "ines")) (kw ("xyerrorl" . "ines"))
+	    (kw ("ye" . "rrorbars")) (kw ("e" . "rrorbars")) (kw ("xe" . "rrorbars"))
+	    (kw ("xye" . "rrorbars")) (kw "boxes") (kw ("hist" . "ograms"))
+	    (kw ("boxer" . "rorbars")) (kw ("boxx" . "yerrorbars")) (kw ("st" . "eps"))
+	    (kw ("fs" . "teps")) (kw ("his" . "teps")) (kw ("fin" . "ancebars"))
+	    (kw ("can" . "dlesticks")) (kw ("pm" . "3d")) (kw "labels") 
+	    (kw ("cir" . "cles"))
+	    
+	    ;; Image styles all use the same info page
+	    [(:info "image")
+	     (either (kw ("ima" . "ge"))
+		     (kw ("rgbima" . "ge"))
+		     (kw ("rgba" . "lpha")))]
+	    
+	    ;; More complicated styles defined below
+	    filledcurves-style-clause
+	    vectors-style-clause)))
 
 	 (filledcurves-style-clause
-	  (sequence
-	   (kw ("filledc" . "urves"))
+	  [(kw ("filledc" . "urves"))
 	   (maybe
 	    (either
 	     "closed"
-	
-	     (sequence
-	      (maybe (either "above" "below"))
+	     
+	     [(maybe (either "above" "below"))
 	      (either "x1" "x2" "y1" "y2")
-	      (maybe "=" expression))
+	      (maybe "=" expression)]
 
-	     (sequence "xy" "=" expression "," expression)))))
+	     ["xy" "=" expression "," expression]))])
 
 	 (vectors-style-clause
-	  (sequence
-	   (kw ("vec" . "tors"))
+	  [(kw ("vec" . "tors"))
 	   (many
 	    (either
 	     "nohead" "head" "heads" "filled" "empty" "nofilled" "front" "back"
-
-	     (sequence
-	      (either (kw "linestyle" "ls")
-		      (kw "linetype" "lt")
-		      (kw "linewidth" "lw"))
-	      expression)
-
-	     (sequence "size"
-		       (delimited-list expression "," 2 3))))))
+	     linestyle-spec
+	     [(kw "arrowstyle" "as") expression]
+	     ["size" (delimited-list expression ",")]))])
 
 ;;; Datafile modifiers
 	 (datafile-modifier
 	  (info-keyword
 	   (either binary-modifier
-		   (sequence (maybe "nonuniform") (kw ("mat" . "rix")))
+		   [(maybe "nonuniform") (kw ("mat" . "rix"))]
 		   index-modifier every-modifier
 		   thru-modifier using-modifier
 		   smooth-modifier
 		   "volatile" "noautoscale")))
-    
+	 
 	 (index-modifier
-	  (sequence 
-	   (kw ("i" . "ndex"))
-	   (either string (delimited-list expression ":" 0 2))))
+	  [(kw ("i" . "ndex"))
+	   (either string (delimited-list expression ":" 0 2))])
 
 	 (every-modifier
-	  (sequence 
-	   (kw ("ev" . "ery")) (delimited-list expression ";" 0)))
-    
+	  [(kw ("ev" . "ery")) (delimited-list expression ";" 0)])
+	 
 	 (thru-modifier
-	  (sequence
-	   (kw "thru") expression))
-    
+	  [(kw "thru") expression])
+	 
 	 (using-modifier
-	  (sequence
-	   :eldoc gnuplot-find-using-eldoc 
+	  [(:eldoc gnuplot-find-using-eldoc) 
 	   (kw ("u" . "sing"))
 	   (either
 	    string
-	    (sequence colon-list (maybe string)))))
+	    [colon-list (maybe string)])])
 
 	 (smooth-modifier
-	  (sequence
-	   (kw ("s" . "mooth"))
+	  [(kw ("s" . "mooth"))
 	   (either (kw ("a" . "csplines")) (kw ("b" . "ezier")) (kw ("c" . "splines"))
 		   (kw ("s" . "bezier")) (kw ("u" . "nique")) (kw ("f" . "requency"))
-		   (kw ("cum" . "ulative")) (kw ("k" . "density")))))
+		   (kw ("cum" . "ulative")) (kw ("k" . "density")))])
 
 ;;; Binary datafile modifiers
 	 (binary-modifier 
-	  (sequence
-	   "binary" (many binary-keyword)))
+	  ["binary" (many binary-keyword)])
 
 	 (binary-keyword
 	  (either
 	   ;; All of these binary keywords are described on the same
 	   ;; info page
-	   (sequence
-	    :info "keywords"
+	   [(:info "keywords")
 	    (either
 	     "transpose" "flipx" "flipy" "flipz"
-	     (sequence "flip" "=" (either "x" "y" "z"))
-	     (sequence "scan" "=" name)
-	     (sequence (either "dx" "dy" "dz") "=" number)
-	     (sequence
-	      (either "origin" "center" "perpendicular") "="
-	      (delimited-list tuple ":"))
-	     (sequence
-	      (kw ("rot" . "ate") "rotation") "="
-	      (sequence expression (maybe (kw ("d" . "eg")) (kw ("p" . "i")))))))
+	     ["flip" "=" (either "x" "y" "z")]
+	     ["scan" "=" name]
+	     [(either "dx" "dy" "dz") "=" number]
+	     [(either "origin" "center" "perpendicular") "="
+	      (delimited-list tuple ":")]
+	     [(kw ("rot" . "ate") "rotation") "="
+	      (sequence expression (maybe (kw ("d" . "eg")) (kw ("p" . "i"))))])]
 
 	   ;; remaining binary keywords have their own info pages
 	   (info-keyword
-	    (sequence
-	     (either "array" "record")
+	    [(either "array" "record")
 	     "="
 	     (either
 	      (delimited-list tuple ":")
-	      (delimited-list expression ":")))
+	      (delimited-list expression ":"))]
 
-	    (sequence
-	     (either "skip")
+	    [(either "skip")
 	     "="
-	     (delimited-list expression ":"))
-       
-	    (sequence
-	     (either "format" "endian" "filetype")
+	     (delimited-list expression ":")]
+	    
+	    [(either "format" "endian" "filetype")
 	     "="
-	     expression))))
-    
+	     expression])))
+	 
 ;;; "fit" command
 	 (fit-command
-	  (sequence
-	   :info "fit"
+	  [(:info "fit")
 	   (kw "fit")
 	   (many axis-range)
 	   expression
 	   string
 	   (many plot-modifier)
 	   (kw "via")
-	   (either string (delimited-list name ","))))
+	   (either string (delimited-list name ","))])
 
 ;;; print command
 	 (print-command
-	  (sequence "print" (delimited-list expression ",")))
+	  ["print" (delimited-list expression ",")])
 
 ;;; set commands
 	 (set-command
-	  (sequence
-	   :eldoc "set ..."
-	   :info "set-show"
+	  [(:eldoc "set ...")
+	   (:info "set-show")
 	   (either (kw "set") (kw "unset") (kw "show"))
 	   (info-keyword
 	    (either set-angles-clause set-arrow-clause
@@ -1051,51 +1019,45 @@ These have to be compiled from the Gnuplot source tree using
 		    set-palette-clause set-pointsize-clause
 		    set-polar-clause set-print-clause
 		    set-samples-clause set-size-clause
+		    set-style-clause
 		    set-surface-clause set-table-clause
 		    set-terminal-clause set-termoption-clause
 		    set-tics-clause set-tics-clause-2
 		    set-timestamp-clause set-timefmt-clause
 		    set-title-clause set-view-clause
 		    set-data-clause set-dtics-clause
+		    set-xlabel-clause
 		    set-mtics-clause set-range-clause
 		    set-xyplane-clause set-zero-clause
-		    set-zeroaxis-clause))))
-    
+		    set-zeroaxis-clause))])
+	 
 ;;; positions and coordinate systems for set options
 	 (position-system
 	  (either "first" "second" "graph" "screen" "character"))
 
-	 (dimension (sequence (maybe position-system) number))
+	 (dimension [(maybe position-system) expression])
 	 
 	 (position
-	  (sequence dimension "," dimension (maybe "," dimension)))
+	  [dimension "," dimension (maybe "," dimension)])
 	 
 	 (to (either "to" "rto"))
-	  
+	 
 ;;; all the different "set ... " options
 	 (set-angles-clause
-	  (sequence
-	   "angles" (either "degrees" "radians")))
+	  ["angles" (either "degrees" "radians")])
 	 
 	 (set-arrow-clause
-	  (sequence
-	   "arrow" (maybe number)
-	   (maybe "from" position)
-	   (maybe to position)
-	   (maybe
-	    (either
-	     (sequence (kw "arrowstyle" "as") number)
-	     (sequence
-	      (maybe (either "nohead" "head" "backhead" "heads"))
-	      (maybe "size" dimension "," number
-		     (maybe "," number))
-	      (maybe (either "filled" "empty" "nofilled"))
-	      (maybe (either "front" "back"))
-	      (maybe linestyle-spec))))))
+	  ["arrow" (maybe number) 
+	   (many
+	    (either ["from" position] [to position]
+		    [(kw "arrowstyle" "as") expression]
+		    "nohead" "head" "backhead" "heads"
+		    ["size" dimension "," expression (maybe "," expression)]
+		    "filled" "empty" "nofilled" "front" "back"
+		    linecolor-modifier linestyle-spec))])
 
 	 (set-autoscale-clause
-	  (sequence 
-	   "autoscale"
+	  ["autoscale"
 	   (either "fix"
 		   "keepfix"
 		   "x" "y" "z" "cb" "x2" "y2" "xy"
@@ -1103,546 +1065,558 @@ These have to be compiled from the Gnuplot source tree using
 		   "xmax" "ymax" "zmax" "cbmax" "x2max" "y2max" 
 		   "xfix" "yfix" "zfix" "cbfix" "x2fix" "y2fix"
 		   "xfixmax" "yfixmax" "zfixmax" "cbfixmax" "x2fixmax" "y2fixmax"
-		   "xfixmin" "yfixmin" "zfixmin" "cbfixmin" "x2fixmin" "y2fixmin")))
+		   "xfixmin" "yfixmin" "zfixmin" "cbfixmin" "x2fixmin" "y2fixmin")])
 
 	 (set-bars-clause
-	  (sequence
-	   "bars"
-	   (either number "small" "large" "fullwidth")
-	   (either "front" "back")))
+	  ["bars"
+	   (either expression "small" "large" "fullwidth")
+	   (either "front" "back")])
 
 	 (set-border-clause
-	  (sequence
-	   "border"
+	  ["border"
 	   (maybe number)
 	   (maybe (either "front" "back"))
 	   (maybe (kw "linewidth" "lw") expression)
 	   (maybe
 	    (either (kw "linestyle" "ls") (kw "linetype" "lt"))
-	    expression)))
+	    expression)])
 
 	 (set-boxwidth-clause
-	  (sequence
-	   "boxwidth" (maybe expression) (maybe (either "absolute" "relative"))))
+	  ["boxwidth" (maybe expression) (maybe (either "absolute" "relative"))])
 
 	 (set-clabel-clause
-	  (sequence
-	   "clabel" (maybe string)))
+	  ["clabel" (maybe string)])
 
 	 (set-clip-clause
-	  (sequence
-	   "clip" (maybe (either "points" "one" "two"))))
+	  ["clip" (maybe (either "points" "one" "two"))])
 
 	 (set-cntrparam-clause
-	  (sequence
-	   (kw "cntrparam")
+	  [(kw "cntrparam")
 	   (either
 	    "linear" "cubicspline" "bspline"
-       
-	    (sequence (either "points" "order") number)
-       
-	    (sequence
-	     (kw "levels")
+	    
+	    [(either "points" "order") number]
+	    
+	    [(kw "levels")
 	     (either
 	      number
 	      (sequence (kw "auto") (maybe number))
 	      (sequence
 	       (kw "discrete") comma-list)
 	      (sequence
-	       (kw "incremental") (delimited-list expression "," 2 3)))))))
+	       (kw "incremental") (delimited-list expression "," 2 3)))])])
 
 	 (set-colorbox-clause
-	  (sequence
-	   :info "color_box"
-	   "colorbox"
+	  [(:info "color_box")
+	   (kw ("colorb" . "ox"))
 	   (many
 	    (either
-	     "vertical" "horizontal"
+	     (kw ("vert" . "ical")) (kw ("horiz" . "ontal"))
 	     "default" "user"
-	     (sequence "origin" expression "," expression)
-	     (sequence "size" expression "," expression)
+	     ["origin" expression "," expression]
+	     ["size" expression "," expression]
 	     "front" "back"
 	     "noborder" "bdefault"
-	     (sequence "border" expression)))))
+	     ["border" expression]))])
 
 	 (set-contour-clause
-	  (sequence
-	   "contour" (either "base" "surface" "both")))
+	  ["contour" (either "base" "surface" "both")])
 
 	 (set-datafile-clause
-	  (sequence
-	   "datafile"
-	   (either (sequence :info "set_datafile_fortran"
-			     "fortran")
-		   (sequence :info "set_datafile_nofpe_trap"
-			     "nofpe_trap")
-		   (sequence :info "set_datafile_missing"
-			     "missing" (maybe string))
-		   (sequence :info "set_datafile_separator"
-			     "separator" (either "whitespace" string))
-		   (sequence :info "set_datafile_commentschars"
-			     "commentschars" (maybe string))
-		   (sequence :info "set_datafile_binary"
-			     "binary" (many binary-keyword)))))
+	  ["datafile"
+	   (either [(:info "set_datafile_fortran")
+		    "fortran"]
+		   [(:info "set_datafile_nofpe_trap")
+		    "nofpe_trap"]
+		   [(:info "set_datafile_missing")
+		    "missing" (maybe string)]
+		   [(:info "set_datafile_separator")
+		    "separator" (either "whitespace" string)]
+		   [(:info "set_datafile_commentschars")
+		    "commentschars" (maybe string)]
+		   [(:info "set_datafile_binary")
+		    "binary" (many binary-keyword)])])
 
 	 (set-decimalsign-clause
-	  (sequence
-	   "decimalsign"
-	   (either string (sequence "locale" (maybe string)))))
+	  ["decimalsign"
+	   (either string ["locale" (maybe string)])])
 
 	 (set-dgrid3d-clause
-	  (sequence
-	   "dgrid3d"
+	  ["dgrid3d"
 	   (maybe expression)		; fixme
 	   (maybe "," expression)
 	   (either
 	    "splines"
-	    (sequence "qnorm" expression)
-	    (sequence (either "gauss" "cauchy" "exp" "box" "hann")
-		      (maybe expression)
-		      (maybe "," expression)))))
+	    ["qnorm" expression]
+	    [(either "gauss" "cauchy" "exp" "box" "hann")
+	     (maybe expression)
+	     (maybe "," expression)])])
 
 	 (set-dummy-clause
-	  (sequence
-	   "dummy"
-	   name (maybe "," name)))
+	  ["dummy"
+	   name (maybe "," name)])
 
 	 (set-encoding-clause
-	  (sequence
-	   "encoding"
+	  ["encoding"
 	   (either "default" "iso_8859_1" "iso_8859_15" "iso_8859_2" "iso_8859_9"
 		   "koi8r" "koi8u" "cp437" "cp850" "cp852" "cp1250" "cp1251" "cp1254"
-		   "utf8" "locale")))
+		   "utf8" "locale")])
 
 	 (set-fit-clause
-	  (sequence
-	   :info "fit_"
+	  [(:info "fit_")
 	   "fit"
 	   (either
-	    (sequence "logfile" string)
-	    "errorvariables" "noerrorvariables")))
+	    ["logfile" string]
+	    "errorvariables" "noerrorvariables")])
 
 	 (set-fontpath-clause
-	  (sequence
-	   "fontpath" (many string)))
+	  ["fontpath" (many string)])
 
 	 (set-format-clause
-	  (sequence
-	   :info "format_"
+	  [(:info "format_")
 	   "format"
 	   (maybe (either "x" "y" "xy" "x2" "y2" "z" "cb"))
-	   string))
+	   string])
 
 	 (set-grid-clause
-	  (sequence
-	   "grid"
+	  ["grid"
 	   (either "nomxtics" "mxtics" "noxtics" "xtics" "nomytics" "mytics"
 		   "noytics" "ytics" "nomztics" "mztics" "noztics" "ztics"
 		   "nomx2tics" "mx2tics" "nox2tics" "x2tics" "nomy2tics"
 		   "my2tics" "noy2tics" "y2tics" "nomcbtics" "mcbtics"
 		   "nocbtics" "cbtics" "layerdefault" "front" "back"
-		   (sequence linestyle-spec (maybe "," linestyle-spec)))))
+		   [linestyle-spec (maybe "," linestyle-spec)])])
 
 	 (linestyle-spec
 	  (either
-	   (sequence (kw ("lines" . "tyle") "ls") expression)
-	   (sequence (maybe (kw ("linet" . "ype") "lt") expression)
-		     (maybe (kw ("linew" . "idth") "lw") expression))))
-	    
+	   [(kw ("lines" . "tyle") "ls") expression]
+	   [(maybe (kw ("linet" . "ype") "lt") expression)
+	    (maybe (kw ("linew" . "idth") "lw") expression)]))
+	 
 	 (set-hidden3d-clause
-	  (sequence
-	   "hidden3d"
-	   (either
-	    "defaults" "front" "back"
-	    (sequence "offset" expression) "nooffset"
-	    (sequence "trianglepattern"
-		      (either "0" "1" "2" "3" "4" "5" "6" "7"))
-	    (sequence "undefined" (either "1" "2" "3"))
-	    (sequence "noundefined")
-	    "altdiagonal" "noaltdiagonal"
-	    "bentover" "nobentover")))
-     
+	  ["hidden3d"
+	   (many
+	    (either
+	     "defaults" "front" "back"
+	     ["offset" expression] "nooffset"
+	     ["trianglepattern"
+	      (either "0" "1" "2" "3" "4" "5" "6" "7")]
+	     ["undefined" (either "1" "2" "3")]
+	     ["noundefined"]
+	     "altdiagonal" "noaltdiagonal"
+	     "bentover" "nobentover"))])
+	 
 	 (set-historysize-clause
-	  (sequence
-	   "historysize" number))
+	  ["historysize" number])
 
 	 (set-isosamples-clause
-	  (sequence
-	   "isosamples" number (maybe "," number)))
+	  [(kw ("isosam" . "ples")) number (maybe "," number)])
 
 	 (set-key-clause
-	  (sequence
-	   "key"
-	   (maybe (either "on" "off"))
-	   (maybe "default")
-	   (maybe
-	    (either
-	     "inside"  "outside"
-	     "lmargin" "rmargin" "tmargin" "bmargin"
-	     (sequence "at" expression "," expression)))
-	   (maybe
-	    (either 
-                   "left" "right" "center"))
-	   (maybe
-	    (either
-	     "top" "bottom" "center"))
-	   (maybe (either "vertical" "horizontal"))
-	   (maybe (either "Left" "Right"))
-	   (maybe (either "reverse" "noreverse" "invert" "noinvert"))
-	   (maybe "samplen" number)
-	   (maybe "spacing" number)
-	   (maybe "width" number)
-	   (maybe "width" number)
-	   (maybe (either "autotitle" "noautotitle") (maybe "columnheader"))
-	   (maybe "title" expression)
-	   (maybe (either "enhanced" "noenhanced"))
-	   (maybe "font" string)
-	   (maybe "textcolor" color-spec)
-	   (maybe (either "box" "nobox")
-		  linestyle-spec)
-	   (maybe "maxcols" (either number "auto"))
-	   (maybe "maxrows" (either number "auto"))))
+	  ["key"
+	   (many
+	    (either "on" "off" "default"
+		    [(either "inside" "outside")
+		     (either "lmargin" "rmargin" "tmargin" "bmargin")]
+		    ["at" expression "," expression]
+		    "left" "right" "center" "top" "bottom" "vertical"
+		    "horizontal" "Left" "Right" "reverse" "noreverse" "invert"
+		    "noinvert" "above" "over" "below" "under"
+		    ["samplen" number]
+		    ["spacing" number]
+		    ["width" number]
+		    [(either "autotitle" "noautotitle") (maybe "columnheader")]
+		    ["title" expression] "enhanced" "noenhanced" ["font" string]
+		    ["textcolor" color-spec]
+		    [(either "box" "nobox") linestyle-spec]
+		    ["maxcols" (either expression "auto")]
+		    ["maxrows" (either expression "auto")]))])
 
 	 (set-label-clause
-	  (sequence
-	   "label"
+	  ["label"
 	   (maybe number)
-	   (maybe string)
-	   (maybe "at" expression "," expression)
-	   (maybe (either "left" "center" "right"))
-	   (maybe (either "norotate" (sequence "rotate" "by" expression)))
-	   (maybe "font" string)
-	   (maybe "noenhanced")
-	   (maybe (either "front" "back"))
-	   (maybe "textcolor" color-spec)
-;	   (maybe (either "nopoint" (sequence "point" point-style)))
-	   (maybe "offset" position "," position)))
+	   (maybe expression)
+	   (many
+	    (either
+	     ["at" position "," position]
+	     "left" "center" "right"
+	     (either "norotate" ["rotate" "by" expression])
+	     ["font" string]
+	     "noenhanced"
+	     "front" "back"
+	     ["textcolor" color-spec]
+	     "nopoint" ["point" expression]
+	     ["offset" position "," position]))])
 
 	 (set-loadpath-clause
-	  (sequence
-	   "loadpath" (many string)))
+	  ["loadpath" (many string)])
 
 	 (set-locale-clause
-	  (sequence
-	   "locale" (maybe string)))
+	  ["locale" (maybe string)])
 
 	 (set-logscale-clause
-	  (sequence
-	   "logscale"
-	   (either "x" "y" "xy" "x2" "y2" "z" "cb" name)))
+	  ["logscale"
+	   (either "x" "y" "xy" "x2" "y2" "z" "cb" name)])
 
 	 (set-mapping-clause
-	  (sequence
-	   "mapping" (either "cartesian" "spherical" "cylindrical")))
+	  ["mapping" (either "cartesian" "spherical" "cylindrical")])
 
 	 (set-margin-clause
-	  (sequence
-	   (either "bmargin" "lmargin" "rmargin" "tmargin")
-	   (maybe "at" "screen") expression))
+	  [(either "bmargin" "lmargin" "rmargin" "tmargin")
+	   (maybe "at" "screen") expression])
 
 	 ;; TODO: set-mouse-clause
 
 	 (set-multiplot-clause
-	  (sequence
-	   "multiplot"
+	  ["multiplot"
 	   (maybe
-	    (sequence 
+	    [
 	     "layout" number "," number
 	     (maybe (either "rowsfirst" "columnsfirst"))
 	     (maybe (either "downwards" "upwards"))
 	     (maybe "title" string)
 	     (maybe "scale" number (maybe "," number))
-	     (maybe "offset" number (maybe "," number))))))
+	     (maybe "offset" number (maybe "," number))])])
 
 	 (set-mxtics-clause
-	  (sequence
-	   :info "mxtics"
+	  [(:info "mxtics")
 	   (either "mxtics" "mytics" "mztics" "mx2tics" "my2tics" "mcbtics")
-	   (either "default" number)))
+	   (either "default" number)])
 
 	 ;; "set object", objects, dimensions, positions
 	 (set-object-clause
-	  (sequence
-	   "object"
+	  ["object"
 	   (info-keyword
 	    (either rectangle-object ellipse-object circle-object polygon-object))
 	   (maybe (either "front" "back" "behind"))
 	   (maybe (kw "fillcolor" "fc") color-spec)
 	   (maybe "fs" expression)
 	   (maybe "default")
-	   (maybe (kw "linewidth" "lw") expression)))
-  
+	   (maybe (kw "linewidth" "lw") expression)])
+	 
 	 (rectangle-object
-	  (sequence
-	   "rectangle"
+	  ["rectangle"
 	   (either
-	    (sequence "from" position (either "to" "rto") position)
-	    (sequence "center" position "size" dimension "," dimension)
-	    (sequence "at" position "size" dimension "," dimension))))
+	    ["from" position (either "to" "rto") position]
+	    ["center" position "size" dimension "," dimension]
+	    ["at" position "size" dimension "," dimension])])
 
 	 (ellipse-object
-	  (sequence
-	   "ellipse"
+	  ["ellipse"
 	   (either "at" "center") position
 	   "size" dimension "," dimension
-	   (maybe "angle" number)))
+	   (maybe "angle" number)])
 
 	 (circle-object
-	  (sequence
-	   "circle"
+	  ["circle"
 	   (either "at" "center") position
 	   "size" dimension
-	   (maybe "arc" "[" number ":" number "]")))
+	   (maybe "arc" "[" number ":" number "]")])
 
 	 (polygon-object
-	  (sequence
-	   "polygon"
-	   "from" position (many (either "to" "rto") position)))
+	  ["polygon"
+	   "from" position (many (either "to" "rto") position)])
 
 	 ;; "set offsets"
 	 (set-offsets-clause
-	  (sequence
-	   "offsets"
-	   (delimited-list (sequence (maybe "graph") expression) "," 4 4)))
+	  ["offsets"
+	   (delimited-list [(maybe "graph") expression] "," 4 4)])
 
 	 (set-origin-clause
-	  (sequence
-	   "origin" expression "," expression))
+	  ["origin" expression "," expression])
 
 	 (set-output-clause
-	  (sequence
-	   "output" (maybe string)))
+	  ["output" (maybe string)])
 
 	 (set-parametric-clause
-	  (sequence
-	   "parametric"))
+	  ["parametric"])
 
 	 (set-pm3d-clause
-	  (sequence
-	   "pm3d"
+	  ["pm3d"
 	   (many
 	    (either
-	     (sequence "at" name)
-	     (sequence "interpolate" number "," number)
+	     ["at" name]
+	     ["interpolate" number "," number]
 	     (either "scansautomatic" "scansforward" "scansbackward" "depthorder")
-	     (sequence "flush" (either "begin" "center" "end"))
+	     ["flush" (either "begin" "center" "end")]
 	     (either "ftriangles" "noftriangles")
 	     (either "clip1in" "clip4in")
-	     (sequence "corners2color"
-		       (either "mean" "geomean" "median" "min" "max" "c1" "c2" "c3" "c4"))
-	     (sequence "hidden3d" number)
+	     ["corners2color"
+	      (either "mean" "geomean" "median" "min" "max" "c1" "c2" "c3" "c4")]
+	     ["hidden3d" number]
 	     "nohidden3d"
-	     "implicit" "explicit" "map"))))
+	     "implicit" "explicit" "map"))])
 
 	 (set-palette-clause
-	  (sequence
-	   "palette"
+	  ["palette"
 	   (many
 	    (either
 	     "gray" "color"
-	     (sequence "gamma" number)
-	     (sequence "rgbformulae" number "," number "," number)
-	     "defined" 			; not complete
-	     (sequence "functions" expression "," expression "," expression)
-	     (sequence "file" string (many datafile-modifier))
-	     (sequence (either "RGB" "HSV" "CMY" "YIQ" "XYZ"))
+	     ["gamma" number]
+	     ["rgbformulae" number "," number "," number]
+	     "defined"			; not complete
+	     ["functions" expression "," expression "," expression]
+	     ["file" string (many datafile-modifier)]
+	     [(either "RGB" "HSV" "CMY" "YIQ" "XYZ")]
 	     "positive" "negative"
 	     "nops_allcF" "ps_allcF"
-	     (sequence "maxcolors" number)))))
+	     ["maxcolors" number]))])
 
 	 (set-pointsize-clause
-	  (sequence
-	   "pointsize" number))
+	  ["pointsize" number])
 
 	 (set-polar-clause "polar")
 
 	 (set-print-clause
-	  (sequence
-	   "print"
-	   (maybe string)))
+	  ["print"
+	   (maybe string)])
 
 	 (set-samples-clause
-	  (sequence
-	   "samples" expression (maybe "," expression)))
+	  ["samples" expression (maybe "," expression)])
 
 	 (set-size-clause
-	  (sequence
-	   "size"
+	  ["size"
 	   (either
 	    "square" "nosquare"
-	    (sequence "ratio" expression)
+	    ["ratio" expression]
 	    "noratio"
-	    (sequence expression "," expression))))
+	    [expression "," expression])])
 
-	 ;; TODO: set style  *
+	 (set-style-clause
+	  ["style"
+	   (either style-arrow-clause style-data-clause style-fill-clause
+		   style-function-clause style-increment-clause
+		   style-line-clause style-circle-clause style-rectangle-clause)])
+
+	 ;; begin subclauses of "set style ..."
+	 (style-arrow-clause
+	  [(:info "set_style_arrow")
+	   "arrow"
+	   number
+	   (either
+	    "default"
+	    (many
+	     (either "nohead" "head" "heads"
+		     "filled" "empty" "nofilled"
+		     "front" "back"
+		     ["size" dimension "," number (maybe "," number)]
+		     linestyle-spec)))])
+
+	 (style-data-clause
+	  [(:info "set_style_data")
+	   "data" plotting-style])
+
+	 (style-fill-clause
+	  [(:info "set_style_fill")
+	   "fill" fill-style])
+
+	 (style-function-clause
+	  [(:info "set_style_function")
+	   "function" plotting-style])
+
+	 (style-increment-clause
+	  [(:info "set_style_increment")
+	   "increment"
+	   (either (kw ("d" . "efault")) (kw ("u" . "serstyles")))])
+
+	 (style-line-clause
+	  [(:info "set_style_line")
+	   "line"
+	   number
+	   (either
+	    "default"
+	    (many
+	     (either
+	      "palette"
+	      [(kw ("linet" . "ype") "lt")
+	       (either expression color-spec)]
+	      [(kw ("linec" . "olor") "lc") color-spec]
+	      [(either (kw ("linew" . "idth") "lw")
+		       (kw ("pointt" . "ype") "pt")
+		       (kw ("points" . "ize") "ps")
+		       (kw ("pointi" . "nterval") "pi"))
+	       expression])))])
+
+	 (style-circle-clause
+	  [(:info "set_style_circle")
+	   "circle" "radius" dimension])
+
+	 (style-rectangle-clause
+	  [(:info "set_style_rectangle")
+	   "rectangle"
+	   (many
+	    (either
+	     "front" "back"
+	     [(kw ("linew" . "idth") "lw") expression]
+	     [(kw "fillcolor" "fc") color-spec]
+	     ["fs" expression]))])
+	 ;; end of "set style ..." clauses
 
 	 (set-surface-clause "surface")
 	 
-	 (set-table-clause (sequence "table" (maybe string)))
+	 (set-table-clause ["table" (maybe string)])
 
 	 (set-terminal-clause		; not sure how to do this...
-	  (sequence "terminal" (maybe (either "push" "pop"))))
+	  ["terminal" (maybe (either "push" "pop"))])
 
 	 (set-termoption-clause
-	  (sequence
-	   "termoption"
+	  ["termoption"
 	   (either
 	    "enhanced" "noenhanced"
-	    (sequence "font" string)
+	    ["font" string]
 	    "solid" "dashed"
-	    (sequence (kw "linewidth" "lw") expression))))
+	    [(kw "linewidth" "lw") expression])])
 
 	 (set-tics-clause
-	  (sequence
-	   (either "tics" "xtics" "ytics" "ztics" "x2tics" "y2tics" "cbtics")
+	  [(either "tics" "xtics" "ytics" "ztics" "x2tics" "y2tics" "cbtics")
 	   (many
 	    (either
 	     "axis" "border" "mirror" "nomirror" "in" "out"
-	     (sequence "scale" (either "default" expression "," expression))
-	     (sequence "rotate" "by" expression) "norotate"
-	     (sequence "offset" expression) "nooffset"
-	     (sequence "format" string)
-	     (sequence "font" string)
-	     (sequence "textcolor" color-spec)))))
+	     ["scale" (either "default" expression "," expression)]
+	     ["rotate" "by" expression] "norotate"
+	     ["offset" expression] "nooffset"
+	     ["format" string]
+	     ["font" string]
+	     ["textcolor" color-spec]))])
 
 	 (set-tics-clause-2
-	  (sequence
-	   "tics" (either "front" "back")))
+	  ["tics" (either "front" "back")])
 
 	 (set-timestamp-clause
-	  (sequence
-	   "timestamp"
+	  ["timestamp"
 	   (maybe string)
 	   (maybe (either "top" "bottom"))
 	   (maybe (either "rotate" "norotate"))
 	   (maybe "offset" position "," position)
-	   (maybe "font" string)))
+	   (maybe "font" string)])
 
 	 (set-timefmt-clause
-	  (sequence
-	   "timefmt" string))
+	  ["timefmt" string])
 
 	 (set-title-clause
-	  (sequence
-	   "title" 
-	   (maybe string)
-	   (maybe "offset" position) 
-	   (maybe "font" string)
-	   (maybe (kw "textcolor" "tc")
-			    (either "default" color-spec))
-	   (maybe (either "enhanced" "noenhanced"))))
+	  ["title" 
+	   (maybe expression)
+	   (many
+	    (either
+	     ["offset" position] 
+	     ["font" string]
+	     [(kw "textcolor" "tc")
+	      (either "default" color-spec)]
+	     "enhanced" "noenhanced"))])
 
 	 (set-view-clause
-	  (sequence
-	   "view"
+	  ["view"
 	   (either
 	    "map"
-	    (sequence (either "equal" "noequal") (maybe (either "xy" "xyz")))
-	    (delimited-list expression ","))))
+	    [(either "equal" "noequal") (maybe (either "xy" "xyz"))]
+	    (delimited-list expression ","))])
 
 	 (set-data-clause
-	  (sequence
-	   :info "xdata"
+	  [(:info "xdata")
 	   (either "xdata" "ydata" "zdata" "x2data" "y2data" "cbdata")
-	   (maybe "time")))
+	   (maybe (either "time" "geographic"))])
 
 	 (set-dtics-clause
-	  (sequence
-	   :info "xdtics"
-	   (either "xdtics" "ydtics" "zdtics" "x2dtics" "y2dtics" "cbdtics")))
-			
-	  ;; TODO set xlabel etc.
+	  [(:info "xdtics")
+	   (either "xdtics" "ydtics" "zdtics" "x2dtics" "y2dtics" "cbdtics")])
+
+	 (set-xlabel-clause
+	  [(:info "xlabel")
+	   (either (kw ("xlab" . "el")) (kw ("ylab" . "el"))
+		   (kw ("zlab" . "el")) (kw ("x2lab" . "el"))
+		   (kw ("y2lab" . "el")) (kw ("cblab" . "el")))
+	   (maybe expression)
+	   (many
+	    (either
+	     ["offset" position] 
+	     ["font" string]
+	     [(kw "textcolor" "tc")
+	      (either "default" color-spec
+		      ["lt" expression])]
+	     "enhanced" "noenhanced"))])
 	 
 	 (set-mtics-clause
-	  (sequence
-	   :info "xmtics"
-	   (either "xmtics" "ymtics" "zmtics" "x2mtics" "y2mtics" "cbmtics")))
-    
+	  [(:info "xmtics")
+	   (either "xmtics" "ymtics" "zmtics" "x2mtics" "y2mtics" "cbmtics")])
+	 
 	 (set-range-clause
-	  (sequence
-	   :info "xrange"
-	   (either "xrange" "yrange" "zrange" "trange" "urange" "vrange"
-		   "rrange")
+	  [(:info "xrange")
+	   (either (kw ("xr" . "ange")) (kw ("yr" . "ange"))
+		   (kw ("zr" . "ange")) (kw ("tr" . "ange"))
+		   (kw ("ur" . "ange")) (kw ("vr" . "ange"))
+		   (kw ("rr" . "ange")) (kw ("cbr" . "ange")))
 	   (either
 	    "restore"
-	    (sequence
-	     "[" (maybe
-		  (sequence
-		   (maybe axis-range-component) ":"
-		   (maybe axis-range-component)))
+	    ["[" (maybe
+		  [(maybe axis-range-component) ":"
+		   (maybe axis-range-component)])
 	     "]"
-	     (maybe (either "reverse" "noreverse" "writeback" "nowriteback"))))))
+	     (many (either "reverse" "noreverse" "writeback" "nowriteback"))])])
 
 	 ;; TODO set xtics etc.
 
 	 (set-xyplane-clause
-	  (sequence
-	   "xyplane" (either "at" "relative") expression))
+	  ["xyplane" (either "at" "relative") expression])
 
 	 (set-zero-clause
-	  (sequence
-	   "zero" expression))
+	  ["zero" expression])
 
 	 (set-zeroaxis-clause
-	  (sequence
-	   :info "zeroaxis"
-	   (either "xzeroaxis" "x2zeroaxis" "yzeroaxis" "y2zeroaxis" "zzeroaxis")
-	   linestyle-spec))
-	  
+	  [(:info "zeroaxis")
+	   (either "zeroaxis" "xzeroaxis" "x2zeroaxis" "yzeroaxis" "y2zeroaxis"
+		   "zzeroaxis")
+	   linestyle-spec])
+	 
 
-       ;;; Other commands
-       (cd-command
-	(sequence "cd" string))
+;;; Other commands
+	 (cd-command
+	  ["cd" string])
 
-       (call-command
-	(sequence "call" string (many expression)))
+	 (call-command
+	  ["call" string (many expression)])
 
-       (simple-command
-	(either "clear" "exit" "quit" "pwd" "refresh" "replot" "reread" "reset"
-		"shell"))
+	 (simple-command
+	  (either "clear" "exit" "quit" "pwd" "refresh" "replot" "reread" "reset"
+		  "shell"))
 
-       (eval-command
-	(sequence "eval" expression))
+	 (eval-command
+	  ["eval" expression])
 
-       (load-command
-	(sequence "load" string))
+	 (load-command
+	  ["load" string])
 
-       (lower-raise-command (sequence (either "lower" "raise") number))
+	 (lower-raise-command [(either "lower" "raise") number])
 
-       (pause-command
-	(sequence
-	 "pause"
-	 (either
-	  number
-	  (sequence "mouse" (maybe endcondition (maybe "," endcondition))))
-	 string))
+	 (pause-command
+	  ["pause"
+	   (either
+	    expression
+	    ["mouse" (maybe endcondition (maybe "," endcondition))])
+	   string])
 
-       (endcondition (either "keypress" "button1" "button2" "button3" "close" "any"))
+	 (endcondition (either "keypress" "button1" "button2" "button3" "close" "any"))
 
-       (save-command
-	(sequence
-	 "save"
-	 (either "functions" "variables" "terminal" "set")
-	 string))
+	 (save-command
+	  ["save"
+	   (either "functions" "variables" "terminal" "set")
+	   string])
 
-       (system-command
-	(sequence "system" string))
+	 (system-command
+	  ["system" string])
 
-       (test-command
-	(sequence
-	 "test"
-	 (either
-	  "terminal"
-	  (sequence
-	   "palette"
-	   (maybe
-	    (either "rgb" "rbg" "grb" "gbr" "brg" "bgr"))))))
+	 (test-command
+	  ["test"
+	   (either
+	    "terminal"
+	    ["palette"
+	     (maybe
+	      (either "rgb" "rbg" "grb" "gbr" "brg" "bgr"))])])
 
-       (undefine-command
-	(sequence "undefine" (many name)))
+	 (undefine-command
+	  ["undefine" (many name)])
 
-       (update-command
-	(sequence "update" string (maybe string))))
+	 (update-command
+	  ["update" string (maybe string)]))
        
        ;; This is the start symbol
        'command))))
@@ -1657,7 +1631,7 @@ These have to be compiled from the Gnuplot source tree using
     (defmacro gnuplot-trace (&rest args) "No-op." '(progn nil))
     (defmacro gnuplot-debug (&rest args) "No-op." '(progn nil))))
 
-  
+
 
 ;;;; Variables to be set via pattern matching
 (defvar gnuplot-completions nil
@@ -1689,7 +1663,7 @@ token list just after the end of the capture group.")
 
 
 ;;;; The pattern matching machine 
-(defun gnuplot-match-pattern (inst tokens completing-p
+(defun gnuplot-match-pattern (instructions tokens completing-p
 				   &optional start-symbol)
   "Parse TOKENS, setting completions, info and ElDoc information.
 
@@ -1705,20 +1679,24 @@ there."
 	  ;; Stack of return addresses (return PC), eldoc strings
 	  ;; (eldoc STRING) and info pages (info STRING)
 	  (stack '())
-	  ;; Stack of backtracking records, (STACK TOKENS RESUME-PC CAPTURES)
+	  ;; Stack of backtracking records:
+	  ;; ((STACK TOKENS RESUME-PC CAPTURES PROGRESS) ...)
 	  (backtrack '())
 	  ;; Match failure flag, set to `t' to cause backtracking
 	  (fail nil)
 	  ;; Flag set by JUMP and CALL instructions to stop PC advance
-	  (jump nil))
+	  (jump nil)
+	  ;; Record of progress made within (many ...) loops, an alist
+	  ;; of conses (pc . tokens)
+	  (progress '()))
 
       (with-gnuplot-trace-buffer (erase-buffer))
 
       (when start-symbol		; HACK FIXME
-	(while (not (equal (aref inst pc)
-			   '(label start-symbol)))
-	  (incf pc))
-	(incf pc))
+	(let ((look-for `(label ,start-symbol)))
+	  (while (not (equal (aref instructions pc) look-for))
+	    (incf pc))
+	  (incf pc)))
 
       (setq gnuplot-completions nil
 	    gnuplot-eldoc nil
@@ -1727,22 +1705,22 @@ there."
 
       (flet ((advance
 	      ()
-	      (if (eq (pop tokens) gnuplot-token-at-point)
-		  (gnuplot-scan-stack stack tokens)))
+	      (when (eq (pop tokens) gnuplot-token-at-point)
+		(gnuplot-scan-stack stack tokens)))
 	     (fail () (setq fail t)))
+	
 
 	;; Main loop
 	(while t
-	  (let* ((inst (aref inst pc))
+	  (let* ((inst (aref instructions pc))
 		 (opcode (car inst))
 		 (token (car tokens))
 		 (end-of-tokens
 		  (or (gnuplot-end-of-tokens-p tokens)
 		      (and completing-p
-			   ;; (<= (point) (gnuplot-token-end token))
 			   (eq token gnuplot-token-at-point)))))
 	    (gnuplot-trace "%s\t%s\t%s\n" pc inst (gnuplot-token-id token))
-	    
+
 	    (case opcode
 	      ;; (literal LITERAL NO-COMPLETE)
 	      ((literal)
@@ -1782,7 +1760,9 @@ there."
 			(fail))
 
 		       ;; otherwise succeed
-		       (t (advance)))))
+		       (t
+			(setf (gnuplot-token-id token) name)
+			(advance)))))
 
 	      ;; (any): match any token
 	      ((any)
@@ -1795,8 +1775,7 @@ there."
 	      ((jump)
 	       (let ((offset (cadr inst))
 		     (fixed (caddr inst)))
-		 (setq pc (if fixed offset (+ pc offset))
-		       jump t)))
+		 (setq jump (if fixed offset (+ pc offset)))))
 
 	      ;; (call OFFSET FIXED): push the next instruction as a
 	      ;; return location and jump like (jump), above
@@ -1804,8 +1783,7 @@ there."
 	       (let ((offset (cadr inst))
 		     (fixed (caddr inst)))
 		 (push `(return ,(+ pc 1)) stack)
-		 (setq pc (if fixed offset (+ pc offset))
-		       jump t)))
+		 (setq jump (if fixed offset (+ pc offset)))))
 
 	      ;; (return): return to address at topmost RETURN record on
 	      ;; stack, or stop matching and return if stack is empty
@@ -1813,18 +1791,20 @@ there."
 	       (while (and stack
 			   (not (eq (caar stack) 'return)))
 		 (pop stack))
-	       (if (not stack)		; end of pattern
+	       (if (not stack)
+		   ;; Successful match
 		   (throw 'return tokens)
+		 ;; Otherwise, return to caller
 		 (let* ((r (pop stack))
 			(r-pc (cadr r)))
-		   (setq pc r-pc
-			 jump t))))
+		   (setq jump r-pc))))
 
 	      ;; (choice OFFSET): push PC + OFFSET onto the stack of
 	      ;; backtracking points and continue at next instruction
 	      ((choice)
 	       (let ((offset (cadr inst)))
-		 (push `(,stack ,tokens ,(+ pc offset) ,gnuplot-captures)
+		 (push `(,stack ,tokens ,(+ pc offset) ,gnuplot-captures
+				,progress)
 		       backtrack)))
 
 	      ;; (commit OFFSET): discard most recent backtrack point
@@ -1834,8 +1814,7 @@ there."
 		 (if (not backtrack)
 		     (error "no more backtrack points in commit"))
 		 (pop backtrack)
-		 (setq pc (+ pc offset)
-		       jump t)))
+		 (setq jump (+ pc offset))))
 
 	      ;; (fail): force this match to fail, going back to most
 	      ;; recent backtrack point
@@ -1878,32 +1857,42 @@ there."
 		   (setf (caddr record) tokens)
 		   (gnuplot-debug (gnuplot-dump-captures)))))
 
+	      ;; (check-progress): make sure not stuck in an infinite loop
+	      ((check-progress)
+	       (let ((prev-progress (cdr (assoc pc progress))))
+		 (if (eq prev-progress tokens)
+		     (progn
+		       (pop backtrack)
+		       (fail))
+		   (push (cons pc tokens) progress))))
+
 	      (t
 	       (error "bad instruction: %s" inst)))
 
-	    ;; Increment PC unless a jump occurred
-	    (if jump
-		(setq jump nil)
-	      (incf pc))
-
+	    ;; Increment PC or jump
+	    (setq pc (or jump (1+ pc))
+		  jump nil)
+		  
 	    ;; Backtrack on failure
 	    (when fail
-	      (if (not backtrack)	; Out of backtracking stack
+	      (if (not backtrack)	; Out of backtracking stack: failed match
 		  (throw 'return nil)
 		(gnuplot-trace "\t*fail*\t%s\n" (length backtrack))
 		;; If we got as far as token-at-point before failing,
 		;; scan the stack for eldoc and info strings
 		(when end-of-tokens
 		  (gnuplot-scan-stack stack tokens))
-
+		
 		(destructuring-bind
-		    (bt-stack bt-tokens bt-pc bt-captures)
+		    (bt-stack bt-tokens bt-pc bt-captures bt-progress)
 		    (pop backtrack)
 		  (setq stack bt-stack
 			tokens bt-tokens
 			pc bt-pc
 			gnuplot-captures bt-captures
-			fail nil))))))))))
+			progress bt-progress
+			fail nil)
+		  (gnuplot-debug (gnuplot-dump-progress progress)))))))))))
 
 (defun gnuplot-scan-stack (stack tokens)
   "Scan STACK for the most recently pushed eldoc and info strings"
@@ -1911,39 +1900,43 @@ there."
   (gnuplot-debug (gnuplot-backtrace))
   (gnuplot-debug (gnuplot-dump-captures))
 
-  (while (and stack
-	      (not (and gnuplot-info-at-point gnuplot-eldoc)))
-    (let* ((item (car stack))
-	   (type (car item))
-	   (position (caddr item)))	; must progress by at least one token
-      (if (and (memq type '(info eldoc))
-	       (not (eq position tokens)))
-	  (case type
-	    ((info)
-	     (when (not gnuplot-info-at-point)
-	       (let ((info (cadr item)))
-		 (setq gnuplot-info-at-point
-		       (cond
-			((eq info 'first-token)
-			 (gnuplot-token-id (car position)))
-			((functionp info) (funcall info))
-			(t info)))
-		 (when gnuplot-info-at-point
-		   (gnuplot-trace "\tset info to \"%s\"\n" gnuplot-info-at-point)
-		   (when (not gnuplot-eldoc)
-		     (let ((eldoc
-		   	    (car (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
-		       (when eldoc
-		   	 (setq gnuplot-eldoc eldoc)
-		   	 (gnuplot-trace "\tand set eldoc to \"%s\"\n" eldoc))))))))
+  (catch 'no-scan
+    (while (and stack
+		(not (and gnuplot-info-at-point gnuplot-eldoc)))
+      (let* ((item (car stack))
+	     (type (car item))
+	     (position (caddr item))) ; must progress by at least one token
+	(if (and (memq type '(info eldoc no-scan))
+		 (not (eq position tokens)))
+	    (case type
+	      ((no-scan)
+	       (throw 'no-scan nil))
 
-	    ((eldoc)
-	     (when (not gnuplot-eldoc)
-	       (let ((eldoc (cadr item)))
-		 (setq gnuplot-eldoc
-		       (if (functionp eldoc) (funcall eldoc) eldoc))
-		 (gnuplot-trace "\tset eldoc to \"%s\"\n" gnuplot-eldoc)))))))
-    (pop stack)))
+	      ((info)
+	       (when (not gnuplot-info-at-point)
+		 (let ((info (cadr item)))
+		   (setq gnuplot-info-at-point
+			 (cond
+			  ((eq info 'first-token)
+			   (gnuplot-token-id (car position)))
+			  ((functionp info) (funcall info))
+			  (t info)))
+		   (when gnuplot-info-at-point
+		     (gnuplot-trace "\tset info to \"%s\"\n" gnuplot-info-at-point)
+		     (when (not gnuplot-eldoc)
+		       (let ((eldoc
+			      (car (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
+			 (when eldoc
+			   (setq gnuplot-eldoc eldoc)
+			   (gnuplot-trace "\tand set eldoc to \"%s\"\n" eldoc))))))))
+
+	      ((eldoc)
+	       (when (not gnuplot-eldoc)
+		 (let ((eldoc (cadr item)))
+		   (setq gnuplot-eldoc
+			 (if (functionp eldoc) (funcall eldoc) eldoc))
+		   (gnuplot-trace "\tset eldoc to \"%s\"\n" gnuplot-eldoc)))))))
+      (pop stack))))
 
 (defun gnuplot-capture-group (name)
   "Return capture group NAME from the most recent parse, as a list of tokens."
@@ -1964,7 +1957,7 @@ there."
 
 ;;;; Interface to the matching machine
 (defun gnuplot-parse-at-point (completing-p)
-  (let ((tokens (gnuplot-tokenize)))
+  (let ((tokens (gnuplot-tokenize completing-p)))
     (gnuplot-match-pattern gnuplot-compiled-grammar tokens completing-p)))
 
 (defun gnuplot-completions ()
@@ -1982,10 +1975,6 @@ there."
     (unless (= beg end)
       (setq word (buffer-substring beg end)
 	    completions (all-completions word completions)))
-
-    (when (= (length completions) 1)
-      (setq completions (list (concat (car completions) " ")))
-      (gnuplot-completions))
 
     (if completions
 	(list beg end completions)
