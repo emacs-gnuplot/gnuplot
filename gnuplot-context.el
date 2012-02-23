@@ -1339,7 +1339,8 @@ These have to be compiled from the Gnuplot source tree using
 	  ["output" (maybe string)])
 
 	 (set-parametric-clause
-	  ["parametric"])
+	  [(:info "parametric_")
+	   "parametric"])
 
 	 (set-pm3d-clause
 	  ["pm3d"
@@ -1378,7 +1379,8 @@ These have to be compiled from the Gnuplot source tree using
 	 (set-polar-clause "polar")
 
 	 (set-print-clause
-	  ["print"
+	  [(:info "print_")
+	   "print"
 	   (maybe string)])
 
 	 (set-samples-clause
@@ -1504,7 +1506,8 @@ These have to be compiled from the Gnuplot source tree using
 	  ["timefmt" string])
 
 	 (set-title-clause
-	  ["title" 
+	  [(:info "title_")
+	   "title" 
 	   (maybe expression)
 	   (many
 	    (either
