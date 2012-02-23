@@ -41,10 +41,10 @@
 	(intern (gnuplot-token-id token)))))
        tokens))
 
-;; compile a single pattern to vector form
+;; compile a single pattern to usable form
 (eval-when-compile
   (defun gnuplot-compile-pattern-1 (pattern)
-    (vconcat (gnuplot-compile-pattern pattern) [(return)])))
+    (gnuplot-compile-grammar `((rule ,pattern)) 'rule)))
  
 ;; match a string 
 (defun gnuplot-match-string (string rule)
@@ -194,10 +194,6 @@
     ("," :none)
     ("]" :none)))
 
-(deftest gnuplot-parenthesized-expression ()
-  (should-match parenthesized-expression
-    ("(sum = sum + $2, sum/2)")))
-
 (deftest gnuplot-function-call ()
   (should-match function-call
     "abs(2)"
@@ -231,6 +227,11 @@
     ("x=2")
     ("x=y=3, garbage" '(\, garbage))
     ("f(a) = y(x) = 5")))
+
+;; parenthesized exprs (including assignments)
+(deftest gnuplot-parenthesized-expression ()
+  (should-match parenthesized-expression
+    ("(sum = sum + $2, sum/2)")))
 
 ;; axis ranges
 (deftest gnuplot-axis-range ()
@@ -299,25 +300,15 @@
 (deftest gnuplot-plot-command ()
   (should-match plot-command
     ("plot sin(x) with impulses")
-      
      ("plot x w points, x**2")
-     
      ("plot [ ] [-2:5] tan(x), 'data.1' with l")
-
      ("plot 'leastsq.dat' w i")
-     
      ("plot 'exper.dat' w lines, 'exper.dat' notitle w errorbars")
-
      ("plot sin(x) with linesp lt 1 pt 3, cos(x) with linesp lt 1 pt 4")
-
      ("plot 'data' with points pointtype 3 pointsize 2")
-     
      ("plot 'data' using 1:2:4 with points pt 5 pointsize variable")
-     
      ("plot 'd1' t \"good\" w l lt 2 lw 3, 'd2' t \"bad\" w l lt 2 lw 1")
-
      ("plot x*x with filledcurve closed, 40 with filledcurve y1=10")
-	
      ("plot x*x, (x>=-5 && x<=5 ? 40 : 1/0) with filledcurve y1=10 lt 8")))
 
 ;;; set cntrparam
@@ -332,8 +323,7 @@
     ("cntrparam levels 10")
     ("cntrparam levels incremental 100,50")))
 	     
-	    
-
+
 ;;
 ;; test by parsing all the demos
 ;;

@@ -411,9 +411,10 @@ These have to be compiled from the Gnuplot source tree using
 
 
 (eval-when-compile
-  ;; Compile a single pattern into a list of instructions. Leaves any
-  ;; calls to other rules as symbolic instructions (call SYMBOL); these
-  ;; are resolved into offsets by `gnuplot-compile-grammar', below.
+  ;; Compile a single pattern into a list of instructions. Leaves
+  ;; calls to other rules as symbolic instructions (call SYMBOL) and
+  ;; jumps, commits etc. as relative offsets; these are resolved into
+  ;; absolute locations by `gnuplot-compile-grammar', below.
   (defun gnuplot-compile-pattern (pat)
     (cond
      ;; Strings match a single token literally
@@ -620,7 +621,7 @@ These have to be compiled from the Gnuplot source tree using
 	    (setf (aref object-code i) '(return)
 		  i (1+ i))))
 
-	;; Resolve symbolic jumps
+	;; Resolve symbolic and relative jumps 
 	(let ((pattern-name nil))
 	  (dotimes (i (length object-code))
 	    (let ((inst (aref object-code i)))
@@ -628,16 +629,25 @@ These have to be compiled from the Gnuplot source tree using
 		((label)
 		 (setq pattern-name (cadr inst)))
 
-		((jump call)
-		 (if (symbolp (cadr inst))
-		     (let* ((name (cadr inst))
-			    (location (gethash name name->offset)))
-		       (if (not location)
-			   (error
-			    (concat "gnuplot-compile-grammar: "
-				    "No rule found for symbol `%s' in pattern `%s'")
-			    name pattern-name))
-		       (setcdr inst `(,location t ,name)))))))))
+		((jump call choice commit)
+		 (cond
+		  ((symbolp (cadr inst))
+		   (let* ((name (cadr inst))
+			  (location (gethash name name->offset)))
+		     (if (not location)
+			 (error
+			  (concat "gnuplot-compile-grammar: "
+				  "No rule found for symbol `%s' in pattern `%s'")
+			  name pattern-name))
+		     (setcdr inst `(,location ,name))))
+
+		  ((numberp (cadr inst))
+		   (let* ((offset (cadr inst))
+			  (location (+ offset i)))
+		     (setcdr inst `(,location))))
+
+		  (t
+		   (error "gnuplot-compile-grammar: bad instruction %s" inst))))))))
 	object-code))))
 
 ;;; The grammar.
@@ -1657,7 +1667,7 @@ Set by `gnuplot-match-pattern'. See also `gnuplot-info-at-point'.")
 
 Each entry is of the form (NAME BEGIN END), where NAME is the
 name specified in the (capture NAME PATTERN) form in the
-`gnuplop-compiled-grammar' source, BEGIN is the tail of the token
+`gnuplot-compiled-grammar' source, BEGIN is the tail of the token
 list beginning the capture group, and END is the tail of the
 token list just after the end of the capture group.")
 
@@ -1770,20 +1780,17 @@ there."
 		   (fail)
 		 (advance)))
 	      
-	      ;; (jump OFFSET FIXED): jump to instruction at PC + OFFSET,
-	      ;; or directly to OFFSET if FIXED is non-nil
+	      ;; (jump LOCATION): jump to instruction at LOCATION
 	      ((jump)
-	       (let ((offset (cadr inst))
-		     (fixed (caddr inst)))
-		 (setq jump (if fixed offset (+ pc offset)))))
+	       (let ((location (cadr inst)))
+		 (setq jump location)))
 
-	      ;; (call OFFSET FIXED): push the next instruction as a
-	      ;; return location and jump like (jump), above
+	      ;; (call LOCATION): push the next instruction as a
+	      ;; return location and jump
 	      ((call)
-	       (let ((offset (cadr inst))
-		     (fixed (caddr inst)))
+	       (let ((location (cadr inst)))
 		 (push `(return ,(+ pc 1)) stack)
-		 (setq jump (if fixed offset (+ pc offset)))))
+		 (setq jump location)))
 
 	      ;; (return): return to address at topmost RETURN record on
 	      ;; stack, or stop matching and return if stack is empty
@@ -1799,22 +1806,22 @@ there."
 			(r-pc (cadr r)))
 		   (setq jump r-pc))))
 
-	      ;; (choice OFFSET): push PC + OFFSET onto the stack of
+	      ;; (choice LOCATION): push LOCATION onto the stack of
 	      ;; backtracking points and continue at next instruction
 	      ((choice)
-	       (let ((offset (cadr inst)))
-		 (push `(,stack ,tokens ,(+ pc offset) ,gnuplot-captures
+	       (let ((location (cadr inst)))
+		 (push `(,stack ,tokens ,location ,gnuplot-captures
 				,progress)
 		       backtrack)))
 
-	      ;; (commit OFFSET): discard most recent backtrack point
-	      ;; and jump to PC + OFFSET
+	      ;; (commit LOCATION): discard most recent backtrack point
+	      ;; and jump to LOCATION
 	      ((commit)
-	       (let ((offset (cadr inst)))
+	       (let ((location (cadr inst)))
 		 (if (not backtrack)
 		     (error "no more backtrack points in commit"))
 		 (pop backtrack)
-		 (setq jump (+ pc offset))))
+		 (setq jump location)))
 
 	      ;; (fail): force this match to fail, going back to most
 	      ;; recent backtrack point

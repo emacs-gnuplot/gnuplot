@@ -1,3 +1,8 @@
+;;
+;; debugging utilities for the gnuplot-mode context matcher
+;;
+
+(require 'gnuplot-test-context) 	; for gnuplot-simplify-tokens
 
 (defun gnuplot-unload ()
   (interactive)
