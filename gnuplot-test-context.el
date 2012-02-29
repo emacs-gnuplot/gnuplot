@@ -42,7 +42,7 @@
        tokens))
 
 ;; compile a single pattern to usable form
-(eval-when-compile
+(eval-and-compile
   (defun gnuplot-compile-pattern-1 (pattern)
     (gnuplot-compile-grammar `((rule ,pattern)) 'rule)))
  

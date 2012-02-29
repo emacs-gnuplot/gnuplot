@@ -68,6 +68,14 @@
 				 (gnuplot-simplify-tokens (caddr x)))))))
        (insert "-- end backtrace  --\n"))))
 
+(defun gnuplot-dump-backtrack (backtrack)
+  (if backtrack
+      (with-gnuplot-trace-buffer
+       (insert "\n-- * backtrack records: * --\n")
+       (dolist (x backtrack)
+	 (insert (format "%s\t%s\n" (caddr x) (gnuplot-simplify-tokens (cadr x)))))
+       (insert "-- end backtrack records  --\n\n"))))
+
 (defun gnuplot-dump-progress (progress)
   (if progress
       (with-gnuplot-trace-buffer

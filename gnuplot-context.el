@@ -496,6 +496,13 @@ These have to be compiled from the Gnuplot source tree using
 	       ,@pat1-c
 	       (commit ,(- (+ pat1-l 2))))))
 
+	  ;; Repetition (+)
+	  ((many1)
+	   (let* ((pat1 (cdr pat)))
+	     (gnuplot-compile-pattern
+	      `(sequence ,@pat1 (many ,@pat1)))))
+		  
+
 	  ;; Optional (?)
 	  ((maybe)
 	   (let* ((pat1 (cons 'sequence (cdr pat)))
@@ -850,21 +857,27 @@ These have to be compiled from the Gnuplot source tree using
 	   fill-style])
 	 
 	 (fill-style
-	  (either
-	   "empty"
-	   ["transparent"
-	    (maybe (either "pattern" "solid") expression)
-	    (maybe (either "noborder" ["border" expression]))]))
+	  [(either
+	    "empty"
+	    [(maybe "transparent")
+	     (either "pattern" "solid")
+	     (maybe (either fill-style-border-clause expression))])
+	   (maybe fill-style-border-clause)])
+
+	 (fill-style-border-clause
+	  (either "noborder" [(kw ("bo" . "rder")) expression]))
 
 	 (color-spec
-	  (either
-	   "variable"
+	  [(:info "colorspec")
+	   (either
+	    (kw ("var" . "iable"))
 
-	   ["palette"
-	    (either "z" [(either "frac" "cb") expression])]
+	    [(kw ("pal" . "ette"))
+	     (either "z"
+		     [(either "frac" "cb") expression])]
 
-	   [(kw ("rgb" . "color"))
-	    (either "variable" string)]))
+	    [(kw ("rgb" . "color"))
+	     (either (kw ("var" . "iable")) string)])])
 
 	 (with-modifier
 	  [(:info "plotting_styles")
@@ -884,7 +897,7 @@ These have to be compiled from the Gnuplot source tree using
 	    (kw ("xye" . "rrorbars")) (kw "boxes") (kw ("hist" . "ograms"))
 	    (kw ("boxer" . "rorbars")) (kw ("boxx" . "yerrorbars")) (kw ("st" . "eps"))
 	    (kw ("fs" . "teps")) (kw ("his" . "teps")) (kw ("fin" . "ancebars"))
-	    (kw ("can" . "dlesticks")) (kw ("pm" . "3d")) (kw "labels") 
+	    (kw ("can" . "dlesticks")) (kw ("pm" . "3d"))
 	    (kw ("cir" . "cles"))
 	    
 	    ;; Image styles all use the same info page
@@ -894,29 +907,50 @@ These have to be compiled from the Gnuplot source tree using
 		     (kw ("rgba" . "lpha")))]
 	    
 	    ;; More complicated styles defined below
+	    labels-style-clause
 	    filledcurves-style-clause
 	    vectors-style-clause)))
 
+	 (labels-style-clause
+	  [(kw "labels")
+	   (maybe textcolor-spec)])
+	   
 	 (filledcurves-style-clause
 	  [(kw ("filledc" . "urves"))
 	   (maybe
 	    (either
 	     "closed"
 	     
-	     [(maybe (either "above" "below"))
-	      (either "x1" "x2" "y1" "y2")
-	      (maybe "=" expression)]
+	     ["xy" "=" expression "," expression]
 
-	     ["xy" "=" expression "," expression]))])
+	     [(maybe (either "above" "below"))
+	      (maybe [(either "x1" "x2" "y1" "y2")
+		      (maybe "=" expression)])]))])
 
 	 (vectors-style-clause
 	  [(kw ("vec" . "tors"))
 	   (many
 	    (either
 	     "nohead" "head" "heads" "filled" "empty" "nofilled" "front" "back"
-	     linestyle-spec
 	     [(kw "arrowstyle" "as") expression]
-	     ["size" (delimited-list expression ",")]))])
+	     ["size" (delimited-list expression ",")]
+	     linestyle-spec))])
+
+;;; Various style specifiers, used in different places
+	 (linestyle-spec
+	  (many1
+	   (either
+	    [(kw ("lines" . "tyle") "ls") expression]
+	    [(kw ("linet" . "ype") "lt") expression]
+	    [(kw ("linew" . "idth") "lw") expression])))
+	 
+	 (textcolor-spec
+	  [(kw "textcolor" "tc")
+	   (either "default"
+		   ["lt" expression]
+		   color-spec)])
+
+	 (pointsize-spec [(kw "pointsize" "ps") expression])
 
 ;;; Datafile modifiers
 	 (datafile-modifier
@@ -933,7 +967,7 @@ These have to be compiled from the Gnuplot source tree using
 	   (either string (delimited-list expression ":" 0 2))])
 
 	 (every-modifier
-	  [(kw ("ev" . "ery")) (delimited-list expression ";" 0)])
+	  [(kw ("ev" . "ery")) (delimited-list (maybe expression) ":")])
 	 
 	 (thru-modifier
 	  [(kw "thru") expression])
@@ -972,19 +1006,18 @@ These have to be compiled from the Gnuplot source tree using
 
 	   ;; remaining binary keywords have their own info pages
 	   (info-keyword
-	    [(either "array" "record")
-	     "="
-	     (either
-	      (delimited-list tuple ":")
-	      (delimited-list expression ":"))]
+	    (either
+	     [(either "array" "record")
+	      "="
+	      (delimited-list expression ":")]
 
-	    [(either "skip")
-	     "="
-	     (delimited-list expression ":")]
+	     [(either "skip")
+	      "="
+	      (delimited-list expression ":")]
 	    
-	    [(either "format" "endian" "filetype")
-	     "="
-	     expression])))
+	     [(either "format" "endian" "filetype")
+	      "="
+	      expression]))))
 	 
 ;;; "fit" command
 	 (fit-command
@@ -1006,6 +1039,7 @@ These have to be compiled from the Gnuplot source tree using
 	  [(:eldoc "set ...")
 	   (:info "set-show")
 	   (either (kw "set") (kw "unset") (kw "show"))
+	   (maybe iteration-spec)
 	   (info-keyword
 	    (either set-angles-clause set-arrow-clause
 		    set-autoscale-clause set-bars-clause
@@ -1033,6 +1067,7 @@ These have to be compiled from the Gnuplot source tree using
 		    set-surface-clause set-table-clause
 		    set-terminal-clause set-termoption-clause
 		    set-tics-clause set-tics-clause-2
+		    set-xtics-clause
 		    set-timestamp-clause set-timefmt-clause
 		    set-title-clause set-view-clause
 		    set-data-clause set-dtics-clause
@@ -1092,7 +1127,9 @@ These have to be compiled from the Gnuplot source tree using
 	    expression)])
 
 	 (set-boxwidth-clause
-	  ["boxwidth" (maybe expression) (maybe (either "absolute" "relative"))])
+	  ["boxwidth"
+	   (maybe expression)
+	   (maybe (either (kw ("abs" . "olute")) "relative"))])
 
 	 (set-clabel-clause
 	  ["clabel" (maybe string)])
@@ -1197,14 +1234,8 @@ These have to be compiled from the Gnuplot source tree using
 		   "nocbtics" "cbtics" "layerdefault" "front" "back"
 		   [linestyle-spec (maybe "," linestyle-spec)])])
 
-	 (linestyle-spec
-	  (either
-	   [(kw ("lines" . "tyle") "ls") expression]
-	   [(maybe (kw ("linet" . "ype") "lt") expression)
-	    (maybe (kw ("linew" . "idth") "lw") expression)]))
-	 
 	 (set-hidden3d-clause
-	  ["hidden3d"
+	  [(kw ("hidden" . "3d"))
 	   (many
 	    (either
 	     "defaults" "front" "back"
@@ -1237,7 +1268,7 @@ These have to be compiled from the Gnuplot source tree using
 		    ["width" number]
 		    [(either "autotitle" "noautotitle") (maybe "columnheader")]
 		    ["title" expression] "enhanced" "noenhanced" ["font" string]
-		    ["textcolor" color-spec]
+		    textcolor-spec
 		    [(either "box" "nobox") linestyle-spec]
 		    ["maxcols" (either expression "auto")]
 		    ["maxrows" (either expression "auto")]))])
@@ -1245,18 +1276,20 @@ These have to be compiled from the Gnuplot source tree using
 	 (set-label-clause
 	  ["label"
 	   (maybe number)
-	   (maybe expression)
-	   (many
-	    (either
-	     ["at" position "," position]
-	     "left" "center" "right"
-	     (either "norotate" ["rotate" "by" expression])
-	     ["font" string]
-	     "noenhanced"
-	     "front" "back"
-	     ["textcolor" color-spec]
-	     "nopoint" ["point" expression]
-	     ["offset" position "," position]))])
+	   (either label-clause-component expression)
+	   (many label-clause-component)])
+
+	 (label-clause-component
+	  (either
+	   ["at" position]
+	   "left" "center" "right"
+	   (either "norotate" ["rotate" "by" expression])
+	   ["font" string]
+	   "noenhanced"
+	   "front" "back"
+	   textcolor-spec
+	   "nopoint" ["point" (many (either pointsize-spec linestyle-spec))]
+	   ["offset" position]))
 
 	 (set-loadpath-clause
 	  ["loadpath" (many string)])
@@ -1280,8 +1313,7 @@ These have to be compiled from the Gnuplot source tree using
 	 (set-multiplot-clause
 	  ["multiplot"
 	   (maybe
-	    [
-	     "layout" number "," number
+	    ["layout" number "," number
 	     (maybe (either "rowsfirst" "columnsfirst"))
 	     (maybe (either "downwards" "upwards"))
 	     (maybe "title" string)
@@ -1296,6 +1328,7 @@ These have to be compiled from the Gnuplot source tree using
 	 ;; "set object", objects, dimensions, positions
 	 (set-object-clause
 	  ["object"
+	   (maybe number)
 	   (info-keyword
 	    (either rectangle-object ellipse-object circle-object polygon-object))
 	   (maybe (either "front" "back" "behind"))
@@ -1305,11 +1338,12 @@ These have to be compiled from the Gnuplot source tree using
 	   (maybe (kw "linewidth" "lw") expression)])
 	 
 	 (rectangle-object
-	  ["rectangle"
-	   (either
-	    ["from" position (either "to" "rto") position]
-	    ["center" position "size" dimension "," dimension]
-	    ["at" position "size" dimension "," dimension])])
+	  [(kw ("rect" . "angle"))
+	   (maybe
+	    (either
+	     ["from" position (either "to" "rto") position]
+	     ["center" position "size" dimension "," dimension]
+	     ["at" position "size" dimension "," dimension]))])
 
 	 (ellipse-object
 	  ["ellipse"
@@ -1340,7 +1374,7 @@ These have to be compiled from the Gnuplot source tree using
 
 	 (set-parametric-clause
 	  [(:info "parametric_")
-	   "parametric"])
+	   (kw ("param" . "etric"))])
 
 	 (set-pm3d-clause
 	  ["pm3d"
@@ -1368,13 +1402,12 @@ These have to be compiled from the Gnuplot source tree using
 	     "defined"			; not complete
 	     ["functions" expression "," expression "," expression]
 	     ["file" string (many datafile-modifier)]
-	     [(either "RGB" "HSV" "CMY" "YIQ" "XYZ")]
+	     "RGB" "HSV" "CMY" "YIQ" "XYZ"
 	     "positive" "negative"
 	     "nops_allcF" "ps_allcF"
 	     ["maxcolors" number]))])
 
-	 (set-pointsize-clause
-	  ["pointsize" number])
+	 (set-pointsize-clause pointsize-spec)
 
 	 (set-polar-clause "polar")
 
@@ -1434,7 +1467,7 @@ These have to be compiled from the Gnuplot source tree using
 	 (style-line-clause
 	  [(:info "set_style_line")
 	   "line"
-	   number
+	   expression
 	   (either
 	    "default"
 	    (many
@@ -1480,26 +1513,43 @@ These have to be compiled from the Gnuplot source tree using
 	    [(kw "linewidth" "lw") expression])])
 
 	 (set-tics-clause
-	  [(either "tics" "xtics" "ytics" "ztics" "x2tics" "y2tics" "cbtics")
+	  ["tics"
 	   (many
 	    (either
 	     "axis" "border" "mirror" "nomirror" "in" "out"
-	     ["scale" (either "default" expression "," expression)]
-	     ["rotate" "by" expression] "norotate"
+	     ["scale" (either "default" [expression (maybe "," expression)])]
+	     [(either "rotate" "norotate") (maybe "by" expression)]
 	     ["offset" expression] "nooffset"
 	     ["format" string]
 	     ["font" string]
-	     ["textcolor" color-spec]))])
+	     textcolor-spec))])
 
 	 (set-tics-clause-2
 	  ["tics" (either "front" "back")])
+	 
+	 (set-xtics-clause
+	  [(:info "xtics")
+	   (either "xtics" "ytics" "ztics" "x2tics" "y2tics" "cbtics")
+	   (many
+	    (either
+	     "axis" "border" "mirror" "nomirror" "in" "out"
+	     ["scale" (either "default" [expression (maybe "," expression)])]
+	     [(either "rotate" "norotate") (maybe "by" expression)]
+	     ["offset" position] "nooffset"
+	     "add" "autofreq"
+	     ["(" (delimited-list [(maybe string) expression (maybe number)] ",") ")"]
+	     ["format" string]
+	     ["font" string]
+	     "rangelimited"
+	     textcolor-spec
+	     (delimited-list expression ",")))])
 
 	 (set-timestamp-clause
 	  ["timestamp"
 	   (maybe string)
 	   (maybe (either "top" "bottom"))
 	   (maybe (either "rotate" "norotate"))
-	   (maybe "offset" position "," position)
+	   (maybe "offset" position)
 	   (maybe "font" string)])
 
 	 (set-timefmt-clause
@@ -1513,8 +1563,7 @@ These have to be compiled from the Gnuplot source tree using
 	    (either
 	     ["offset" position] 
 	     ["font" string]
-	     [(kw "textcolor" "tc")
-	      (either "default" color-spec)]
+	     textcolor-spec
 	     "enhanced" "noenhanced"))])
 
 	 (set-view-clause
@@ -1522,7 +1571,7 @@ These have to be compiled from the Gnuplot source tree using
 	   (either
 	    "map"
 	    [(either "equal" "noequal") (maybe (either "xy" "xyz"))]
-	    (delimited-list expression ","))])
+	    (delimited-list (maybe expression) ","))])
 
 	 (set-data-clause
 	  [(:info "xdata")
@@ -1543,9 +1592,7 @@ These have to be compiled from the Gnuplot source tree using
 	    (either
 	     ["offset" position] 
 	     ["font" string]
-	     [(kw "textcolor" "tc")
-	      (either "default" color-spec
-		      ["lt" expression])]
+	     textcolor-spec
 	     "enhanced" "noenhanced"))])
 	 
 	 (set-mtics-clause
@@ -1565,9 +1612,7 @@ These have to be compiled from the Gnuplot source tree using
 		   (maybe axis-range-component)])
 	     "]"
 	     (many (either "reverse" "noreverse" "writeback" "nowriteback"))])])
-
-	 ;; TODO set xtics etc.
-
+	     
 	 (set-xyplane-clause
 	  ["xyplane" (either "at" "relative") expression])
 
@@ -1578,7 +1623,7 @@ These have to be compiled from the Gnuplot source tree using
 	  [(:info "zeroaxis")
 	   (either "zeroaxis" "xzeroaxis" "x2zeroaxis" "yzeroaxis" "y2zeroaxis"
 		   "zzeroaxis")
-	   linestyle-spec])
+	   (maybe linestyle-spec)])
 	 
 
 ;;; Other commands
@@ -1872,8 +1917,8 @@ there."
 	       (let ((prev-progress (cdr (assoc pc progress))))
 		 (if (eq prev-progress tokens)
 		     (progn
-		       (pop backtrack)
-		       (fail))
+		       ;; (pop backtrack)
+		       (fail)) 
 		   (push (cons pc tokens) progress))))
 
 	      (t
@@ -1888,6 +1933,7 @@ there."
 	      (if (not backtrack)	; Out of backtracking stack: failed match
 		  (throw 'return nil)
 		(gnuplot-trace "\t*fail*\t%s\n" (length backtrack))
+		(gnuplot-debug (gnuplot-dump-backtrack backtrack))
 		;; If we got as far as token-at-point before failing,
 		;; scan the stack for eldoc and info strings
 		(when end-of-tokens
