@@ -2034,22 +2034,35 @@ there."
 	     (cadr (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
 	(if eldoc (message eldoc)))))
 
-(define-key gnuplot-mode-map (kbd "C-c h") 'gnuplot-help-function)
+(defun gnuplot-setup-eldoc ()
+  (set (make-local-variable 'eldoc-documentation-function)
+       'gnuplot-eldoc-function)
+  ;; Check for ElDoc after doing completion
+  (eldoc-add-command 'completion-at-point))
 
-(defun gnuplot-info-at-point ()
+(define-key gnuplot-mode-map (kbd "C-c C-s") 'gnuplot-help-function)
+(add-hook 'gnuplot-mode-hook 'gnuplot-setup-eldoc)
+
+;; Info lookup
+(defun gnuplot-info-at-point (&optional query)
   "Open the relevant gnuplot info page for the construction at point."
-  (interactive)
+  (interactive "P")
   (gnuplot-parse-at-point nil)
+  (if (or query (not gnuplot-info-at-point))
+      (let ((info
+	     (info-lookup-interactive-arguments 'symbol)))
+	(setq gnuplot-info-at-point (car info))))
   (and gnuplot-info-at-point
        (info-other-window (format "(gnuplot)%s" gnuplot-info-at-point))))
 
-(define-key gnuplot-mode-map (kbd "C-c C-/") 'gnuplot-info-at-point)
+(defun gnuplot-info-look-guess ()
+  (gnuplot-parse-at-point nil)
+  gnuplot-info-at-point)
 
-(add-hook
- 'gnuplot-mode-hook
- (lambda ()
-   (set (make-local-variable 'eldoc-documentation-function)
-	'gnuplot-eldoc-function)))
+(define-key gnuplot-mode-map (kbd "C-c C-d") 'gnuplot-info-at-point)
+(define-key gnuplot-comint-mode-map (kbd "C-c C-d") 'gnuplot-info-at-point)
+(define-key gnuplot-comint-mode-map (kbd "TAB") 'comint-dynamic-complete)
+
 
 
 ;;; Some context-sensitive hacks 

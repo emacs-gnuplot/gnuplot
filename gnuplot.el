@@ -56,7 +56,7 @@
 ;;    C-c C-c       comment region
 ;;    C-c C-o       set arguments for command at point
 ;;   S-mouse-2      set arguments for command under mouse cursor
-;;    C-c C-h       read the gnuplot info file
+;;    C-c C-d       read the gnuplot info file
 ;;    C-c C-e       show-gnuplot-buffer
 ;;    C-c C-k       kill gnuplot process
 ;;    C-c C-u       submit a bug report about gnuplot-mode
@@ -635,10 +635,10 @@ you're not using that musty old thing, are you..."
   (define-key gnuplot-mode-map "\C-c\C-b" 'gnuplot-send-buffer-to-gnuplot)
   (define-key gnuplot-mode-map "\C-c\C-c" 'comment-region) ; <RF>
   (define-key gnuplot-mode-map "\C-c\C-o" 'gnuplot-gui-set-options-and-insert)
-  (define-key gnuplot-mode-map "\C-c\C-d" 'gnuplot-show-version)
+  (define-key gnuplot-mode-map "\C-c\C-w" 'gnuplot-show-version)
   (define-key gnuplot-mode-map "\C-c\C-e" 'gnuplot-show-gnuplot-buffer)
   (define-key gnuplot-mode-map "\C-c\C-f" 'gnuplot-send-file-to-gnuplot)
-  (define-key gnuplot-mode-map "\C-c\C-h"    'gnuplot-info-lookup-symbol)
+  (define-key gnuplot-mode-map "\C-c\C-d" 'gnuplot-info-lookup-symbol)
   (define-key gnuplot-mode-map "\C-c\C-i" 'gnuplot-insert-filename)
   (define-key gnuplot-mode-map "\C-c\C-j" 'gnuplot-forward-script-line)
   (define-key gnuplot-mode-map "\C-c\C-k" 'gnuplot-kill-gnuplot-buffer)
@@ -2067,7 +2067,8 @@ buffer."
 (define-key gnuplot-comint-mode-map "\C-d"	'gnuplot-delchar-or-maybe-eof)
 (define-key gnuplot-comint-mode-map "\M-\r"	'comint-dynamic-complete)
 (define-key gnuplot-comint-mode-map "\M-\t"	'comint-dynamic-complete)
-(define-key gnuplot-comint-mode-map "\C-c\C-d"	'gnuplot-show-version)
+(define-key gnuplot-comint-mode-map "\C-c\C-d"  'gnuplot-info-lookup-symbol)
+(define-key gnuplot-comint-mode-map "\C-c\C-w"	'gnuplot-show-version)
 (define-key gnuplot-comint-mode-map "\C-c\C-h"	'gnuplot-info-lookup-symbol)
 (define-key gnuplot-comint-mode-map "\C-c\C-i"	'gnuplot-insert-filename)
 (define-key gnuplot-comint-mode-map "\C-c\C-n"	'gnuplot-negate-option)
