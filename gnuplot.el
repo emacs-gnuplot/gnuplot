@@ -2069,7 +2069,6 @@ buffer."
 (define-key gnuplot-comint-mode-map "\M-\t"	'comint-dynamic-complete)
 (define-key gnuplot-comint-mode-map "\C-c\C-d"  'gnuplot-info-lookup-symbol)
 (define-key gnuplot-comint-mode-map "\C-c\C-w"	'gnuplot-show-version)
-(define-key gnuplot-comint-mode-map "\C-c\C-h"	'gnuplot-info-lookup-symbol)
 (define-key gnuplot-comint-mode-map "\C-c\C-i"	'gnuplot-insert-filename)
 (define-key gnuplot-comint-mode-map "\C-c\C-n"	'gnuplot-negate-option)
 (define-key gnuplot-comint-mode-map "\C-c\C-p"	'gnuplot-show-gnuplot-version)

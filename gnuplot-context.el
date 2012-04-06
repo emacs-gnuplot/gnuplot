@@ -5,7 +5,7 @@
 ;; Author:     Jonathan Oddie <j.j.oddie@gmail.com>
 ;; Maintainer: Jonathan Oddie <j.j.oddie@gmail.com>
 ;; Created:    Wednesday, 08 February 2012
-;; Updated:    Wednesday, 08 February 2012
+;; Updated:    Sunday, 08 April 2012
 ;; Version:    0.6.1
 ;; Keywords:   gnuplot, plotting
 
@@ -34,25 +34,57 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Commentary:
 ;;
-;; This file provides context-sensitive completion, ElDoc support and
-;; info page links for gnuplot-mode buffers.
+;; This file enhances gnuplot-mode by providing context-sensitive
+;; completion, ElDoc support, and info page lookup for gnuplot script
+;; and shell buffers.
 ;; 
 ;; Usage 
 ;; =====
 ;;
-;; Put this file somewhere in your load path, byte compile and
-;; (require 'gnuplot-context).  This will give you context-sensitive
-;; completion and info page links, assuming you have the correct
-;; version of the Gnuplot documentation installed somewhere in your
-;; info path.
+;; Put this file somewhere in your load path, byte compile it
+;; (important!) and (require 'gnuplot-context).  This will give you
+;; context-sensitive TAB-completion and info page lookup, provided
+;; that you have the correct version of the Gnuplot Info file
+;; installed somewhere in your Info path (see `Info-directory-list').
+;;
+;; Summary of key bindings:
+;;     C-c C-d            read info page for construction at point
+;;     C-u C-c C-d        prompt for info page to read
+;;     C-c M-h, C-c C-/   pop up multi-line Eldoc string for construction
+;;          at point (requires additional installation steps)
+;;         
+;; This file rebinds "C-c C-d" in both `gnuplot-mode' and
+;; `gnuplot-comint-mode' to a new function, `gnuplot-info-at-point',
+;; which does a partial parse of the current line in order to find the
+;; most relevant info page node. If given a "C-u" prefix argument (or
+;; if it fails to parse the command at point), `gnuplot-info-at-point'
+;; will instead prompt for the Info node to read.
+;;
+;; This file also redefines `gnuplot-completion-at-point' to use the
+;; same parsing engine for finding completions, which should hopefully
+;; be more accurate than matching against the entire (long) list of
+;; gnuplot keywords.  Completion is bound to TAB in the gnuplot comint
+;; buffer, and usually to M-TAB in other buffers.  In recent Emacs
+;; versions, you can make TAB choose intelligently between indentation
+;; and context-sensitive completion in other buffers by setting the
+;; variable `tab-always-indent' to `complete'.  This allows entering,
+;; for example, "set cntrparam" into a gnuplot script with the
+;; keystrokes "s e TAB SPC c n TAB".
 ;; 
 ;; ElDoc support (one-line help displayed in the mode line) has to be
-;; compiled from the Gnuplot source tree. Running "doc2texi.el" in the
-;; "docs" directory should produce an Elisp "gnuplot-eldoc.el" file
-;; with ElDoc strings extracted from the gnuplot.doc documentation
-;; source. Install this somewhere in your load path. You can then
-;; toggle ElDoc on and off by typing M-x `eldoc-mode' in a gnuplot
-;; buffer, or put it in a load hook if you always want it on.
+;; compiled from the source for the Gnuplot documentation in the
+;; Gnuplot source tree.  Running "doc2texi.el" in the "docs" directory
+;; should produce an Elisp "gnuplot-eldoc.el" file with ElDoc strings
+;; extracted from the gnuplot.doc documentation source.  Install this
+;; somewhere in your load path.  You can then toggle ElDoc on and off
+;; by typing M-x `eldoc-mode' in a gnuplot/gnuplot-comint buffer.  Put
+;; it in the relevant load hook if you always want it on.
+;;
+;; ElDoc only displays one line of information automatically.  To pop
+;; up a fuller multi-line syntax description of a construct in the
+;; echo area, type C-c M-h or C-c C-/ (`gnuplot-help-function'). This
+;; works whether ElDoc mode is currently enabled or not.
+;; 
 ;; 
 ;;
 ;; Internal details
@@ -67,22 +99,24 @@
 ;; `gnuplot-info-at-point' based on where it is in the grammar at that
 ;; point.
 ;;
-;; The parsing/matching process happens in two phases, tokenizing (see
-;; `gnuplot-tokenize') and matching (`gnuplot-match-pattern'). The
-;; simplest way I could think of to build a complete list of
-;; completions was to backtrack through the grammar and try every
-;; possible path. This is implemented in the parsing function
-;; `gnuplot-match-pattern' by simululating a stack machine with
-;; continuations. The grammar in S-expression notation
-;; (`gnuplot-grammar') is compiled down into a vector of "machine
-;; code" for the parsing machine (see `gnuplot-compile-pattern',
-;; `gnuplot-compile-grammar' and `gnuplot-compiled-grammar'). This is
-;; complicated, but it seems to work well enough, and saves on the
-;; Emacs call stack.
+;; The parsing/matching process happens in two phases: tokenizing
+;; (`gnuplot-tokenize') and matching (`gnuplot-match-pattern').  In
+;; order to be able to construct a full list of possible completions
+;; via backtracking, the matching algorithm simulates a simple stack
+;; machine with continuations.  At byte-compile time, the PEG-like
+;; grammar in S-expression notation (`gnuplot-grammar') is compiled
+;; down into a vector of "machine code" for the parsing machine (see
+;; `gnuplot-compile-pattern', `gnuplot-compile-grammar' and
+;; `gnuplot-compiled-grammar'). This is complicated, but it seems to
+;; work well enough, and it saves on the Emacs call stack.
 ;;
 ;; Compiling the grammar does require increasing `max-lisp-eval-depth'
-;; modestly, which shouldn't cause any problems on modern machines, and
-;; only needs to be done once, when byte-compiling.
+;; modestly. This shouldn't cause any problems on modern machines, and
+;; it only needs to be done once, at byte-compilation time.
+;;
+;; The parsing machine and compiler are partially based on the
+;; description in Medeiros and Ierusalimschy 2008, "A Parsing Machine
+;; for PEGs" (http://dl.acm.org/citation.cfm?doid=1408681.1408683).
 ;;
 ;; The pattern-matching language
 ;; =============================
@@ -117,7 +151,7 @@
 ;;	important for the "info-keyword" form, see below).
 ;;
 ;; The other pattern forms combine simpler patterns, much like regular
-;; expressions:
+;; expressions or PEGs (parsing expression grammars):
 ;;
 ;;    (sequence { (:eldoc "eldoc string") }
 ;;              { (:info "info page") }
@@ -132,16 +166,23 @@
 ;; 	variable `gnuplot-eldoc-hash' contains a value for the name of
 ;; 	the info page at point, that value is used as the ElDoc string
 ;; 	instead.
+;;
+;;	For better readability, sequence forms can also be written as
+;;	a vector, omitting the `sequence': [PATTERN PATTERN ...]
 ;;      
 ;;    (either PATTERN PATTERN...)
-;; 	Match the first PATTERN to succeed or fail. Like regexp `|'.
+;; 	Match the first PATTERN to succeed, or fail if none
+;; 	matches. Like regexp `|'.
 ;;
 ;;    (many PATTERN)
-;;	Match PATTERN as many times as possible, like regexp
-;;	`*'. Backtracks if a later part of the pattern fails.
+;;	Match PATTERN zero or more times, greedily; like regexp
+;;	`*'. Unlike a regular expression matcher, the parsing machine
+;;	will not backtrack and try to match fewer times if a later
+;;	part of the pattern fails. This applies equally to the other
+;;	non-deterministic forms "either" and "maybe".
 ;;
 ;;    (maybe PATTERN)
-;; 	Match PATTERN 0 or 1 times, like regexp `?'.
+;; 	Match PATTERN zero or one times, like regexp `?'.
 ;;
 ;;    (capture NAME PATTERN)
 ;; 	Match PATTERN, capturing the tokens in a capture group named
@@ -156,11 +197,11 @@
 ;; 	it matches is to look up info pages for this pattern. Most
 ;; 	Gnuplot info pages have the same name as the keyword they
 ;; 	document, so by using this we only have to put :info
-;; 	properties on the few that don't (like "set").
+;; 	properties on the few that don't, such as "set".
 ;;  
-;;    For convenience, "many", "lazy-many", "maybe", "capture" and
-;;    "info-keyword" wrap the rest of their arguments in an implicit
-;;    "sequence", so we can write (maybe "," expression) instead of
+;;    For convenience, "many", "maybe", "capture" and "info-keyword"
+;;    wrap the rest of their arguments in an implicit "sequence" form,
+;;    so we can write (maybe "," expression) instead of
 ;;    (maybe (sequence "," expression))
 ;;
 ;;    (delimited-list PATTERN SEPARATOR)
@@ -176,6 +217,16 @@
 ;;
 ;; Bugs, TODOs, etc.
 ;; =======================
+;;
+;; It would be useful to complete on user-defined functions and
+;; variables as well as built-ins.
+;;
+;; Completion probably will not work in continuation lines entered
+;; into the gnuplot interaction buffer.
+;;
+;; It would be better to pop up longer syntax descriptions in a
+;; temporary window, rather than making the echo area grow to fit
+;; many lines.
 ;;
 ;; In ElDoc mode, we parse the whole line every time the user stops
 ;; typing. This is wasteful; should cache things in text properties
@@ -196,14 +247,15 @@
 ;; sub-parts of complicated options like "cntrparam". This is a time
 ;; and maintenance issue rather than a technical one.
 ;;
-;; It might be useful to complete on user-defined functions and
-;; variables as well as built-ins.
 ;;
 
 (eval-when-compile (require 'cl))
 
 ;; Prevent compiler warnings about undefined functions
 (eval-when-compile (require 'gnuplot))
+
+;; We need ElDoc support
+(require 'eldoc)
 
 ;; Load external ElDoc strings if we can find them.
 (defvar gnuplot-eldoc-hash nil
@@ -2038,16 +2090,24 @@ there."
   (set (make-local-variable 'eldoc-documentation-function)
        'gnuplot-eldoc-function)
   ;; Check for ElDoc after doing completion
-  (eldoc-add-command 'completion-at-point))
+  (eldoc-add-command 'completion-at-point)
+  (eldoc-add-command 'comint-dynamic-complete))
 
-(define-key gnuplot-mode-map (kbd "C-c C-s") 'gnuplot-help-function)
+(define-key gnuplot-mode-map (kbd "C-c M-h") 'gnuplot-help-function)
+(define-key gnuplot-mode-map (kbd "C-c C-/") 'gnuplot-help-function)
+(define-key gnuplot-comint-mode-map (kbd "C-c M-h") 'gnuplot-help-function)
+(define-key gnuplot-comint-mode-map (kbd "C-c C-/") 'gnuplot-help-function)
+
 (add-hook 'gnuplot-mode-hook 'gnuplot-setup-eldoc)
+(add-hook 'gnuplot-comint-mode-hook 'gnuplot-setup-eldoc)
 
 ;; Info lookup
 (defun gnuplot-info-at-point (&optional query)
   "Open the relevant gnuplot info page for the construction at point."
   (interactive "P")
-  (gnuplot-parse-at-point nil)
+  (setq gnuplot-info-at-point nil)
+  (unless query
+    (gnuplot-parse-at-point nil))
   (if (or query (not gnuplot-info-at-point))
       (let ((info
 	     (info-lookup-interactive-arguments 'symbol)))
