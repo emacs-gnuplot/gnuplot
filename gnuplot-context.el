@@ -177,9 +177,6 @@
 ;; Bugs, TODOs, etc.
 ;; =======================
 ;;
-;; The tokenizer should stop before or at point, instead of going to the
-;; end of the line.
-;;
 ;; In ElDoc mode, we parse the whole line every time the user stops
 ;; typing. This is wasteful; should cache things in text properties
 ;; instead.
@@ -227,10 +224,7 @@ These have to be compiled from the Gnuplot source tree using
   start	    ; Buffer start position
   end	    ; Buffer end position
   id	    ; Text
-  type)	    ; name, number, string, operator, end-of-input
-
-(defvar gnuplot-token-at-point nil
-  "Gnuplot token at point, set by `gnuplot-tokenize'.")
+  type)	    ; name, number, string, operator, end-of-command
 
 (defvar gnuplot-operator-regexp
   (eval-when-compile
@@ -256,68 +250,60 @@ These have to be compiled from the Gnuplot source tree using
 	      rules))))
 
 (defun gnuplot-tokenize (&optional completing-p)
-  "Tokenize the Gnuplot command at point. Returns a list of `gnuplot-token' objects."
-  (let ((p (point)))
+  "Tokenize the Gnuplot command at point. Returns a list of `gnuplot-token' objects.
+
+If COMPLETING-P is non-nil, omits the token at point if it is a
+name; otherwise continues tokenizing up to the token at point. FIXME"
+  (let ((tokens '())
+	(stop-point (min (point)
+			 (gnuplot-point-at-end-of-command))))
     (save-excursion
       (gnuplot-beginning-of-command)
-      (let ((tokens '())
-	    (parse-limit (gnuplot-point-at-end-of-command)))
+      (while
+	  ;; Skip whitespace and continuation lines
+	  (progn
+	    (skip-syntax-forward "-" stop-point)
+	    (while (looking-at "\\\\\n")
+	      (forward-line)
+	      (skip-syntax-forward "-" stop-point))
+	    ;; Don't tokenize anything starting after point
+	    (and (not (looking-at "#"))
+		 (< (point) stop-point)))
+	(let* ((from (point))
+	       (token
+		(cond  
+		 ((gnuplot-tokenize-by-regexps
+		   ("[A-Za-z_][A-Za-z0-9_]*" name)
+		   ("[0-9]+\\(\\.[0-9]*\\)?\\([eE][+-]?[0-9]+\\)?\\|\\.[0-9]+\\([eE][+-]?[0-9]+\\)?" number)
+		   (gnuplot-operator-regexp operator)))
 
-	(setq gnuplot-token-at-point nil)
+		 ((looking-at "['\"]")
+		  (let* ((bounds (bounds-of-thing-at-point 'sexp))
+			 (to (or (cdr bounds) stop-point)))
+		    (goto-char to)
+		    (make-gnuplot-token
+		     :id (buffer-substring-no-properties from to)
+		     :type 'string
+		     :start from :end to)))
 
-	(while (progn
-		 (skip-syntax-forward "-")
-		 (while (looking-at "\\\\\n")
-		   (forward-line)
-		   (skip-syntax-forward "-"))
-		 (< (point) parse-limit))
-
-	  (if (looking-at "#")
-	      (goto-char parse-limit)
-	    
-	    (let* ((from (point))
-		   (token
-		    (cond 
-		     ((gnuplot-tokenize-by-regexps
-		       ("[A-Za-z_][A-Za-z0-9_]*" name)
-		       ("[0-9]+\\(\\.[0-9]*\\)?\\([eE][+-]?[0-9]+\\)?\\|\\.[0-9]+\\([eE][+-]?[0-9]+\\)?" number)
-		       (gnuplot-operator-regexp operator)))
-
-		     ((looking-at "['\"]")
-		      (let* ((bounds (bounds-of-thing-at-point 'sexp))
-			     (from (point))
-			     (to (or (cdr bounds)
-				     parse-limit)))
-			(goto-char to)
-			(make-gnuplot-token
-			 :id (buffer-substring-no-properties from to)
-			 :type 'string
-			 :start from :end to)))
-
-		     (t (error
-			 "gnuplot-tokenize: bad token beginning %s"
-			 (buffer-substring-no-properties (point) parse-limit))))))
-	      (if (and (not gnuplot-token-at-point)
-		       (eq (gnuplot-token-type token) 'name)
-		       (<= p (gnuplot-token-end token)))
-		  (setq gnuplot-token-at-point token))
-	      (push token tokens))))
-
-	(let ((end-of-input
-	       (make-gnuplot-token :type 'end-of-input
-				   :start parse-limit
-				   :end parse-limit)))
-	  (when (not gnuplot-token-at-point)
-	    (setq gnuplot-token-at-point
-		  (if completing-p
-		      end-of-input
-		    (car tokens))))
-
-	  (nreverse (cons end-of-input tokens)))))))
-
-(defun gnuplot-end-of-tokens-p (tokens)
-  (or (not tokens)
-      (equal (gnuplot-token-type (car tokens)) 'end-of-input)))
+		 (t (error
+		     "gnuplot-tokenize: bad token beginning %s"
+		     (buffer-substring-no-properties (point) stop-point))))))
+	  
+	  (push token tokens))))
+    
+    ;; If we are looking for completions, AND if the last token
+    ;; read is a name, AND if point is within the bounds of the
+    ;; last token, then discard it. The matching function
+    ;; generates a list of all possible tokens that could appear
+    ;; in that position for completion.
+    (if (and completing-p
+	     tokens
+	     (eq (gnuplot-token-type (car tokens)) 'name)
+	     (<= (point) (gnuplot-token-end (car tokens))))
+	(pop tokens))
+    
+    (nreverse tokens)))
 
 
 
@@ -1763,22 +1749,18 @@ there."
 
       (flet ((advance
 	      ()
-	      (when (eq (pop tokens) gnuplot-token-at-point)
-		(gnuplot-scan-stack stack tokens)))
+	      (if (and (null (pop tokens)) (not completing-p))
+		  (gnuplot-scan-stack stack tokens)))
 	     (fail () (setq fail t)))
 	
-
 	;; Main loop
 	(while t
 	  (let* ((inst (aref instructions pc))
 		 (opcode (car inst))
 		 (token (car tokens))
-		 (end-of-tokens
-		  (or (gnuplot-end-of-tokens-p tokens)
-		      (and completing-p
-			   (eq token gnuplot-token-at-point)))))
-	    (gnuplot-trace "%s\t%s\t%s\n" pc inst (gnuplot-token-id token))
-
+		 (end-of-tokens (null tokens)))
+	    (gnuplot-trace "%s\t%s\t%s\n" pc inst (and token (gnuplot-token-id token)))
+	    
 	    (case opcode
 	      ;; (literal LITERAL NO-COMPLETE)
 	      ((literal)
@@ -1848,7 +1830,7 @@ there."
 		 (pop stack))
 	       (if (not stack)
 		   ;; Successful match
-		   (throw 'return tokens)
+		   (throw 'return (list tokens))
 		 ;; Otherwise, return to caller
 		 (let* ((r (pop stack))
 			(r-pc (cadr r)))
@@ -1915,10 +1897,8 @@ there."
 	      ;; (check-progress): make sure not stuck in an infinite loop
 	      ((check-progress)
 	       (let ((prev-progress (cdr (assoc pc progress))))
-		 (if (eq prev-progress tokens)
-		     (progn
-		       ;; (pop backtrack)
-		       (fail)) 
+		 (if (and prev-progress (eq prev-progress tokens))
+		     (fail)
 		   (push (cons pc tokens) progress))))
 
 	      (t
@@ -1936,7 +1916,7 @@ there."
 		(gnuplot-debug (gnuplot-dump-backtrack backtrack))
 		;; If we got as far as token-at-point before failing,
 		;; scan the stack for eldoc and info strings
-		(when end-of-tokens
+		(when (and end-of-tokens (not completing-p))
 		  (gnuplot-scan-stack stack tokens))
 		
 		(destructuring-bind
@@ -2011,11 +1991,12 @@ there."
 	 (mapconcat 'gnuplot-token-id tokens " "))))
 
 
-;;;; Interface to the matching machine
+;;; Interface to the matching machine
 (defun gnuplot-parse-at-point (completing-p)
   (let ((tokens (gnuplot-tokenize completing-p)))
     (gnuplot-match-pattern gnuplot-compiled-grammar tokens completing-p)))
 
+;; Completions
 (defun gnuplot-completions ()
   (gnuplot-parse-at-point t)
   gnuplot-completions)
@@ -2023,9 +2004,10 @@ there."
 (defun gnuplot-completion-at-point ()
   "Return completions of keyword preceding point."
   (let* ((end (point))
-	 (beg (max
-	       (save-excursion (skip-syntax-backward "w_") (point))
-	       (gnuplot-point-at-beginning-of-command)))
+	 (beg
+	  (save-excursion
+	    (skip-syntax-backward "w_" (gnuplot-point-at-beginning-of-command))
+	    (point)))
 	 (word nil)
 	 (completions (gnuplot-completions)))
     (unless (= beg end)
@@ -2037,6 +2019,7 @@ there."
       (message "No gnuplot keywords complete '%s'" word)
       nil)))
 
+;; Eldoc help
 (defun gnuplot-eldoc-function ()
   "Return the ElDoc string for the Gnuplot construction at point."
   (gnuplot-parse-at-point nil)  

@@ -35,7 +35,7 @@
        (string
 	(gnuplot-token-id token))
 
-       (end-of-input 'end-of-input)
+       (end-of-command 'end-of-command)
        
        (otherwise
 	(intern (gnuplot-token-id token)))))
@@ -85,8 +85,8 @@
 		     (gnuplot-match-string ,string rule)))
 		`(should (equal
 			  (gnuplot-simplify-tokens
-			   (gnuplot-match-string ,string rule))
-			  (append ,rest '(end-of-input)))))))
+			   (car (gnuplot-match-string ,string rule)))
+			  ,rest)))))
 	  pairs))))
 
 
@@ -390,12 +390,11 @@
 			(gnuplot-tokenize))))
 	  (when (> (length tokens) 1)
 	    (let ((result
-		   (gnuplot-simplify-tokens
-		    (gnuplot-match-pattern
-		     gnuplot-compiled-grammar
-		     tokens nil))))
+		   (gnuplot-match-pattern
+		    gnuplot-compiled-grammar
+		    tokens nil)))
 	      (incf gnuplot-test-count)
-	      (if (eq (car result) 'end-of-input)
+	      (if (equal result '(nil))
 		  (incf gnuplot-test-success-count)
 		(let ((cmd
 		       (buffer-substring
@@ -405,9 +404,10 @@
 		      (get-buffer-create gnuplot-test-result-buffer)
 		    (insert
 		     (format "FAILED at %s:%s\n\t%s\n" fname ln cmd))
-		    (when result
+		    (when (not (null result))
 		      (insert
-		       (format "\tUNMATCHED TOKENS were: %s\n" result)))))))))
+		       (format "\tUNMATCHED TOKENS were: %s\n"
+			       (gnuplot-simplify-tokens (car result)))))))))))
 	(gnuplot-beginning-of-defun -1)))))
 
 (add-to-list 'compilation-error-regexp-alist-alist
