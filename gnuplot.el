@@ -2255,6 +2255,74 @@ gnuplot process buffer will be displayed in a window."
 	 (switch-to-buffer gnuplot-buffer))))
 
 
+;;; --- inline image stuff <JJO>
+(defvar gnuplot-inline-image-filename nil)
+
+(defvar gnuplot-inline-image-mode 0)
+
+(defvar gnuplot-inline-image-timestamp nil)
+
+(defun gnuplot-inline-image-mode (&optional enable)
+  (interactive)
+  (setq enable (or enable
+		   (if (zerop gnuplot-inline-image-mode) 1 0)))
+
+  (gnuplot-make-gnuplot-buffer)
+  (with-current-buffer gnuplot-buffer
+    (if (zerop enable)
+	(progn
+	  (comint-send-string gnuplot-process "set terminal pop\n")
+	  (setq gnuplot-inline-image-mode 0)
+	  (remove-hook 'comint-output-filter-functions
+		       'gnuplot-insert-inline-image-output t)
+	  (message "Plot output will be displayed on external terminal."))
+      (comint-send-string gnuplot-process "set terminal png\n")
+      (gnuplot-inline-image-set-output)
+      (add-hook 'comint-output-filter-functions
+		'gnuplot-insert-inline-image-output nil t)
+      (setq gnuplot-inline-image-mode 1)
+      (message "Plot output will be displayed in gnuplot buffer."))))
+		      
+(defun gnuplot-inline-image-set-output ()
+  (let ((tmp (make-temp-file "gnuplot")))
+    (setq gnuplot-inline-image-filename tmp)
+    (gnuplot-send-hiding-output (format "set output '%s'\n" tmp))))
+
+(defvar gnuplot-hidden-output-buffer " *gnuplot output*")
+  
+(defun gnuplot-discard-output (string)
+  (with-current-buffer
+      (get-buffer-create gnuplot-hidden-output-buffer)
+    (insert string)
+    (when (looking-back "gnuplot> ")
+      (with-current-buffer gnuplot-buffer
+	(remove-hook 'comint-preoutput-filter-functions
+		     'gnuplot-discard-output t))))
+  "")
+
+(defun gnuplot-send-hiding-output (string)
+  (with-current-buffer gnuplot-buffer
+    (add-hook 'comint-preoutput-filter-functions
+	      'gnuplot-discard-output nil t))
+  (with-current-buffer (get-buffer-create gnuplot-hidden-output-buffer)
+    (erase-buffer))
+  (comint-send-string gnuplot-process string))
+  
+(defun gnuplot-insert-inline-image-output (string)
+  (save-excursion
+    (goto-char (point-max))
+    (beginning-of-line)
+    (when (looking-at "^gnuplot> ")
+      (let* ((filename gnuplot-inline-image-filename)
+	     (size (nth 7 (file-attributes filename))))
+	(if (and size (> size 0))
+	  (let ((image (create-image filename)))
+	    (beginning-of-line)
+	    (insert-image image)
+	    (insert "\n")
+	    (gnuplot-inline-image-set-output)))))))
+
+
 ;;; --- miscellaneous functions: insert file name, indentation, negation
 
 (defun gnuplot-insert-filename ()
