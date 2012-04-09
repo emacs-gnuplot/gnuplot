@@ -659,6 +659,7 @@ you're not using that musty old thing, are you..."
   (define-key gnuplot-mode-map "\C-c\C-z" 'gnuplot-customize)
   (define-key gnuplot-mode-map "\C-i"     'indent-for-tab-command)
   (define-key gnuplot-mode-map "\C-m"     'newline-and-indent)
+  (define-key gnuplot-mode-map "\C-c\M-i" 'gnuplot-inline-image-mode)
 
   (let ((completion-function
 	 (if (featurep 'xemacs)
@@ -699,6 +700,8 @@ you're not using that musty old thing, are you..."
 	 (fboundp 'gnuplot-gui-set-options-and-insert)]
 	["Swap plot/splot/fit lists in GUI" gnuplot-gui-swap-simple-complete
 	 (fboundp 'gnuplot-gui-swap-simple-complete)]
+        ["Toggle inline plot display"       gnuplot-inline-image-mode
+         (display-images-p)]
 	"---"
 	["Customize gnuplot"                gnuplot-customize t]
 	["Submit bug report"                gnuplot-bug-report t]
@@ -2088,6 +2091,7 @@ buffer."
 (define-key gnuplot-comint-mode-map "\C-c\C-u"	'gnuplot-bug-report)
 (define-key gnuplot-comint-mode-map "\C-c\C-z"	'gnuplot-customize)
 (define-key gnuplot-comint-mode-map "\C-c\C-e"	'gnuplot-pop-to-recent-buffer)
+(define-key gnuplot-comint-mode-map "\C-c\M-i"  'gnuplot-inline-image-mode)
 
 ;; Menu for gnuplot-comint-mode
 (defvar gnuplot-comint-mode-menu nil
@@ -2106,6 +2110,8 @@ buffer."
 	 (or gnuplot-keywords gnuplot-keywords-pending)]
 	["Switch to recent gnuplot script buffer"	gnuplot-pop-to-recent-buffer
 	 (buffer-live-p gnuplot-comint-recent-buffer)]
+        ["Toggle inline plot display"                   gnuplot-inline-image-mode
+         (display-images-p)]
 	"---"
 	["Customize gnuplot"				gnuplot-customize t]
 	["Submit bug report"				gnuplot-bug-report t]
@@ -2255,58 +2261,48 @@ gnuplot process buffer will be displayed in a window."
 	 (switch-to-buffer gnuplot-buffer))))
 
 
-;;; --- inline image stuff <JJO>
-(defvar gnuplot-inline-image-filename nil)
+;;; --- Support for displaying plot images inline in process buffer,
+;;; using `set terminal png' <JJO>
 
-(defvar gnuplot-inline-image-mode 0)
+(defvar gnuplot-inline-image-filename nil
+  "Name of the current Gnuplot PNG output file.")
 
-(defvar gnuplot-inline-image-timestamp nil)
+(defvar gnuplot-inline-image-mode 0
+  "Whether inline Gnuplot image display is enabled: 1 for on, 0 for off.")
 
 (defun gnuplot-inline-image-mode (&optional enable)
+  "Turn inline display of Gnuplot output in the comint buffer on or off.
+With ENABLE 0, turns inline image display off and restores the
+previous Gnuplot terminal setting. With ENABLE 1, turns inline
+image display on. With no argument, toggles inline image
+display."
   (interactive)
-  (setq enable (or enable
-		   (if (zerop gnuplot-inline-image-mode) 1 0)))
+  (if (not (display-images-p))
+      (message "Displaying images is not supported.")
+    (setq enable (or enable
+                     (if (zerop gnuplot-inline-image-mode) 1 0)))
 
-  (gnuplot-make-gnuplot-buffer)
-  (with-current-buffer gnuplot-buffer
-    (if (zerop enable)
-	(progn
-	  (comint-send-string gnuplot-process "set terminal pop\n")
-	  (setq gnuplot-inline-image-mode 0)
-	  (remove-hook 'comint-output-filter-functions
-		       'gnuplot-insert-inline-image-output t)
-	  (message "Plot output will be displayed on external terminal."))
-      (comint-send-string gnuplot-process "set terminal png\n")
-      (gnuplot-inline-image-set-output)
-      (add-hook 'comint-output-filter-functions
-		'gnuplot-insert-inline-image-output nil t)
-      (setq gnuplot-inline-image-mode 1)
-      (message "Plot output will be displayed in gnuplot buffer."))))
+    (gnuplot-make-gnuplot-buffer)
+    (with-current-buffer gnuplot-buffer
+      (if (zerop enable)
+          (progn
+            (comint-send-string gnuplot-process "set terminal pop\n")
+            (setq gnuplot-inline-image-mode 0)
+            (remove-hook 'comint-output-filter-functions
+                         'gnuplot-insert-inline-image-output t)
+            (message "Plot output will be displayed on external terminal."))
+        (comint-send-string gnuplot-process "set terminal png\n")
+        (gnuplot-inline-image-set-output)
+        (add-hook 'comint-output-filter-functions
+                  'gnuplot-insert-inline-image-output nil t)
+        (setq gnuplot-inline-image-mode 1)
+        (message "Plot output will be displayed in gnuplot buffer.")))))
 		      
 (defun gnuplot-inline-image-set-output ()
+  "Set GNUPLOT's output file to `gnuplot-inline-image-filename'."
   (let ((tmp (make-temp-file "gnuplot")))
     (setq gnuplot-inline-image-filename tmp)
     (gnuplot-send-hiding-output (format "set output '%s'\n" tmp))))
-
-(defvar gnuplot-hidden-output-buffer " *gnuplot output*")
-  
-(defun gnuplot-discard-output (string)
-  (with-current-buffer
-      (get-buffer-create gnuplot-hidden-output-buffer)
-    (insert string)
-    (when (looking-back "gnuplot> ")
-      (with-current-buffer gnuplot-buffer
-	(remove-hook 'comint-preoutput-filter-functions
-		     'gnuplot-discard-output t))))
-  "")
-
-(defun gnuplot-send-hiding-output (string)
-  (with-current-buffer gnuplot-buffer
-    (add-hook 'comint-preoutput-filter-functions
-	      'gnuplot-discard-output nil t))
-  (with-current-buffer (get-buffer-create gnuplot-hidden-output-buffer)
-    (erase-buffer))
-  (comint-send-string gnuplot-process string))
   
 (defun gnuplot-insert-inline-image-output (string)
   (save-excursion
@@ -2321,6 +2317,32 @@ gnuplot process buffer will be displayed in a window."
 	    (insert-image image)
 	    (insert "\n")
 	    (gnuplot-inline-image-set-output)))))))
+
+;;; Send commands to GNUPLOT silently & without generating an extra prompt
+(defvar gnuplot-hidden-output-buffer " *gnuplot output*")
+  
+(defun gnuplot-send-hiding-output (string)
+  "Send STRING to the running Gnuplot process invisibly."
+  (with-current-buffer gnuplot-buffer
+    (add-hook 'comint-preoutput-filter-functions
+	      'gnuplot-discard-output nil t))
+  (with-current-buffer (get-buffer-create gnuplot-hidden-output-buffer)
+    (erase-buffer))
+  (comint-send-string gnuplot-process string))
+
+(defun gnuplot-discard-output (string)
+  ;; Temporary preoutput filter for hiding Gnuplot output & prompt.
+  ;; Accumulates output in a buffer until it finds the next prompt,
+  ;; then removes itself from comint-preoutput-filter-functions.
+  (with-current-buffer
+      (get-buffer-create gnuplot-hidden-output-buffer)
+    (insert string)
+    (when (looking-back "gnuplot> ")
+      (with-current-buffer gnuplot-buffer
+	(remove-hook 'comint-preoutput-filter-functions
+		     'gnuplot-discard-output t))))
+  "")
+
 
 
 ;;; --- miscellaneous functions: insert file name, indentation, negation
