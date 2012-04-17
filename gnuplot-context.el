@@ -1640,6 +1640,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 	 (set-range-clause
 	  [(:info "xrange")
 	   (either (kw ("xr" . "ange")) (kw ("yr" . "ange"))
+                   (kw ("x2r" . "ange")) (kw ("y2r" . "ange"))
 		   (kw ("zr" . "ange")) (kw ("tr" . "ange"))
 		   (kw ("ur" . "ange")) (kw ("vr" . "ange"))
 		   (kw ("rr" . "ange")) (kw ("cbr" . "ange")))
