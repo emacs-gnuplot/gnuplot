@@ -588,6 +588,7 @@ to the empty string."
 ;; 		(const :tag "3.8 or newer" "3.8")
 ;; 		(const :tag "3.7 or older" "3.7")))
 
+
 (defvar gnuplot-info-frame nil)
 (defvar gnuplot-info-nodes '())
 
@@ -2133,7 +2134,9 @@ buffer."
 	(process-kill-without-query gnuplot-process nil)
 	(with-current-buffer gnuplot-buffer
 	  (gnuplot-comint-mode)
-          (gnuplot-inline-image-mode gnuplot-inline-image-mode)
+          (when gnuplot-inline-image-mode
+            (sleep-for gnuplot-delay)
+            (gnuplot-inline-image-mode 1))
 	  (message "Starting gnuplot plotting program...Done")))))
 
 (defun gnuplot-fetch-version-number ()
@@ -2269,39 +2272,49 @@ gnuplot process buffer will be displayed in a window."
 ;;; --- Support for displaying plot images inline in process buffer,
 ;;; using `set terminal png' <JJO>
 
-(defvar gnuplot-inline-image-filename nil
-  "Name of the current Gnuplot PNG output file.")
-
-(defvar gnuplot-inline-image-mode 0
-  "Whether inline Gnuplot image display is enabled: 1 for on, 0 for off.")
-
 (defun gnuplot-inline-image-mode (&optional enable)
   "Turn inline display of Gnuplot output in the comint buffer on or off.
-With ENABLE 0, turns inline image display off and restores the
-previous Gnuplot terminal setting. With ENABLE 1, turns inline
-image display on. With no argument, toggles inline image
-display."
-  (interactive)
-  (if (not (display-images-p))
-      (message "Displaying images is not supported.")
-    (setq enable (or enable
-                     (if (zerop gnuplot-inline-image-mode) 1 0)))
+Works like a minor mode: with argument, turn inline image display
+on if ENABLE is positive, otherwise turn it off and restores the
+previous Gnuplot terminal setting. With no argument, toggle
+inline image display."
+  (interactive "P")
+  (setq gnuplot-inline-image-mode
+        (if (null enable) (not gnuplot-inline-image-mode)
+          (> (prefix-numeric-value enable) 0)))
 
-    (gnuplot-make-gnuplot-buffer)
+  (let (message)
+    (if gnuplot-inline-image-mode
+        (if (display-images-p)
+            (setq message "Plot output will be displayed in gnuplot buffer.")
+          (setq gnuplot-inline-image-mode nil
+                message "Displaying images is not supported."))
+      (setq message "Plot output will be displayed on external terminal."))
+    (when (called-interactively-p 'any) (message message)))
+
+  (when (and gnuplot-buffer (buffer-name gnuplot-buffer))
     (with-current-buffer gnuplot-buffer
-      (if (zerop enable)
+      (if gnuplot-inline-image-mode
           (progn
-            (comint-send-string gnuplot-process "set terminal pop\n")
-            (setq gnuplot-inline-image-mode 0)
-            (remove-hook 'comint-output-filter-functions
-                         'gnuplot-insert-inline-image-output t)
-            (message "Plot output will be displayed on external terminal."))
-        (comint-send-string gnuplot-process "set terminal png\n")
-        (gnuplot-inline-image-set-output)
-        (add-hook 'comint-output-filter-functions
-                  'gnuplot-insert-inline-image-output nil t)
-        (setq gnuplot-inline-image-mode 1)
-        (message "Plot output will be displayed in gnuplot buffer.")))))
+            (gnuplot-send-hiding-output "set terminal png\n")
+            (gnuplot-inline-image-set-output)
+            (add-hook 'comint-output-filter-functions
+                      'gnuplot-insert-inline-image-output nil t))
+        (gnuplot-send-hiding-output "set terminal pop\n")
+        (remove-hook 'comint-output-filter-functions
+                     'gnuplot-insert-inline-image-output t)))))
+
+(defcustom gnuplot-inline-image-mode nil
+  "Whether to enable inline display of Gnuplot output in the process buffer.
+Don't set this variable directly from Lisp code; instead, use
+Customize or call the `gnuplot-inline-image-mode' function, which
+behaves like a minor-mode function."
+  :group 'gnuplot
+  :type 'boolean
+  :set 'custom-set-minor-mode)
+
+(defvar gnuplot-inline-image-filename nil
+  "Name of the current Gnuplot PNG output file.")
 		      
 (defun gnuplot-inline-image-set-output ()
   "Set Gnuplot's output file to `gnuplot-inline-image-filename'."
