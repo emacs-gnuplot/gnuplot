@@ -1,11 +1,11 @@
-;;;; gnuplot-context.el -- context-sensitive help and completion for gnuplot
+;;; gnuplot-context.el -- context-sensitive help and completion for gnuplot
 
 ;; Copyright (C) 2012 Jonathan Oddie <j.j.oddie@gmail.com>
 
 ;; Author:     Jonathan Oddie <j.j.oddie@gmail.com>
 ;; Maintainer: Jonathan Oddie <j.j.oddie@gmail.com>
 ;; Created:    Wednesday, 08 February 2012
-;; Updated:    Sunday, 08 April 2012
+;; Updated:    Friday, 20 April 2012
 ;; Version:    0.6.1
 ;; Keywords:   gnuplot, plotting
 
@@ -32,7 +32,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; send bug reports to the author (j.j.oddie@gmail.com)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; Commentary:
+
 ;;
 ;; This file enhances gnuplot-mode by providing context-sensitive
 ;; completion, ElDoc support, and info page lookup for gnuplot script
@@ -268,6 +270,99 @@ These have to be compiled from the Gnuplot source tree using
     (load-library "gnuplot-eldoc")
   (error
    (setq gnuplot-eldoc-hash (make-hash-table))))
+
+
+;;;; Customization interface, etc.
+(defun gnuplot-context-sensitive-mode (&optional enable)
+  "Turn gnuplot-mode context-sensitive completion and help on and off.
+Works like a minor mode: with argument, turn context-sensitive
+mode on if ENABLE is positive, otherwise turn it off. With no
+argument, toggle context-sensitive mode."
+  (interactive "P")
+  (setq gnuplot-context-sensitive-mode
+        (if (null enable) (not gnuplot-context-sensitive-mode)
+            (> (prefix-numeric-value enable) 0)))
+  
+  (if gnuplot-context-sensitive-mode
+      (progn
+        (when (called-interactively-p 'any)
+          (message "Gnuplot context-sensitive help & completion enabled."))
+        (ad-enable-advice 'gnuplot-completion-at-point
+                          'around 'gnuplot-context)
+        (ad-activate 'gnuplot-completion-at-point)
+
+        (dolist (keymap (list gnuplot-mode-map gnuplot-comint-mode-map))
+          (define-key keymap (kbd "C-c M-h") 'gnuplot-help-function)
+          (define-key keymap (kbd "C-c C-/") 'gnuplot-help-function)
+          (define-key keymap (kbd "C-c C-d") 'gnuplot-info-at-point))
+        (define-key gnuplot-comint-mode-map (kbd "TAB") 'comint-dynamic-complete)
+        
+        (add-hook 'gnuplot-mode-hook 'gnuplot-setup-eldoc)
+        (add-hook 'gnuplot-comint-mode-hook 'gnuplot-setup-eldoc))
+
+    ;; Turn off
+    (when (called-interactively-p 'any)
+      (message "Gnuplot context-sensitive help & completion disabled."))
+    (dolist (keymap (list gnuplot-mode-map gnuplot-comint-mode-map))
+      (define-key keymap (kbd "C-c M-h") 'undefined)
+      (define-key keymap (kbd "C-c C-/") 'undefined)
+      (define-key keymap (kbd "C-c C-d") 'gnuplot-info-lookup-symbol))
+    (ad-disable-advice 'gnuplot-completion-at-point
+                       'around 'gnuplot-context)
+    (ad-activate 'gnuplot-completion-at-point)
+
+    (remove-hook 'gnuplot-mode-hook 'gnuplot-setup-eldoc)
+    (remove-hook 'gnuplot-comint-mode-hook 'gnuplot-setup-eldoc)))
+
+;; Has to be defined here. Grumble.
+(defadvice gnuplot-completion-at-point (around gnuplot-context disable)
+  ;; This around-advice gets activated/deactivated when turning
+  ;; context-sensitivity on and off
+  (setq ad-return-value (gnuplot-context-completion-at-point)))
+
+(defcustom gnuplot-context-sensitive-mode nil
+  "Whether context-sensitive completion and help for gnuplot are enabled.
+
+With context-sensitive mode on, gnuplot-mode's tab completion and
+info file lookup try to parse the current command line to find
+the most useful completions or info pages.
+
+Don't set this variable from Lisp code; instead, use Customize or
+call the `gnuplot-context-sensitive-mode' function, which behaves
+like a minor mode."
+  :group 'gnuplot
+  :type 'boolean
+  :set 'custom-set-minor-mode
+  :link '(emacs-commentary-link "gnuplot-context"))
+
+(defcustom gnuplot-eldoc-mode nil
+  "Whether to enable ElDoc mode by default in Gnuplot buffers.
+ElDoc support requires `gnuplot-context-sensitive-mode' to be
+on."
+  :group 'gnuplot
+  :type 'boolean)
+  
+(defcustom gnuplot-tab-completion nil
+  "Whether the TAB key should perform completion in gnuplot-mode buffers.
+
+Setting this to `t' sets the `tab-always-indent' variable to the
+symbol `complete' in gnuplot-mode buffers."
+  :group 'gnuplot
+  :type 'boolean)
+    
+(defun gnuplot-setup-eldoc ()
+  (set (make-local-variable 'eldoc-documentation-function)
+       'gnuplot-eldoc-function)
+
+  ;; Check for ElDoc after doing completion
+  (eldoc-add-command 'completion-at-point)
+  (eldoc-add-command 'comint-dynamic-complete)
+
+  (when gnuplot-eldoc-mode
+    (eldoc-mode))
+  (when gnuplot-tab-completion
+    (set (make-local-variable 'tab-always-indent) 'complete)))
+
 
 
 ;;;; The tokenizer.
@@ -2054,8 +2149,8 @@ there."
   (gnuplot-parse-at-point t)
   gnuplot-completions)
 
-(defun gnuplot-completion-at-point ()
-  "Return completions of keyword preceding point."
+(defun gnuplot-context-completion-at-point ()
+  "Return completions of keyword preceding point, using context."
   (let* ((end (point))
 	 (beg
 	  (save-excursion
@@ -2087,21 +2182,6 @@ there."
 	     (cadr (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
 	(if eldoc (message eldoc)))))
 
-(defun gnuplot-setup-eldoc ()
-  (set (make-local-variable 'eldoc-documentation-function)
-       'gnuplot-eldoc-function)
-  ;; Check for ElDoc after doing completion
-  (eldoc-add-command 'completion-at-point)
-  (eldoc-add-command 'comint-dynamic-complete))
-
-(define-key gnuplot-mode-map (kbd "C-c M-h") 'gnuplot-help-function)
-(define-key gnuplot-mode-map (kbd "C-c C-/") 'gnuplot-help-function)
-(define-key gnuplot-comint-mode-map (kbd "C-c M-h") 'gnuplot-help-function)
-(define-key gnuplot-comint-mode-map (kbd "C-c C-/") 'gnuplot-help-function)
-
-(add-hook 'gnuplot-mode-hook 'gnuplot-setup-eldoc)
-(add-hook 'gnuplot-comint-mode-hook 'gnuplot-setup-eldoc)
-
 ;; Info lookup
 (defun gnuplot-info-at-point (&optional query)
   "Open the relevant gnuplot info page for the construction at point."
@@ -2120,9 +2200,6 @@ there."
   (gnuplot-parse-at-point nil)
   gnuplot-info-at-point)
 
-(define-key gnuplot-mode-map (kbd "C-c C-d") 'gnuplot-info-at-point)
-(define-key gnuplot-comint-mode-map (kbd "C-c C-d") 'gnuplot-info-at-point)
-(define-key gnuplot-comint-mode-map (kbd "TAB") 'comint-dynamic-complete)
 
 
 
@@ -2209,7 +2286,7 @@ command."
 
 
 
-;;;; All done!
+;;; All done!
 (provide 'gnuplot-context)
 
 ;;; gnuplot-context.el ends here
