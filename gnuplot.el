@@ -1,4 +1,4 @@
-;;;; gnuplot.el -- drive gnuplot from within emacs
+;;; gnuplot.el --- drive gnuplot from within emacs
 
 ;; Copyright (C) 1998, 2011 Phil Type and Bruce Ravel, 1999-2002 Bruce Ravel
 
