@@ -1,11 +1,11 @@
-;;;; gnuplot.el -- drive gnuplot from within emacs
+;;; gnuplot.el --- drive gnuplot from within emacs
 
 ;; Copyright (C) 1998, 2011 Phil Type and Bruce Ravel, 1999-2002 Bruce Ravel
 
 ;; Author:     Bruce Ravel <bruceravel1@gmail.com> and Phil Type
 ;; Maintainer: Bruce Ravel <bruceravel1@gmail.com>
 ;; Created:    June 28 1998
-;; Updated:    13 September 2011
+;; Updated:    April 20 2012
 ;; Version:    0.6.1
 ;; Keywords:   gnuplot, plotting
 
@@ -32,7 +32,9 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; send bug reports to the author (bruceravel1@gmail.com)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; Commentary:
+
 ;;
 ;; This is a major mode for composing gnuplot scripts and displaying
 ;; their results using gnuplot.  It is optimized for use with gnuplot
@@ -145,7 +147,9 @@
 ;; 19.14.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; History:
+
 ;;
 ;;  0.1   Jun 25 1998 Finished with initial release.
 ;;  0.2   Sep  4 1998 Added filename insertion, indentation, and
@@ -317,6 +321,7 @@
 ;;
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; Code:
 
 (require 'comint)
@@ -2934,4 +2939,5 @@ following in your .emacs file:
 
 ;;;============================================================================
 ;;;
+
 ;;; gnuplot.el ends here
