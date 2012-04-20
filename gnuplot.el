@@ -1613,8 +1613,8 @@ These are highlighted using `font-lock-reference-face'.")
 	 '("\\[\\([^]]+\\)\\]" 1 font-lock-reference-face)
 
 	 ;; variable/function definitions
-	 '("\\(\\<[a-z]+[a-z_0-9(),\t]*\\)[ \t]*=" 1
-	   font-lock-variable-name-face)
+	 '("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
+	   1 font-lock-variable-name-face)
 
 	 ;; built-in function names
 	 (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
@@ -1658,8 +1658,8 @@ These are highlighted using `font-lock-reference-face'.")
 ;;   backslash to escape the newline
 ;; 
 ;; - double quoted strings can contain escaped quotes \" and escaped
-;;   backslashes \\, but there's no way to quote the delimiter in
-;;   single quoted strings
+;;   backslashes \\, while single quotes can escape the quote by
+;;   doubling '' and backslash is not special (except at eol)
 ;; 
 ;; - strings can end at newline without needing a closing delimiter
 ;; 
@@ -1704,7 +1704,7 @@ string was found, otherwise nil."
 	     (end-at-eob-p nil)
 	     (re
 	      (cond ((string= opener "#") nil)
-		    ((string= opener "'") "'")
+		    ((string= opener "'") "''?")
 		    ((string= opener "\"") "\\\\\"\\|\\\\\\\\\\|\"")))) 
 	(while (not end)
 	  (if (and (not (eobp)) (bolp) (eolp))	; Empty continuation line:
@@ -1715,8 +1715,10 @@ string was found, otherwise nil."
 	    
 	    (if end
 		(when (and re
-			   (or (string= (match-string 0) "\\\"")
-			       (string= (match-string 0) "\\\\")))
+			   (let ((m (match-string 0)))
+			     (or (string= m "\\\"")
+				 (string= m "\\\\")
+				 (string= m "''"))))
 		  (setq end nil))   ; Skip over escapes and look again
 	      
 	      ;; We got to EOL without finding an ending delimiter
@@ -2300,7 +2302,6 @@ Add additional indentation for continuation lines."
 
 ;;
 ;; Functions for finding the start and end of continuation blocks
-;; (a bunch of 
 ;;
 
 ;; Check if line containing point is a continuation
@@ -2866,6 +2867,7 @@ a list:
   (if (or (fboundp 'hilit-set-mode-patterns)
 	  (equal gnuplot-keywords-when 'immediately)) ; <HW>
       (gnuplot-setup-info-look)) ;; <SE>
+
   (if (fboundp 'hilit-set-mode-patterns) ; deal with hilit19 (ho hum!)
       (let ((keywords (concat "\\b\\(" (mapconcat 'identity
 						  gnuplot-keywords "\\|")
