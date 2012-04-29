@@ -871,7 +871,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 ;;; Commands
 	 (command
 	  (info-keyword
-	   (either plot-command splot-command fit-command print-command
+	   (either plot-command splot-command replot-command fit-command print-command
 		   set-command cd-command call-command simple-command
 		   eval-command load-command lower-raise-command pause-command
 		   save-command system-command test-command undefine-command
@@ -906,6 +906,8 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 	    [(maybe x-axis-range) (maybe y-axis-range) (maybe z-axis-range)])
 
 	   plot-body])
+
+         (replot-command [(kw "replot") plot-body])
 	 
 	 ;; Axis ranges
 	 (axis-range-component
@@ -1768,7 +1770,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 	  ["call" string (many expression)])
 
 	 (simple-command
-	  (either "clear" "exit" "quit" "pwd" "refresh" "replot" "reread" "reset"
+	  (either "clear" "exit" "quit" "pwd" "refresh" "reread" "reset"
 		  "shell"))
 
 	 (eval-command
