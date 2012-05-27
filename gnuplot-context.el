@@ -1167,7 +1167,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 
 ;;; print command
 	 (print-command
-	  ["print" (delimited-list expression ",")])
+	  [(kw ("pr" . "int")) (delimited-list expression ",")])
 
 ;;; set commands
 	 (set-command
