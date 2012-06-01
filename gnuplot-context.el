@@ -1899,7 +1899,8 @@ there."
 
       (flet ((advance
 	      ()
-	      (if (and (null (pop tokens)) (not completing-p))
+	      (pop tokens)
+	      (if (and (null tokens) (not completing-p))
 		  (gnuplot-scan-stack stack tokens)))
 	     (fail () (setq fail t)))
 	
