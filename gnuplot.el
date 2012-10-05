@@ -327,6 +327,14 @@
 (require 'comint)
 (require 'easymenu)
 
+;; Keep gnuplot-context separate from main gnuplot library, for people
+;; who don't want to load the whole thing. Load it automatically on
+;; choosing the menu item.
+(autoload 'gnuplot-context-sensitive-mode "gnuplot-context"
+  "Toggle gnuplot context-sensitive completion and help mode."
+  t)
+
+
 
 ;;; --- variable definitions + eval-and-compile clauses
 
@@ -644,37 +652,56 @@ you're not using that musty old thing, are you..."
 	   'gnuplot-gui-mouse-set))))
 
 (defvar gnuplot-mode-menu nil)
-(defvar gnuplot-menu nil
+(defvar gnuplot-menu
+  '("Gnuplot"
+    ["Send line to gnuplot"             gnuplot-send-line-to-gnuplot   t]
+    ["Send line & move forward"         gnuplot-send-line-and-forward (not (eobp))]
+    ["Send region to gnuplot"           gnuplot-send-region-to-gnuplot
+     (gnuplot-mark-active)]
+    ["Send buffer to gnuplot"           gnuplot-send-buffer-to-gnuplot t]
+    ["Send file to gnuplot"             gnuplot-send-file-to-gnuplot t]
+    "---"
+    ["Inline plot display"              gnuplot-inline-image-mode
+     :enable (display-images-p)
+     :style toggle
+     :selected gnuplot-inline-image-mode]
+    ["Contextual completion and help"   gnuplot-context-sensitive-mode
+     :style toggle
+     :selected (gnuplot-context-mode-p)]
+    ["Echo area help (eldoc-mode)" eldoc-mode
+     :enable (gnuplot-context-mode-p)
+     :style toggle
+     :selected eldoc-mode]
+    "---"
+    ["Insert filename at point"         gnuplot-insert-filename t]
+    ["Negate set option"                gnuplot-negate-option t]
+    ;;["Set key binding"                gnuplot-set-binding gnuplot-three-eight-p]
+    ["Keyword help"                     gnuplot-info-lookup-symbol
+     (or gnuplot-keywords gnuplot-keywords-pending)]
+    ["Quick help for thing at point"    gnuplot-help-function
+     (gnuplot-context-mode-p)]
+    ["Info documentation on thing at point"
+     gnuplot-info-at-point
+     (gnuplot-context-mode-p)]
+    ["Show gnuplot process buffer"      gnuplot-show-gnuplot-buffer t]
+    ["Set arguments at point"           gnuplot-gui-set-options-and-insert
+     (fboundp 'gnuplot-gui-set-options-and-insert)]
+    ["Swap plot/splot/fit lists in GUI" gnuplot-gui-swap-simple-complete
+     (fboundp 'gnuplot-gui-swap-simple-complete)]
+    "---"
+    ["Customize gnuplot"                gnuplot-customize t]
+    ["Submit bug report"                gnuplot-bug-report t]
+    ["Show gnuplot-mode version"        gnuplot-show-version t]
+    ["Show gnuplot version"             gnuplot-show-gnuplot-version t]
+    "---"
+    ["Kill gnuplot"                     gnuplot-kill-gnuplot-buffer t]
+    )
   "Menu for `gnuplot-mode'.")
-(setq gnuplot-menu
-      '("Gnuplot"
-	["Send line to gnuplot"             gnuplot-send-line-to-gnuplot   t]
-	["Send line & move forward"         gnuplot-send-line-and-forward (not (eobp))]
-	["Send region to gnuplot"           gnuplot-send-region-to-gnuplot
-	 (gnuplot-mark-active)]
-	["Send buffer to gnuplot"           gnuplot-send-buffer-to-gnuplot t]
-	["Send file to gnuplot"             gnuplot-send-file-to-gnuplot t]
-	"---"
-	["Insert filename at point"         gnuplot-insert-filename t]
-	["Negate set option"                gnuplot-negate-option t]
-	;;["Set key binding"             gnuplot-set-binding gnuplot-three-eight-p]
-	["Keyword help"                     gnuplot-info-lookup-symbol
-	 (or gnuplot-keywords gnuplot-keywords-pending)]
-	["Show gnuplot process buffer"      gnuplot-show-gnuplot-buffer t]
-	["Set arguments at point"           gnuplot-gui-set-options-and-insert
-	 (fboundp 'gnuplot-gui-set-options-and-insert)]
-	["Swap plot/splot/fit lists in GUI" gnuplot-gui-swap-simple-complete
-	 (fboundp 'gnuplot-gui-swap-simple-complete)]
-        ["Toggle inline plot display"       gnuplot-inline-image-mode
-         (display-images-p)]
-	"---"
-	["Customize gnuplot"                gnuplot-customize t]
-	["Submit bug report"                gnuplot-bug-report t]
-	["Show gnuplot-mode version"        gnuplot-show-version t]
-	["Show gnuplot version"             gnuplot-show-gnuplot-version t]
-	"---"
-	["Kill gnuplot"                     gnuplot-kill-gnuplot-buffer t]
-	))
+
+;; Disable or enable menu items that depend on gnuplot-context being
+;; loaded and enabled
+(defsubst gnuplot-context-mode-p ()
+  (and (boundp 'gnuplot-context-sensitive-mode) gnuplot-context-sensitive-mode))
 
 
 ;;; --- insertions variables and menus
@@ -2061,30 +2088,44 @@ buffer."
 ;; Menu for gnuplot-comint-mode
 (defvar gnuplot-comint-mode-menu nil
   "Menu for `gnuplot-comint-mode'.")
-(defvar gnuplot-comint-menu nil)
-(setq gnuplot-comint-menu
-      '("Gnuplot"
-	["Plot most recent gnuplot buffer"		gnuplot-plot-from-comint
-	 (buffer-live-p gnuplot-comint-recent-buffer)]
-	["Save and plot most recent gnuplot buffer"	gnuplot-save-and-plot-from-comint
-	 (buffer-live-p gnuplot-comint-recent-buffer)]
-	"---"
-	["Insert filename at point"			gnuplot-insert-filename t]
-	["Negate set option"				gnuplot-negate-option t]
-	["Keyword help"					gnuplot-info-lookup-symbol
-	 (or gnuplot-keywords gnuplot-keywords-pending)]
-	["Switch to recent gnuplot script buffer"	gnuplot-pop-to-recent-buffer
-	 (buffer-live-p gnuplot-comint-recent-buffer)]
-        ["Toggle inline plot display"                   gnuplot-inline-image-mode
-         (display-images-p)]
-	"---"
-	["Customize gnuplot"				gnuplot-customize t]
-	["Submit bug report"				gnuplot-bug-report t]
-	["Show gnuplot-mode version"			gnuplot-show-version t]
-	["Show gnuplot version"				gnuplot-show-gnuplot-version t]
-	"---"
-	["Kill gnuplot"					gnuplot-kill-gnuplot-buffer t]
-	))
+(defvar gnuplot-comint-menu
+  '("Gnuplot"
+    ["Plot most recent gnuplot buffer"		gnuplot-plot-from-comint
+     (buffer-live-p gnuplot-comint-recent-buffer)]
+    ["Save and plot most recent gnuplot buffer"	gnuplot-save-and-plot-from-comint
+     (buffer-live-p gnuplot-comint-recent-buffer)]
+    "---"
+    ["Inline plot display"                      gnuplot-inline-image-mode
+     :enable (display-images-p)
+     :style toggle
+     :selected gnuplot-inline-image-mode]
+    ["Contextual completion and help"           gnuplot-context-sensitive-mode
+     :style toggle
+     :selected (gnuplot-context-mode-p)]
+    ["Echo area help (eldoc-mode)" eldoc-mode
+     :enable (gnuplot-context-mode-p)
+     :style toggle
+     :selected eldoc-mode]
+    "---"
+    ["Insert filename at point"			gnuplot-insert-filename t]
+    ["Negate set option"			gnuplot-negate-option t]
+    ["Keyword help"				gnuplot-info-lookup-symbol
+     (or gnuplot-keywords gnuplot-keywords-pending)]
+    ["Quick help for thing at point"            gnuplot-help-function
+     (gnuplot-context-mode-p)]
+    ["Info documentation on thing at point"
+     gnuplot-info-at-point
+     (gnuplot-context-mode-p)]
+    ["Switch to recent gnuplot script buffer"	gnuplot-pop-to-recent-buffer
+     (buffer-live-p gnuplot-comint-recent-buffer)]
+    "---"
+    ["Customize gnuplot"			gnuplot-customize t]
+    ["Submit bug report"			gnuplot-bug-report t]
+    ["Show gnuplot-mode version"		gnuplot-show-version t]
+    ["Show gnuplot version"			gnuplot-show-gnuplot-version t]
+    "---"
+    ["Kill gnuplot"				gnuplot-kill-gnuplot-buffer t]
+    ))
 
 ;; Switch to the gnuplot program buffer
 (defun gnuplot-make-gnuplot-buffer ()

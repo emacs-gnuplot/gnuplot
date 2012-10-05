@@ -341,7 +341,8 @@ off. With no argument, toggle context-sensitive mode."
     (ad-activate 'gnuplot-completion-at-point)
 
     (remove-hook 'gnuplot-mode-hook 'gnuplot-setup-eldoc)
-    (remove-hook 'gnuplot-comint-mode-hook 'gnuplot-setup-eldoc)))
+    (remove-hook 'gnuplot-comint-mode-hook 'gnuplot-setup-eldoc)
+    (eldoc-mode 0)))
 
 ;; Has to be defined here. Grumble.
 (defadvice gnuplot-completion-at-point (around gnuplot-context disable)
