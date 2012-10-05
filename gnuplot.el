@@ -5,8 +5,8 @@
 ;; Author:     Bruce Ravel <bruceravel1@gmail.com> and Phil Type
 ;; Maintainer: Bruce Ravel <bruceravel1@gmail.com>
 ;; Created:    June 28 1998
-;; Updated:    April 20 2012
-;; Version:    0.6.1
+;; Updated:    October 05 2012
+;; Version:    0.7
 ;; Keywords:   gnuplot, plotting
 
 ;; This file is not part of GNU Emacs.
@@ -96,6 +96,15 @@
 ;;   Defines the GUI interface for setting setting arguments to
 ;;   gnuplot options.  This uses the widget package extensively.
 ;;
+;; gnuplot-context.el (written by Jonathan, j.j.oddie@gmail.com)
+;;   Provides context-sensitive completion, help lookup and eldoc
+;;   strings for gnuplot buffers. This is somewhat experimental, which
+;;   is why it is a separate library for now. It should be
+;;   byte-compiled before using. Run `gnuplot-context-sensitive-mode'
+;;   (which autoloads the file) to try it out, and see the commentary
+;;   of gnuplot-context.el for more.
+;;   
+
 ;; ---------------------------------------------------------------------
 ;;
 ;; This mode was inspired by the original gnu-plot-mode by Gershon
@@ -283,6 +292,9 @@
 ;;  0.6.0 Dec 13 2002 <BR> Changed numbering scheme to accommodate
 ;;        gnuplot packaging requirements
 ;;  0.6.1 Sep 13 2011 <BR> Moved to github, updated contact info
+;;  0.7   Oct 20 2012 <jjo> Contextual completion & help, inline plots,
+;;        some other stuff
+ 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Acknowledgements:
 ;;    David Batty       <DB> (numerous corrections)
@@ -303,6 +315,8 @@
 ;;    Michael M. Tung   <MT> (prompted me to add pm3d support)
 ;;    Holger Wenzel     <HW> (suggested using `gnuplot-keywords-when')
 ;;    Wolfgang Zocher   <WZ> (pointed out problem with gnuplot-mode + speedbar)
+;;    Jon Oddie        <jjo> (indentation, inline images, context mode)
+;;
 ;;  and especially to Lars Hecking <LH> for including gnuplot-mode
 ;;  with the gnuplot 3.7-beta distribution and for providing me with
 ;;  installation materials
@@ -357,7 +371,7 @@
 (defconst gnuplot-maintainer-email "ravel@phys.washington.edu")
 (defconst gnuplot-maintainer-url
   "http://github.com/bruceravel/gnuplot-mode/")
-(defconst gnuplot-version "0.6.1")
+(defconst gnuplot-version "0.7")
 
 (defgroup gnuplot nil
   "Gnuplot-mode for Emacs."
@@ -590,6 +604,51 @@ you're not using that musty old thing, are you..."
   :type
   '(radio (const :tag "Parse info file when gnuplot-mode starts"    immediately)
 	  (const :tag "Parse info file the first time it is needed" deferred)))
+
+(defun gnuplot-set-context-mode (variable value)
+  "Turn context-sensitive mode on or off through Customize.
+
+Unlike the built-in custom-set-minor-mode, this avoids loading
+gnuplot-context if it is not being enabled."
+  (if (featurep 'gnuplot-context)
+      ;; Already loaded, OK to enable or disable
+      (gnuplot-context-sensitive-mode (if value 1 0))
+    ;; Not loaded; load gnuplot-context only if enabling
+    (if value
+        (progn
+          (load "gnuplot-context")
+          (gnuplot-context-sensitive-mode 1))
+      (setq gnuplot-context-sensitive-mode nil))))
+
+(defcustom gnuplot-context-sensitive-mode nil
+  "Non-nil if contextual completion and help for gnuplot are enabled.
+
+With context-sensitive mode on, gnuplot-mode's tab completion and
+info file lookup try to parse the current command line to find
+the most useful completions or info pages.
+
+Don't set this variable from Lisp code; instead, use Customize or
+call the `gnuplot-context-sensitive-mode' function, which behaves
+like a minor mode."
+  :group 'gnuplot
+  :type 'boolean
+  :set 'gnuplot-set-context-mode
+  :link '(emacs-commentary-link "gnuplot-context"))
+
+(defcustom gnuplot-eldoc-mode nil
+  "Non-nil if ElDoc mode should be enabled by default in Gnuplot buffers.
+ElDoc support requires `gnuplot-context-sensitive-mode' to be
+on."
+  :group 'gnuplot
+  :type 'boolean)
+  
+(defcustom gnuplot-tab-completion nil
+  "Non-nil if TAB should perform completion in gnuplot-mode buffers.
+
+Setting this to `t' sets the `tab-always-indent' variable to the
+symbol `complete' in gnuplot-mode buffers."
+  :group 'gnuplot
+  :type 'boolean)
 
 (defgroup gnuplot-faces nil
   "Text faces used by gnuplot-mode."
