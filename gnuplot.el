@@ -651,9 +651,11 @@ you're not using that musty old thing, are you..."
   (define-key gnuplot-mode-map "\C-c\C-n" 'gnuplot-negate-option)
   (define-key gnuplot-mode-map "\C-c\C-p" 'gnuplot-show-gnuplot-version)
   (define-key gnuplot-mode-map "\C-c\C-r" 'gnuplot-send-region-to-gnuplot)
+  (define-key gnuplot-mode-map (kbd "C-M-x") 'gnuplot-send-region-to-gnuplot)
   ;;(define-key gnuplot-mode-map "\C-c\C-t" 'gnuplot-gui-swap-simple-complete)
   (define-key gnuplot-mode-map "\C-c\C-u" 'gnuplot-bug-report)
   (define-key gnuplot-mode-map "\C-c\C-v" 'gnuplot-send-line-and-forward)
+  (define-key gnuplot-mode-map "\C-j"     'gnuplot-send-line-and-newline)
   (define-key gnuplot-mode-map "\C-c\C-z" 'gnuplot-customize)
   (define-key gnuplot-mode-map "\C-i"     'indent-for-tab-command)
   (define-key gnuplot-mode-map "\C-m"     'newline-and-indent)
@@ -1934,6 +1936,12 @@ lines with only comments are skipped when moving forward."
       (gnuplot-forward-script-line 1)
       (setq num (1- num)))))
 
+(defun gnuplot-send-line-and-newline ()
+  "Call `gnuplot-send-line-to-gnuplot' and insert a new line."
+  (interactive)
+  (end-of-line)
+  (gnuplot-send-line-to-gnuplot)
+  (insert "\n"))
 
 (defun gnuplot-forward-script-line (&optional num) ; <SE>
   "Move forward my NUM script lines.
