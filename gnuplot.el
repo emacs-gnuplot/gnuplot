@@ -330,31 +330,8 @@
 
 ;;; --- variable definitions + eval-and-compile clauses
 
-;; handle defcustom
-(eval-and-compile
-  (condition-case ()
-      (require 'custom)
-    (error nil))
-  (if (and (featurep 'custom) (fboundp 'custom-declare-variable))
-      nil ;; We've got what we needed
-    ;; We have the old custom-library, hack around it!
-    (if (fboundp 'defgroup)
-        nil
-      (defmacro defgroup (&rest args)
-        nil))
-    (if (fboundp 'defface)
-        nil
-      (defmacro defface (var values doc &rest args)
-        (` (progn
-             (defvar (, var) (quote (, var)))
-             ;; To make colors for your faces you need to set your .Xdefaults
-             ;; or set them up ahead of time in your .emacs file.
-             (make-face (, var))
-             ))))
-    (if (fboundp 'defcustom)
-        nil
-      (defmacro defcustom (var value doc &rest args)
-        (` (defvar (, var) (, value) (, doc)))))))
+;; We no longer hack around ancient versions of Customize with macros
+(require 'custom)
 
 ;; (eval-and-compile
 ;;   (condition-case ()
@@ -620,16 +597,12 @@ you're not using that musty old thing, are you..."
   :prefix "gnuplot-"
   :group 'gnuplot)
 
-(cond ((and (featurep 'custom) (fboundp 'custom-declare-variable))
-       (defface gnuplot-prompt-face '((((class color))
-				       (:foreground "firebrick"))
-				      (t
-				       (:bold t :underline t)))
-	 "Face used for the prompt in the gnuplot process buffer."
-	 :group 'gnuplot-faces))
-      (t
-       (make-face 'gnuplot-prompt-face)
-       (set-face-foreground 'gnuplot-prompt-face "firebrick")))
+(defface gnuplot-prompt-face '((((class color))
+                                (:foreground "firebrick"))
+                               (t
+                                (:bold t :underline t)))
+  "Face used for the prompt in the gnuplot process buffer."
+  :group 'gnuplot-faces)
 
 
 ;;; --- key bindings and menus
