@@ -333,22 +333,13 @@
 ;; We no longer hack around ancient versions of Customize with macros
 (require 'custom)
 
-;; (eval-and-compile
-;;   (condition-case ()
-;;       (require 'kw-compl)
-;;     (error nil)))
 (eval-and-compile  ;; <DB>
   (require 'info))
+
 (eval-and-compile
   (condition-case ()
       (require 'info-look)
     (error nil)))
-
-;; this just gets rid of an annoying compile time error message
-;; (eval-when-compile
-;;   (defun gnuplot-dummy ())
-;;   (defalias 'hilit-set-mode-patterns 'gnuplot-dummy))
-
 
 (defconst gnuplot-xemacs-p (string-match "XEmacs" (emacs-version)))
 (defconst gnuplot-ntemacs-p (string-match "msvc" (emacs-version)))
@@ -2626,8 +2617,7 @@ See the comments in `gnuplot-info-hook'."
 		 (info-lookup-add-help
 		  :mode 'gnuplot-comint-mode :topic 'symbol
 		  :regexp "[a-zA-Z][_a-zA-Z0-9]*"
-		  :doc-spec doc-spec)
-		(message "hi dere"))))
+		  :doc-spec doc-spec))))
 
 	;; this hook is my best way of working with info-look and
 	;; allowing multiple versions of the gnuplot-info file.
