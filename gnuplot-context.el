@@ -275,15 +275,44 @@ These have to be compiled from the Gnuplot source tree using
 ;;;; Customization interface, etc.
 (defun gnuplot-context-sensitive-mode (&optional enable)
   "Turn gnuplot-mode context-sensitive completion and help on and off.
-Works like a minor mode: with argument, turn context-sensitive
-mode on if ENABLE is positive, otherwise turn it off. With no
-argument, toggle context-sensitive mode."
+
+When context-sensitive mode is enabled, gnuplot-mode tries to
+provide more useful completions and help suggestions for built-in
+keywords and functions by parsing each command as you type.  It
+attempts to take into account Gnuplot's many abbreviated
+keywords.  For example, with point at the end of a line reading
+\"plot 'datafile' w \", typing \\[completion-at-point] will pop
+up a list of plotting styles.
+
+\\[completion-at-point] will complete the keyword at point based
+on its context in the command. To make keyword completion work on
+pressing TAB, set `tab-always-indent' to `complete', or customize
+`gnuplot-tab-completion' to make this automatic in gnuplot-mode
+buffers.
+
+\\[gnuplot-info-at-point] will try to find the most relevant
+Gnuplot info node for the construction at point, prompting for a
+node name if nothing is found.
+
+In addition, \\[gnuplot-help-function] will pop up a brief
+summary of the syntax at point in the minibuffer. To have one-line
+syntax summaries appear in the echo area as you type, toggle
+`eldoc-mode' or customize `gnuplot-eldoc-mode'.
+
+Note: help strings for eldoc-mode and \\[gnuplot-help-function]
+need to be provided in an Emacs-readable form by the Gnuplot
+distribution. See gnuplot-context.el for details.
+
+Works like a minor mode: with a prefix argument, turn
+context-sensitive mode on if positive, otherwise turn it
+off. With no argument, toggle context-sensitive mode."
   (interactive "P")
   (setq gnuplot-context-sensitive-mode
         (if (null enable) (not gnuplot-context-sensitive-mode)
             (> (prefix-numeric-value enable) 0)))
   
   (if gnuplot-context-sensitive-mode
+      ;; Turn on
       (progn
         (when (called-interactively-p 'any)
           (message "Gnuplot context-sensitive help & completion enabled."))

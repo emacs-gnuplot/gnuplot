@@ -2238,6 +2238,12 @@ gnuplot process buffer will be displayed in a window."
 
 (defun gnuplot-inline-image-mode (&optional enable)
   "Turn inline display of Gnuplot output in the comint buffer on or off.
+
+This works by having Gnuplot save its output to temporary .png
+files using \"set terminal png\" and \"set output\" commands,
+which are sent invisibly to the running Gnuplot process between
+user commands.
+
 Works like a minor mode: with argument, turn inline image display
 on if ENABLE is positive, otherwise turn it off and restores the
 previous Gnuplot terminal setting. With no argument, toggle
