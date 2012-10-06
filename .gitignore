@@ -8,3 +8,6 @@
 */#*#
 /hacks.el
 .#*
+/Makefile
+/config.cache
+/config.status

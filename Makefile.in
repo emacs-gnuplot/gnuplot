@@ -29,13 +29,13 @@ VPATH = @srcdir@
 # Command to byte-compile
 BYTEC = $(EMACS) -batch -q -no-site-file -l $(srcdir)/dot.el -f batch-byte-compile
 
-ELCS = info-look.elc gnuplot.elc gnuplot-gui.elc
+ELCS = info-look.elc gnuplot.elc gnuplot-gui.elc gnuplot-context.elc
 
 DIST_COMMON = ChangeLog Makefile.dst Makefile.in README aclocal.m4 configure \
 configure.in
 
 EXTRA_DIST = dot.el dotemacs gnuplot-gui.el gnuplot.el gnuplot.el.old \
-gpelcard.tex info-look.20.2.el info-look.20.3.el
+gnuplot-context.el gpelcard.tex info-look.20.2.el info-look.20.3.el
 
 DISTFILES = $(DIST_COMMON) $(EXTRA_DIST)
 
@@ -48,6 +48,10 @@ gnuplot.elc: gnuplot.el
 gnuplot-gui.elc: gnuplot.elc gnuplot-gui.el
 	test "$(srcdir)" = "$(top_builddir)" || cp $(srcdir)/gnuplot-gui.el .
 	$(BYTEC) gnuplot-gui.el
+
+gnuplot-context.elc: gnuplot.elc gnuplot-context.el
+	test "$(srcdir)" = "$(top_builddir)" || cp $(srcdir)/gnuplot-context.el .
+	$(BYTEC) gnuplot-context.el
 
 ## There are many possibilities for info-look:
 ##

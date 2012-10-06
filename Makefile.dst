@@ -9,13 +9,16 @@ BYTE = $(EMACS) -batch -q -no-site-file -l dot.el -f batch-byte-compile
 .PHONY:	all default clean
 
 default:
-	$(MAKE) info-look.elc gnuplot.elc gnuplot-gui.elc
+	$(MAKE) info-look.elc gnuplot.elc gnuplot-gui.elc gnuplot-context.elc
 
 gnuplot.elc:	gnuplot.el
 	$(BYTE) gnuplot.el
 
 gnuplot-gui.elc:	gnuplot-gui.el
 	$(BYTE) gnuplot-gui.el
+
+gnuplot-context.elc:	gnuplot-context.el
+	$(BYTE) gnuplot-context.el
 
 ## There are many possibilities for info-look:
 ##
