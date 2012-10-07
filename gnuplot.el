@@ -2078,8 +2078,7 @@ file visited by the script buffer."
 This keeps that buffer from growing excessively in size.  Normally,
 this function is attached to `gnuplot-after-plot-hook'"
   (if (> gnuplot-buffer-max-size 0)
-      (save-excursion
-	(set-buffer gnuplot-buffer)
+      (with-current-buffer gnuplot-buffer
 	(let ((nlines (count-lines (point-min) (point-max)))
 	      (kill-whole-line t))
 	  (while (> nlines gnuplot-buffer-max-size)
