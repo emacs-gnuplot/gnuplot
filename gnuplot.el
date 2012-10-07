@@ -1645,7 +1645,7 @@ These are highlighted using `font-lock-function-name-face'.")
   '("bind" "cd" "clear" "exit" "fit" "help" "history" "load" "pause" "print" "pwd" "quit" "replot" "save" "set" "show" "unset")
   "List of GNUPLOT miscellaneous commands, as strings.
 
-These are highlighted using `font-lock-reference-face'.")
+These are highlighted using `font-lock-constant-face'.")
 
 (defvar gnuplot-keywords-negatable-options
   '("arrow" "autoscale" "border" "clabel" "clip" "contour" "dgrid3d" "grid" "hidden3d" "historysize" "key" "label" "linestyle" "logscale" "mouse" "multiplot" "mx2tics" "mxtics" "my2tics" "mytics" "mztics" "offsets" "polar" "surface" "timestamp" "title" "x2dtics" "x2mtics" "x2tics" "x2zeroaxis" "xdtics" "xmtics" "xtics" "xzeroaxis" "y2dtics" "y2mtics" "y2tics" "y2zeroaxis" "ydtics" "ymtics" "ytics" "yzeroaxis" "zdtics" "zmtics" "ztics" "zzeroaxis")
@@ -1666,7 +1666,7 @@ These are highlighted using `font-lock-reference-face'.")
   (setq gnuplot-font-lock-keywords
 	(list
 	 ;; stuff in brackets, sugg. by <LB>
-	 '("\\[\\([^]]+\\)\\]" 1 font-lock-reference-face)
+	 '("\\[\\([^]]+\\)\\]" 1 font-lock-constant-face)
 
 	 ;; variable/function definitions
 	 '("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
@@ -1689,8 +1689,8 @@ These are highlighted using `font-lock-reference-face'.")
 
 	 ;; other common commands
 	 (cons (gnuplot-make-regexp gnuplot-keywords-misc)
-	       font-lock-reference-face)
-	 (cons "!.*$" font-lock-reference-face))) ; what is this for? jjo
+	       font-lock-constant-face)
+	 (cons "!.*$" font-lock-constant-face))) ; what is this for? jjo
       
   (setq gnuplot-font-lock-defaults 
 	'(gnuplot-font-lock-keywords
