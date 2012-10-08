@@ -629,9 +629,7 @@ These are set by `gnuplot-set-keywords-list' from the values in
 (defcustom gnuplot-keywords-when 'deferred ;; 'immediately
   "This variable controls when the info file is parsed.
 The choices are immediately upon starting gnuplot-mode or the first
-time that data is needed.  If you use hilit19, then the info file is
-parsed immediately regardless of the value of this variable.  But
-you're not using that musty old thing, are you..."
+time that data is needed."
   :group 'gnuplot
   :type
   '(radio (const :tag "Parse info file when gnuplot-mode starts"    immediately)
@@ -733,8 +731,6 @@ symbol `complete' in gnuplot-mode buffers."
     (define-key gnuplot-mode-map "\M-\t"    completion-function))
 
   ;;(define-key gnuplot-mode-map "\C-m"     'reindent-then-newline-and-indent)
-  ;;(if (featurep 'kw-compl)
-  ;;    (define-key gnuplot-mode-map "\M-\r" 'kw-compl-abbrev)))
   (cond (gnuplot-xemacs-p
 	 (define-key gnuplot-mode-map '(shift button2)
 	   'gnuplot-gui-mouse-set))
@@ -1689,7 +1685,6 @@ These are highlighted using `font-lock-constant-face'.")
 
 ;; Set up colorization for gnuplot.
 ;; This handles font-lock for emacs and xemacs.
-;; hilit19 is handled in `gnuplot-mode'.
 (defvar gnuplot-font-lock-keywords nil)
 (defvar gnuplot-font-lock-syntactic-keywords nil)
 (defvar gnuplot-font-lock-defaults nil)
@@ -3079,20 +3074,8 @@ a list:
 
   (set-syntax-table gnuplot-mode-syntax-table)
 
-  (if (or (fboundp 'hilit-set-mode-patterns)
-	  (equal gnuplot-keywords-when 'immediately)) ; <HW>
-      (gnuplot-setup-info-look)) ;; <SE>
-
-  (if (fboundp 'hilit-set-mode-patterns) ; deal with hilit19 (ho hum!)
-      (let ((keywords (concat "\\b\\(" (mapconcat 'identity
-						  gnuplot-keywords "\\|")
-			      "\\)\\b")))
-	(hilit-set-mode-patterns
-	 'gnuplot-mode
-	 `(("#.*$" nil comment)
-	   ("\\([a-zA-Z0-9_-]+\\)\\(([^)]*)\\)?\\s *=" nil define)
-	   ,(list keywords 'nil 'keyword)
-	   (hilit-string-find ?\\ string)))))
+  (when (eq gnuplot-keywords-when 'immediately) ; <HW>
+    (gnuplot-setup-info-look)) ;; <SE>
 
   (if gnuplot-xemacs-p			; deal with font-lock
       (when (fboundp 'turn-on-font-lock)
