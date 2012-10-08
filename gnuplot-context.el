@@ -251,10 +251,12 @@
 ;;
 ;;
 
-(eval-when-compile (require 'cl))
+(eval-when-compile
+  (require 'cl)
+  (require 'advice)
 
-;; Prevent compiler warnings about undefined functions
-(eval-when-compile (require 'gnuplot))
+  ;; Prevent compiler warnings about undefined functions
+  (require 'gnuplot))
 
 ;; We need ElDoc support
 (require 'eldoc)
@@ -272,8 +274,23 @@ These have to be compiled from the Gnuplot source tree using
    (setq gnuplot-eldoc-hash (make-hash-table))))
 
 
+;;;; Compatibility for Emacs version < 23
+(eval-when-compile
+  (when (not (fboundp 'string-match-p))
+    (defmacro string-match-p (&rest args)
+      `(save-match-data (string-match ,@args))))
+
+  (when (not (fboundp 'buffer-local-value))
+    (defmacro buffer-local-value (variable buffer)
+      `(with-current-buffer ,buffer ,variable)))
+
+  (when (not (fboundp 'info-other-window))
+    (defmacro info-other-window (&rest args)
+      `(info ,@args))))
+
+
 ;;;; Interface to turning the mode on and off
-(defun gnuplot-context-sensitive-mode (&optional enable)
+(defun gnuplot-context-sensitive-mode (&optional enable called-interactively-p)
   "Turn gnuplot-mode context-sensitive completion and help on and off.
 
 When context-sensitive mode is enabled, gnuplot-mode tries to
@@ -306,7 +323,9 @@ distribution. See gnuplot-context.el for details.
 Works like a minor mode: with a prefix argument, turn
 context-sensitive mode on if positive, otherwise turn it
 off. With no argument, toggle context-sensitive mode."
-  (interactive "P")
+  (interactive (list (if current-prefix-arg
+                         (prefix-numeric-value current-prefix-arg))
+                     t))
   (setq gnuplot-context-sensitive-mode
         (if (null enable) (not gnuplot-context-sensitive-mode)
           (> (prefix-numeric-value enable) 0)))
@@ -314,12 +333,12 @@ off. With no argument, toggle context-sensitive mode."
   (if gnuplot-context-sensitive-mode
       ;; Turn on
       (progn
-        (when (called-interactively-p 'any)
+        (when called-interactively-p
           (message "Gnuplot context-sensitive help & completion enabled."))
         (eval-after-load 'gnuplot '(gnuplot--turn-on-context-sensitive-mode)))
 
     ;; Turn off
-    (when (called-interactively-p 'any)
+    (when called-interactively-p
       (message "Gnuplot context-sensitive help & completion disabled."))
     (eval-after-load 'gnuplot '(gnuplot--turn-off-context-sensitive-mode))))
 

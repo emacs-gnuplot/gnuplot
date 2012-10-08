@@ -363,6 +363,37 @@
       (require 'info-look)
     (error nil)))
 
+;; Misc. compatibility hacks
+(if (featurep 'xemacs)
+    ;; XEmacs
+    (progn
+      (defun gnuplot-set-minor-mode (variable value)
+        ":set function for minor mode variables."
+        (funcall variable (if value 1 0)))
+
+      ;; Inline image mode only works on GNU Emacs for now. Sorry.
+      (defun gnuplot-display-images-p () nil))
+
+  ;; GNU Emacs
+  (defalias 'gnuplot-set-minor-mode 'custom-set-minor-mode)
+  (defalias 'gnuplot-display-images-p 'display-images-p))
+
+;; Hack for Emacs < 22
+(if (not (fboundp 'completion-at-point))
+    (defun gnuplot-xemacs-completion-at-point ()
+      "Perform completion on keyword preceding point.
+
+This binds `comint-dynamic-complete-functions' to
+`gnuplot-comint-complete' and uses `comint-dynamic-complete' to do the
+real work."
+      (interactive)
+      (let ((comint-dynamic-complete-functions
+             '(gnuplot-comint-complete)))
+        (comint-dynamic-complete))))
+
+
+
+;;;;
 (defconst gnuplot-xemacs-p (string-match "XEmacs" (emacs-version)))
 (defconst gnuplot-ntemacs-p (string-match "msvc" (emacs-version)))
 (defvar   gnuplot-three-eight-p "")
@@ -407,6 +438,7 @@ This is the last thing done by the functions for plotting a line, a
 region, a buffer, or a file."
   :group 'gnuplot-hooks
   :type 'hook)
+
 
 (defcustom gnuplot-info-hook nil
   "*Hook run before setting up the info-look interface.
@@ -694,9 +726,9 @@ symbol `complete' in gnuplot-mode buffers."
   (define-key gnuplot-mode-map "\C-c\M-i" 'gnuplot-inline-image-mode)
 
   (let ((completion-function
-	 (if (featurep 'xemacs)
-	     'gnuplot-xemacs-completion-at-point
-	   'completion-at-point)))
+	 (if (fboundp 'completion-at-point)
+	     'completion-at-point
+	   'gnuplot-xemacs-completion-at-point)))
     (define-key gnuplot-mode-map "\M-\r"    completion-function)
     (define-key gnuplot-mode-map "\M-\t"    completion-function))
 
@@ -721,14 +753,14 @@ symbol `complete' in gnuplot-mode buffers."
     ["Send file to gnuplot"             gnuplot-send-file-to-gnuplot t]
     "---"
     ["Inline plot display"              gnuplot-inline-image-mode
-     :enable (display-images-p)
+     :active (gnuplot-display-images-p)
      :style toggle
      :selected gnuplot-inline-image-mode]
     ["Contextual completion and help"   gnuplot-context-sensitive-mode
      :style toggle
      :selected (gnuplot-context-mode-p)]
     ["Echo area help (eldoc-mode)" eldoc-mode
-     :enable (gnuplot-context-mode-p)
+     :active (gnuplot-context-mode-p)
      :style toggle
      :selected eldoc-mode]
     "---"
@@ -2154,14 +2186,14 @@ buffer."
      (buffer-live-p gnuplot-comint-recent-buffer)]
     "---"
     ["Inline plot display"                      gnuplot-inline-image-mode
-     :enable (display-images-p)
+     :active (gnuplot-display-images-p)
      :style toggle
      :selected gnuplot-inline-image-mode]
     ["Contextual completion and help"           gnuplot-context-sensitive-mode
      :style toggle
      :selected (gnuplot-context-mode-p)]
     ["Echo area help (eldoc-mode)" eldoc-mode
-     :enable (gnuplot-context-mode-p)
+     :active (gnuplot-context-mode-p)
      :style toggle
      :selected eldoc-mode]
     "---"
@@ -2335,7 +2367,7 @@ gnuplot process buffer will be displayed in a window."
 ;;; --- Support for displaying plot images inline in process buffer,
 ;;; using `set terminal png' <JJO>
 
-(defun gnuplot-inline-image-mode (&optional enable)
+(defun gnuplot-inline-image-mode (&optional enable called-interactively-p)
   "Turn inline display of Gnuplot output in the comint buffer on or off.
 
 This works by having Gnuplot save its output to temporary .png
@@ -2347,19 +2379,21 @@ Works like a minor mode: with argument, turn inline image display
 on if ENABLE is positive, otherwise turn it off and restores the
 previous Gnuplot terminal setting. With no argument, toggle
 inline image display."
-  (interactive "P")
+  (interactive (list (if current-prefix-arg
+                         (prefix-numeric-value current-prefix-arg))
+                     t))
   (setq gnuplot-inline-image-mode
         (if (null enable) (not gnuplot-inline-image-mode)
           (> (prefix-numeric-value enable) 0)))
 
   (let (message)
     (if gnuplot-inline-image-mode
-        (if (display-images-p)
+        (if (gnuplot-display-images-p)
             (setq message "Plot output will be displayed in gnuplot buffer.")
           (setq gnuplot-inline-image-mode nil
                 message "Displaying images is not supported."))
       (setq message "Plot output will be displayed on external terminal."))
-    (when (called-interactively-p 'any) (message message)))
+    (when called-interactively-p (message message)))
 
   (when (and gnuplot-buffer (buffer-name gnuplot-buffer))
     (with-current-buffer gnuplot-buffer
@@ -2373,6 +2407,8 @@ inline image display."
         (remove-hook 'comint-output-filter-functions
                      'gnuplot-insert-inline-image-output t)))))
 
+;; Has to be defined below the function, due to how
+;; custom-set-minor-mode works. Or is there a better way??
 (defcustom gnuplot-inline-image-mode nil
   "Whether to enable inline display of Gnuplot output in the process buffer.
 Don't set this variable directly from Lisp code; instead, use
@@ -2380,7 +2416,7 @@ Customize or call the `gnuplot-inline-image-mode' function, which
 behaves like a minor-mode function."
   :group 'gnuplot
   :type 'boolean
-  :set 'custom-set-minor-mode)
+  :set 'gnuplot-set-minor-mode)
 
 (defvar gnuplot-inline-image-filename nil
   "Name of the current Gnuplot PNG output file.")
@@ -2760,19 +2796,6 @@ Return a list of keywords."
 	    list  (cdr list)))
     (delete "nil" store)
     store ))
-
-(defun gnuplot-xemacs-completion-at-point ()
-  "Perform completion on keyword preceding point.
-
-This binds `comint-dynamic-complete-functions' to
-`gnuplot-comint-complete' and uses `comint-dynamic-complete' to do the
-real work."
-  ;; This actually would work in GNU Emacs too, but that seems a bit
-  ;; hackish when completion-at-point exists
-  (interactive)
-  (let ((comint-dynamic-complete-functions
-	 '(gnuplot-comint-complete)))
-    (comint-dynamic-complete)))
 
 (defun gnuplot-completion-at-point ()
   "Return completions of keyword preceding point.
