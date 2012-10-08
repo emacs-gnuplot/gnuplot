@@ -16,7 +16,7 @@
     (insert string)
     (goto-char (point-max))
     (gnuplot-tokenize)))
-  
+
 (defmacro with-gnuplot-tokens-from-string (binding &rest body)
   (declare (indent 1))
   `(with-temp-buffer
@@ -24,7 +24,7 @@
      (insert ,(cadr binding))
      (let ((,(car binding) (gnuplot-tokenize)))
        ,@body)))
-	 
+
 (defun gnuplot-simplify-tokens (tokens)
   (mapcar
    (lambda (token)
@@ -36,17 +36,17 @@
 	(gnuplot-token-id token))
 
        (end-of-command 'end-of-command)
-       
+
        (otherwise
 	(intern (gnuplot-token-id token)))))
-       tokens))
+   tokens))
 
 ;; compile a single pattern to usable form
 (eval-and-compile
   (defun gnuplot-compile-pattern-1 (pattern)
     (gnuplot-compile-grammar `((rule ,pattern)) 'rule)))
- 
-;; match a string 
+
+;; match a string
 (defun gnuplot-match-string (string rule)
   (if (vectorp rule)
       (gnuplot-match-pattern
@@ -236,18 +236,18 @@
 ;; axis ranges
 (deftest gnuplot-axis-range ()
   (should-match axis-range
-     ("[-pi:pi]")
-     ("[-1:1]")
-     ("[t = -10 :30]")
-     ("[ ]") 
-     ("[-2:sin(5)*-8]")
-     ("[:200]")
-     ("[foo=:200]")
-     ("[-pi:]")
-     ("[bar=-pi:]")
-     ("[baz=1:100*2:3/2]")
-     ("[-pi:pi:0.2]")
-     ("[\"1/6/93 12:00\":\"5/6/93 12:00\"]")))
+    ("[-pi:pi]")
+    ("[-1:1]")
+    ("[t = -10 :30]")
+    ("[ ]")
+    ("[-2:sin(5)*-8]")
+    ("[:200]")
+    ("[foo=:200]")
+    ("[-pi:]")
+    ("[bar=-pi:]")
+    ("[baz=1:100*2:3/2]")
+    ("[-pi:pi:0.2]")
+    ("[\"1/6/93 12:00\":\"5/6/93 12:00\"]")))
 
 ;; iteration
 (deftest gnuplot-iteration-spec ()
@@ -300,16 +300,16 @@
 (deftest gnuplot-plot-command ()
   (should-match plot-command
     ("plot sin(x) with impulses")
-     ("plot x w points, x**2")
-     ("plot [ ] [-2:5] tan(x), 'data.1' with l")
-     ("plot 'leastsq.dat' w i")
-     ("plot 'exper.dat' w lines, 'exper.dat' notitle w errorbars")
-     ("plot sin(x) with linesp lt 1 pt 3, cos(x) with linesp lt 1 pt 4")
-     ("plot 'data' with points pointtype 3 pointsize 2")
-     ("plot 'data' using 1:2:4 with points pt 5 pointsize variable")
-     ("plot 'd1' t \"good\" w l lt 2 lw 3, 'd2' t \"bad\" w l lt 2 lw 1")
-     ("plot x*x with filledcurve closed, 40 with filledcurve y1=10")
-     ("plot x*x, (x>=-5 && x<=5 ? 40 : 1/0) with filledcurve y1=10 lt 8")))
+    ("plot x w points, x**2")
+    ("plot [ ] [-2:5] tan(x), 'data.1' with l")
+    ("plot 'leastsq.dat' w i")
+    ("plot 'exper.dat' w lines, 'exper.dat' notitle w errorbars")
+    ("plot sin(x) with linesp lt 1 pt 3, cos(x) with linesp lt 1 pt 4")
+    ("plot 'data' with points pointtype 3 pointsize 2")
+    ("plot 'data' using 1:2:4 with points pt 5 pointsize variable")
+    ("plot 'd1' t \"good\" w l lt 2 lw 3, 'd2' t \"bad\" w l lt 2 lw 1")
+    ("plot x*x with filledcurve closed, 40 with filledcurve y1=10")
+    ("plot x*x, (x>=-5 && x<=5 ? 40 : 1/0) with filledcurve y1=10 lt 8")))
 
 ;;; set cntrparam
 (deftest gnuplot-cntrparam ()
@@ -322,16 +322,25 @@
     ("cntrparam levels incremental  0,1,4")
     ("cntrparam levels 10")
     ("cntrparam levels incremental 100,50")))
-	     
+
 
 ;;
-;; test by parsing all the demos
+;; test by parsing all the demos from the Gnuplot source tree
 ;;
+;; currently (Oct 2012) successfully parses about 84% of all
+;; non-comment lines in the Gnuplot demos, tho I think there are some
+;; false negatives in there too.
+;;
+
+;; Set this to wherever the gnuplot demos are
+(defvar gnuplot-demo-dir "~/dev/gnuplot/demo/")
 
 (defvar gnuplot-test-result-buffer "*gnuplot parse test results*")
 (defvar gnuplot-test-count 0)
 (defvar gnuplot-test-success-count 0)
 
+(if (not (fboundp 'line-number-at-pos))
+    (defalias 'line-number-at-pos 'line-number))
 
 (defun gnuplot-test-parse-all-demos ()
   (interactive)
@@ -343,16 +352,15 @@
 	    (get-buffer-create bufname)))
 	 (gnuplot-test-count 0)
 	 (gnuplot-test-success-count 0)
-	 (demo-dir "~/dev/gnuplot/demo/")
-	 (demo-files (directory-files demo-dir t "^[^.].*\\.dem$"))
+	 (demo-files (directory-files gnuplot-demo-dir t "^[^.].*\\.dem$"))
 	 (n-files (length demo-files))
 	 (n 0))
-    
+
     (switch-to-buffer-other-window gnuplot-test-result-buffer)
 
     (catch 'done
       (dolist (fname demo-files)
-	
+
 	(with-temp-buffer
 	  (insert-file-contents fname)
 	  (gnuplot-mode)
@@ -368,7 +376,7 @@
 	  (with-current-buffer gnuplot-test-result-buffer
 	    (goto-char (point-max))
 	    (recenter)))))
-    
+
     (with-current-buffer gnuplot-test-result-buffer
       (insert (format "\n\nPassed %s out of %s tests (%.2f%%)\n"
 		      gnuplot-test-success-count
@@ -410,10 +418,11 @@
 			       (gnuplot-simplify-tokens (car result)))))))))))
 	(gnuplot-beginning-of-defun -1)))))
 
-(add-to-list 'compilation-error-regexp-alist-alist
-	     '(gnuplot-test-errors
-	       "^FAILED at \\([^:]*\\):\\([0-9]*\\)" 1 2))
+(when (boundp 'compilation-error-regexp-alist-alist)
+  (add-to-list 'compilation-error-regexp-alist-alist
+               '(gnuplot-test-errors
+                 "^FAILED at \\([^:]*\\):\\([0-9]*\\)" 1 2))
 
-(add-to-list 'compilation-error-regexp-alist 'gnuplot-test-errors)
+  (add-to-list 'compilation-error-regexp-alist 'gnuplot-test-errors))
 
 (provide 'gnuplot-test-context)
