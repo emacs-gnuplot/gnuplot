@@ -391,6 +391,11 @@ real work."
              '(gnuplot-comint-complete)))
         (comint-dynamic-complete))))
 
+;; Workaround for differing eval-after-load behavior
+(defun gnuplot--run-after-load (fun)
+  (if (featurep 'gnuplot)
+      (funcall fun)
+    (add-hook 'gnuplot-load-hook fun)))
 
 
 ;;;;
@@ -643,11 +648,13 @@ gnuplot-context if it is not being enabled."
   (if (featurep 'gnuplot-context)
       ;; Already loaded, OK to enable or disable
       (gnuplot-context-sensitive-mode (if value 1 0))
-    ;; Not loaded; load gnuplot-context only if enabling
+    ;; Not loaded; autoload gnuplot-context only if enabling
     (if value
-        (progn
-          (load "gnuplot-context")
-          (gnuplot-context-sensitive-mode 1))
+        ;; Prevent recursive (require 'gnuplot) loop when running
+        ;; interpreted
+        (gnuplot--run-after-load
+         #'(lambda ()
+             (gnuplot-context-sensitive-mode 1)))
       (setq gnuplot-context-sensitive-mode nil))))
 
 (defcustom gnuplot-context-sensitive-mode nil

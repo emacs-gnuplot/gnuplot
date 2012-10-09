@@ -335,12 +335,12 @@ off. With no argument, toggle context-sensitive mode."
       (progn
         (when called-interactively-p
           (message "Gnuplot context-sensitive help & completion enabled."))
-        (eval-after-load 'gnuplot '(gnuplot--turn-on-context-sensitive-mode)))
+        (gnuplot--run-after-load 'gnuplot--turn-on-context-sensitive-mode))
 
     ;; Turn off
     (when called-interactively-p
       (message "Gnuplot context-sensitive help & completion disabled."))
-    (eval-after-load 'gnuplot '(gnuplot--turn-off-context-sensitive-mode))))
+    (gnuplot--run-after-load 'gnuplot--turn-off-context-sensitive-mode)))
 
 (eval-when-compile
   (defmacro gnuplot-foreach-buffer (&rest forms)
@@ -2187,7 +2187,9 @@ there."
 ;; Completions
 (defun gnuplot-completions ()
   (gnuplot-parse-at-point t)
-  gnuplot-completions)
+  (if (featurep 'xemacs)                ; Need an alist
+      (mapcar (lambda (s) (cons s nil)) gnuplot-completions)
+    gnuplot-completions))
 
 (defun gnuplot-context-completion-at-point ()
   "Return completions of keyword preceding point, using context."
@@ -2198,13 +2200,15 @@ there."
 	    (point)))
 	 (word nil)
 	 (completions (gnuplot-completions)))
-    (unless (= beg end)
-      (setq word (buffer-substring beg end)
-	    completions (all-completions word completions)))
+    
+    (setq word (buffer-substring beg end)
+          completions (all-completions word completions))
 
     (if completions
 	(list beg end completions)
-      (message "No gnuplot keywords complete '%s'" word)
+      (if (not (equal "" word))
+          (message "No gnuplot keywords complete '%s'" word)
+        (message "No completions at point"))
       nil)))
 
 ;; Eldoc help
