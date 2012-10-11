@@ -391,6 +391,16 @@ real work."
              '(gnuplot-comint-complete)))
         (comint-dynamic-complete))))
 
+;; Work around window-full-height-p
+(if (not (fboundp 'window-full-height-p))
+    ;; The below is taken from GNU Emacs window.el
+    (defun gnuplot-window-full-height-p (&optional window)
+      (unless window
+	(setq window (selected-window)))
+      (= (window-height window)
+	 (window-height (frame-root-window (window-frame window)))))
+  (defalias 'gnuplot-window-full-height-p 'window-full-height-p))
+
 ;; Workaround for differing eval-after-load behavior
 (defun gnuplot--run-after-load (fun)
   (if (featurep 'gnuplot)
@@ -2883,15 +2893,6 @@ the frame."
 	       (if gnuplot-xemacs-p (setq toolbar-info-frame gnuplot-info-frame))
 	       (switch-to-buffer "*info*"))))))
 
-;; XEmacs doesn't have window-full-height-p
-(if (featurep 'xemacs)
-    ;; The below is taken from GNU Emacs window.el
-    (defun gnuplot-window-full-height-p (&optional window)
-      (unless window
-	(setq window (selected-window)))
-      (= (window-height window)
-	 (window-height (frame-root-window (window-frame window)))))
-  (defalias 'gnuplot-window-full-height-p 'window-full-height-p))
 
 (defun gnuplot-insert (string)
   "Insert STRING at point and display help for for STRING.
