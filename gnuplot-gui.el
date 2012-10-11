@@ -86,7 +86,7 @@
 	(require 'wid-edit))
     (error nil)))
 (require 'cl)
-(eval-when-compile			; suppress some compiler warnings
+(eval-when-compile                   ; suppress some compiler warnings
   (defvar gnuplot-xemacs-p nil)
   (defvar gnuplot-quote-character nil)
   (defvar gnuplot-info-display nil)

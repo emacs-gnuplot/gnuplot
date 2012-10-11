@@ -24,13 +24,13 @@
 	(require 'gnuplot-debug-context))
     (require 'gnuplot-context)))
 
-(defmacro gnuplot-recompile ()
-  '(save-current-buffer
-     (save-window-excursion
-       (find-file "gnuplot-context.el")
-       (delete-file "gnuplot-context.elc")
-       (emacs-lisp-byte-compile)
-       (load-file "gnuplot-context.elc"))))
+(defsubst gnuplot-recompile ()
+  (save-current-buffer
+    (save-window-excursion
+      (find-file "gnuplot-context.el")
+      (delete-file "gnuplot-context.elc")
+      (emacs-lisp-byte-compile)
+      (load-file "gnuplot-context.elc"))))
   
 (defun gnuplot-nodebug ()
   (interactive)
