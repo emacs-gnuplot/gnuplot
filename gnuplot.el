@@ -6,7 +6,7 @@
 ;; Maintainer: Bruce Ravel <bruceravel1@gmail.com>
 ;; Created:    June 28 1998
 ;; Updated:    October 05 2012
-;; Version:    0.7
+;; Version:    0.7-beta
 ;; Keywords:   gnuplot, plotting
 
 ;; This file is not part of GNU Emacs.
@@ -407,7 +407,7 @@ real work."
 (defconst gnuplot-maintainer-email "ravel@phys.washington.edu")
 (defconst gnuplot-maintainer-url
   "http://github.com/bruceravel/gnuplot-mode/")
-(defconst gnuplot-version "0.7")
+(defconst gnuplot-version "0.7-beta")
 
 (defgroup gnuplot nil
   "Gnuplot-mode for Emacs."
