@@ -248,9 +248,11 @@
 ;; It would be possible to provide more helpful ElDoc strings for
 ;; sub-parts of complicated options like "cntrparam". This is a time
 ;; and maintenance issue rather than a technical one.
-;;
-;;
 
+;;; Code:
+
+
+;; Library dependencies
 (eval-when-compile
   (require 'cl)
   (require 'advice)
@@ -282,11 +284,7 @@ These have to be compiled from the Gnuplot source tree using
 
   (when (not (fboundp 'buffer-local-value))
     (defmacro buffer-local-value (variable buffer)
-      `(with-current-buffer ,buffer ,variable)))
-
-  (when (not (fboundp 'info-other-window))
-    (defmacro info-other-window (&rest args)
-      `(info ,@args))))
+      `(with-current-buffer ,buffer ,variable))))
 
 
 ;;;; Interface to turning the mode on and off
@@ -2237,14 +2235,16 @@ there."
       (let ((info
 	     (info-lookup-interactive-arguments 'symbol)))
 	(setq gnuplot-info-at-point (car info))))
-  (and gnuplot-info-at-point
-       (info-other-window (format "(gnuplot)%s" gnuplot-info-at-point))))
+  (when gnuplot-info-at-point
+    (gnuplot--find-info-node gnuplot-info-at-point)))
 
-(defun gnuplot-info-look-guess ()
-  (gnuplot-parse-at-point nil)
-  gnuplot-info-at-point)
-
-
+(defun gnuplot--find-info-node (node)
+  (save-window-excursion
+    (if (>= emacs-major-version 23)
+        (info (format "(gnuplot)%s" node))
+      (info)
+      (Info-find-node "gnuplot" node)))
+  (gnuplot--adjust-info-display))
 
 
 ;;; Some context-sensitive hacks 

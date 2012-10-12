@@ -2849,12 +2849,10 @@ completion."
 
 (defun gnuplot-info-lookup-symbol (symbol &optional mode)
   "Wrapper for `info-lookup-symbol'.
-Takes SYMBOL and MODE as arguments exactly as `info-lookup-symbol'.
-After doing the info lookup, this displays the info file in a window
-frame as specified by the value of `gnuplot-info-display'.  If
-`gnuplot-info-display' is 'window, then the window will be shrunk to
-the size of the info entry if it is smaller than half the height of
-the frame."
+Takes SYMBOL and MODE as arguments exactly as
+`info-lookup-symbol'.  After doing the info lookup, calls
+`gnuplot--adjust-info-display' to display the info buffer
+according to the value of `gnuplot-info-display'."
   (interactive
    (cond (gnuplot-keywords
 	  (info-lookup-interactive-arguments 'symbol))
@@ -2865,34 +2863,45 @@ the frame."
 	  (list nil (message
        "Help is not available.  The gnuplot info file could not be found.")))))
 
-  (if (and (featurep 'info-look) gnuplot-keywords)
-      (let ((buff (current-buffer))
-	    (info-lookup-other-window-flag
-	     (if gnuplot-info-display t nil)))
-	(if symbol () (setq symbol "Commands"))
-	(info-lookup-symbol symbol mode)
-	(cond ((equal gnuplot-info-display 'window) 
-	       ;; Adjust window height only if the frame is split 
-	       ;; horizontally, so as not to mess up the minibuffer <jjo>
-	       ;; we can't use shrink-window-if-larger-than-buffer here
-	       ;; because it doesn't work with Info mode's narrowing
-	       (with-selected-window (get-buffer-window "*info*")
-		 (unless (gnuplot-window-full-height-p)
-		   (enlarge-window
-		    (min (- (count-lines (point-min) (point-max)) (window-height) -1)
-			 (- (/ (frame-height) 2) (window-height)))))))
+  (when (and (featurep 'info-look) gnuplot-keywords)
+    (unless symbol (setq symbol "Commands"))
+    (save-window-excursion
+      (info-lookup-symbol symbol mode))
+    (gnuplot--adjust-info-display)))
 
-	      ((equal gnuplot-info-display 'frame)
-	       (switch-to-buffer buff)
-	       (delete-other-windows)
-	       (or (and gnuplot-info-frame
-			(frame-live-p gnuplot-info-frame))
-		   (setq gnuplot-info-frame (make-frame)))
-	       (select-frame gnuplot-info-frame)
-	       (raise-frame gnuplot-info-frame)
-	       (if gnuplot-xemacs-p (setq toolbar-info-frame gnuplot-info-frame))
-	       (switch-to-buffer "*info*"))))))
+(defun gnuplot--adjust-info-display ()
+  "Displays the *info* buffer in a window or frame as specified
+by the value of `gnuplot-info-display'.  If
+`gnuplot-info-display' is 'window, then the window will be shrunk
+to the size of the info entry if it is smaller than half the
+height of the frame.
 
+The *info* buffer should already exist when this function is
+called."
+  (case gnuplot-info-display
+    (window
+     (switch-to-buffer-other-window "*info*")
+     ;; Adjust window height only if the frame is split 
+     ;; horizontally, so as not to mess up the minibuffer <jjo>
+     ;; we can't use shrink-window-if-larger-than-buffer here
+     ;; because it doesn't work with Info mode's narrowing
+     (with-selected-window (get-buffer-window "*info*")
+       (unless (gnuplot-window-full-height-p)
+         (enlarge-window
+          (min (- (count-lines (point-min) (point-max)) (window-height) -1)
+               (- (/ (frame-height) 2) (window-height)))))))
+
+    (frame
+     (unless (and gnuplot-info-frame
+                  (frame-live-p gnuplot-info-frame))
+       (setq gnuplot-info-frame (make-frame)))
+     (select-frame gnuplot-info-frame)
+     (raise-frame gnuplot-info-frame)
+     (if gnuplot-xemacs-p (setq toolbar-info-frame gnuplot-info-frame))
+     (switch-to-buffer "*info*"))
+
+    (t
+     (switch-to-buffer "*info*"))))
 
 (defun gnuplot-insert (string)
   "Insert STRING at point and display help for for STRING.
