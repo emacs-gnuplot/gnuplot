@@ -2606,10 +2606,15 @@ Add additional indentation for continuation lines."
     (let ((point-at-indent (+ (point-at-bol) indent)))
       (when (< (point) point-at-indent) (goto-char point-at-indent)))))
 
+;; Adjust indentation on inserting a close brace
+;; The blink-paren fix is stolen from cc-mode
 (defun gnuplot-electric-insert (arg)
   (interactive "*p")
-  (self-insert-command arg)
-  (gnuplot-indent-line))
+  (let ((old-blink-paren blink-paren-function)
+        (blink-paren-function nil))
+    (self-insert-command arg)
+    (gnuplot-indent-line)
+    (when old-blink-paren (funcall old-blink-paren))))
 
 ;;
 ;; Functions for finding the start and end of continuation blocks
