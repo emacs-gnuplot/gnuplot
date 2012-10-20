@@ -340,6 +340,7 @@
 
 (require 'comint)
 (require 'easymenu)
+(eval-when-compile (require 'cl))
 
 ;; Keep gnuplot-context separate from main gnuplot library, for people
 ;; who don't want to load the whole thing. Load it automatically on
@@ -647,7 +648,9 @@ to the empty string."
 This applies only to new-style do- and if-statements using
 braces. Commands continued over a linebreak using a backslash are
 always indented to line up with the second word on the line
-beginning the continued command.")
+beginning the continued command."
+  :group 'gnuplot
+  :type 'integer)
 
 ;; (defcustom gnuplot-gnuplot-version nil
 ;;   "*Force gnuplot-mode to behave for this version of gnuplot."
@@ -2592,7 +2595,7 @@ Add additional indentation for continuation lines."
                   (backward-up-list)
                   (gnuplot-beginning-of-continuation)
                   (setq indent (+ gnuplot-basic-offset (current-indentation))))
-              (scan-error
+              (error
                (setq indent 0)))))))
 
     ;; Set indentation
