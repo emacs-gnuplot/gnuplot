@@ -1699,13 +1699,24 @@ characters.")
 
 ;; Lists of gnuplot keywords for syntax coloring etc.
 (defvar gnuplot-keywords-builtin-functions
-  '("abs" "acosh" "acos" "arg" "asinh" "asin" "atan" "atanh" "atan2" "besj1" "besj0" "besy1" "besy0" "ceil" "column" "cosh" "cos" "erfc" "erf" "exp" "floor" "gamma" "ibeta" "igamma" "imag" "int" "inverf" "invnorm" "lgamma" "log" "log10" "norm" "rand" "real" "sgn" "sinh" "sin" "sqrt" "tanh" "tan" "tm_hour" "tm_mday" "tm_min" "tm_mon" "tm_sec" "tm_wday" "tm_yday" "tm_year" "valid")
+  '("abs" "acosh" "acos" "arg" "asinh" "asin" "atan" "atanh" "atan2" "besj1"
+    "besj0" "besy1" "besy0" "ceil" "column" "cosh" "cos" "erfc" "erf" "exp"
+    "floor" "gamma" "ibeta" "igamma" "imag" "int" "inverf" "invnorm" "lgamma"
+    "log" "log10" "norm" "rand" "real" "sgn" "sinh" "sin" "sqrt" "tanh" "tan"
+    "tm_hour" "tm_mday" "tm_min" "tm_mon" "tm_sec" "tm_wday" "tm_yday" "tm_year"
+    "valid" "EllipticPi" "EllipticE" "EllipticK" "words" "word" "value"
+    "timecolumn" "substr" "strstrt" "strptime" "strlen" "stringcolumn"
+    "strftime" "sprintf" "lambertw" "gprintf" "exists" "defined" "columnhead")
+
   "List of GNUPLOT built-in functions, as strings.
 
 These are highlighted using `font-lock-function-name-face'.")
 
 (defvar gnuplot-keywords-plotting
-  '("axes" "every" "index" "lw" "lt" "ls" "linestyle" "linetype" "linewidth" "notitle" "pt" "ps" "pointsize" "pointtype" "smooth" "thru" "title" "using" "with")
+  '("axes" "every" "index" "lw" "lt" "ls" "linestyle" "linetype" "linewidth"
+    "notitle" "pt" "ps" "pointsize" "pointtype" "smooth" "thru" "title" "using"
+    "with" "noautoscale" "volatile" "matrix" "nonuniform" "binary" "fillstyle"
+    "linecolor" "pointinterval" "nosurface" "nocontours" "nohidden3d")
   "List of GNUPLOT keywords associated with plotting, as strings.
 
 These are highlighted using `font-lock-type-face'.
@@ -1713,19 +1724,33 @@ This list does not include plotting styles -- for that, see
 `gnuplot-keywords-plotting-styles'")
 
 (defvar gnuplot-keywords-plotting-styles
-  '("boxerrorbars" "boxes" "boxxyerrorbars" "candlesticks" "dots" "errorbars" "financebars" "fsteps" "histeps" "impulses" "lines" "linespoints" "points" "steps" "vector" "xerrorbars" "xyerrorbars" "yerrorbars")
+  '("boxerrorbars" "boxes" "boxxyerrorbars" "candlesticks" "dots" "errorbars"
+    "financebars" "fsteps" "histeps" "impulses" "lines" "linespoints" "points"
+    "steps" "vector" "xerrorbars" "xyerrorbars" "yerrorbars" "vectors"
+    "filledcurves" "labels" "rgbalpha" "rgbimage" "image" "circles" "pm3d"
+    "histograms" "xyerrorlines" "xerrorlines" "errorlines" "yerrorlines")
+
   "List of GNUPLOT plotting styles, as strings.
 
 These are highlighted using `font-lock-function-name-face'.")
 
 (defvar gnuplot-keywords-misc
-  '("bind" "cd" "clear" "exit" "fit" "help" "history" "load" "pause" "print" "pwd" "quit" "replot" "save" "set" "show" "unset")
+  '("bind" "cd" "clear" "exit" "fit" "help" "history" "load" "pause" "print"
+    "pwd" "quit" "replot" "save" "set" "show" "unset" "if" "else" "do" "update"
+    "undefine" "test" "system" "raise" "lower" "eval" "shell" "reset" "reread"
+    "refresh" "call")
   "List of GNUPLOT miscellaneous commands, as strings.
 
 These are highlighted using `font-lock-constant-face'.")
 
 (defvar gnuplot-keywords-negatable-options
-  '("arrow" "autoscale" "border" "clabel" "clip" "contour" "dgrid3d" "grid" "hidden3d" "historysize" "key" "label" "linestyle" "logscale" "mouse" "multiplot" "mx2tics" "mxtics" "my2tics" "mytics" "mztics" "offsets" "polar" "surface" "timestamp" "title" "x2dtics" "x2mtics" "x2tics" "x2zeroaxis" "xdtics" "xmtics" "xtics" "xzeroaxis" "y2dtics" "y2mtics" "y2tics" "y2zeroaxis" "ydtics" "ymtics" "ytics" "yzeroaxis" "zdtics" "zmtics" "ztics" "zzeroaxis")
+  '("arrow" "autoscale" "border" "clabel" "clip" "contour" "dgrid3d" "grid"
+    "hidden3d" "historysize" "key" "label" "linestyle" "logscale" "mouse"
+    "multiplot" "mx2tics" "mxtics" "my2tics" "mytics" "mztics" "offsets" "polar"
+    "surface" "timestamp" "title" "x2dtics" "x2mtics" "x2tics" "x2zeroaxis"
+    "xdtics" "xmtics" "xtics" "xzeroaxis" "y2dtics" "y2mtics" "y2tics"
+    "y2zeroaxis" "ydtics" "ymtics" "ytics" "yzeroaxis" "zdtics" "zmtics" "ztics"
+    "zzeroaxis")
 
   "List of gnuplot options which can be negated using `gnuplot-negate-option'")
 
