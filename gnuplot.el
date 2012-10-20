@@ -641,6 +641,14 @@ to the empty string."
   :type '(radio (const :tag "double quote"  "\"")
 		(const :tag "single quote"  "\'")
 		(const :tag "none"          ""  )))
+(defcustom gnuplot-basic-offset 4
+  "Number of columns to indent lines inside a do- or if-else-block.
+
+This applies only to new-style do- and if-statements using
+braces. Commands continued over a linebreak using a backslash are
+always indented to line up with the second word on the line
+beginning the continued command.")
+
 ;; (defcustom gnuplot-gnuplot-version nil
 ;;   "*Force gnuplot-mode to behave for this version of gnuplot."
 ;;   :group 'gnuplot
@@ -762,6 +770,7 @@ symbol `complete' in gnuplot-mode buffers."
   (define-key gnuplot-mode-map "\C-i"     'indent-for-tab-command)
   (define-key gnuplot-mode-map "\C-m"     'newline-and-indent)
   (define-key gnuplot-mode-map "\C-c\M-i" 'gnuplot-inline-image-mode)
+  (define-key gnuplot-mode-map (kbd "}")        'gnuplot-electric-insert)
 
   (let ((completion-function
 	 (if (fboundp 'completion-at-point)
@@ -2548,23 +2557,31 @@ Add additional indentation for continuation lines."
 	      (re-search-forward "\\S-+\\s-+" (point-at-eol) 'end-at-limit)
 	      (setq indent (- (point) (point-at-bol))))
 
-	  ;; Not a continuation line; go back to the first non-blank,
-	  ;; non-continuation line and indent to the same level
-	  (beginning-of-line 0)
-	  (while (and (not (bobp))
-		      (or (gnuplot-continuation-line-p)
-			  (looking-at "\\s-*$")))
-	    (beginning-of-line 0))
-	  (if (bobp)
-	      (setq indent 0)
-	    (setq indent (current-indentation))))))
-    
+          ;; Not a continuation line; indent according to block
+          ;; nesting depth
+          (save-excursion
+            (condition-case nil
+                (progn
+                  (beginning-of-line)
+                  (skip-syntax-forward "-)" (point-at-eol))
+                  (backward-up-list)
+                  (gnuplot-beginning-of-continuation)
+                  (setq indent (+ gnuplot-basic-offset (current-indentation))))
+              (scan-error
+               (setq indent 0)))))))
+
     ;; Set indentation
     (save-excursion 
       (indent-line-to indent))
 
+    ;; Move point after indentation when at beginning of line
     (let ((point-at-indent (+ (point-at-bol) indent)))
       (when (< (point) point-at-indent) (goto-char point-at-indent)))))
+
+(defun gnuplot-electric-insert (arg)
+  (interactive "*p")
+  (self-insert-command arg)
+  (gnuplot-indent-line))
 
 ;;
 ;; Functions for finding the start and end of continuation blocks
