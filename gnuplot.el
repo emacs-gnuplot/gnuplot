@@ -373,6 +373,32 @@
 ;;   (defalias 'hilit-set-mode-patterns 'gnuplot-dummy))
 
 
+;; Workaround missing with-silent-modifications: taken from subr.el in
+;; GNU Emacs 24
+(eval-when-compile
+  (if (not (fboundp 'with-silent-modifications))
+      (defmacro gnuplot-with-silent-modifications (&rest body)
+        "Execute BODY, pretending it does not modify the buffer."
+        (declare (debug t) (indent 0))
+        (let ((modified (make-symbol "modified")))
+          `(let* ((,modified (buffer-modified-p))
+                  (buffer-undo-list t)
+                  (inhibit-read-only t)
+                  (inhibit-modification-hooks t)
+                  deactivate-mark
+                  ;; Avoid setting and removing file locks and checking
+                  ;; buffer's uptodate-ness w.r.t the underlying file.
+                  buffer-file-name
+                  buffer-file-truename)
+             (unwind-protect
+                 (progn
+                   ,@body)
+               (unless ,modified
+                 (restore-buffer-modified-p nil))))))
+    (defalias 'gnuplot-with-silent-modifications 'with-silent-modifications)))
+
+
+;;;;
 (defconst gnuplot-xemacs-p (string-match "XEmacs" (emacs-version)))
 (defconst gnuplot-ntemacs-p (string-match "msvc" (emacs-version)))
 (defvar   gnuplot-three-eight-p "")
@@ -1682,8 +1708,9 @@ and installed as a hook in `after-change-functions'."
 		  (gnuplot-beginning-of-continuation)
 		  (point)))
 
-    (remove-text-properties begin (min (1+ end) (point-max))
-			    '(syntax-table nil))
+    (gnuplot-with-silent-modifications
+     (remove-text-properties begin (min (1+ end) (point-max))
+                             '(syntax-table nil)))
 
     (while (gnuplot-scan-next-string-or-comment end))))
 
@@ -1697,56 +1724,57 @@ string was found, otherwise nil."
   (let ((begin (search-forward-regexp "[#'\"]" limit 'go-to-limit)))
     (if (not begin)
 	nil
-      (let* ((begin (1- begin))
-	     (end nil)
-	     (opener (match-string 0))
-	     (limit (point-at-eol))
-	     (end-at-eob-p nil)
-	     (re
-	      (cond ((string= opener "#") nil)
-		    ((string= opener "'") "''?")
-		    ((string= opener "\"") "\\\\\"\\|\\\\\\\\\\|\"")))) 
-	(while (not end)
-	  (if (and (not (eobp)) (bolp) (eolp))	; Empty continuation line:
-	      (setq end (point))	; end at newline
-	    (if re
-		(setq end (search-forward-regexp re limit 'go-to-limit))
-	      (end-of-line))	    ; Comments end only at end-of-line
-	    
-	    (if end
-		(when (and re
-			   (let ((m (match-string 0)))
-			     (or (string= m "\\\"")
-				 (string= m "\\\\")
-				 (string= m "''"))))
-		  (setq end nil))   ; Skip over escapes and look again
-	      
-	      ;; We got to EOL without finding an ending delimiter
-	      (if (eobp)
-		  (setq end (point)
-			end-at-eob-p t) ; string/comment ends at EOB
-		;; Otherwise see if the line is continued with a backslash
-		(if (save-excursion (backward-char) (looking-at "\\\\"))
-		    (progn		; yes, check out next line
-		      (beginning-of-line 2)
-		      (setq limit (point-at-eol)))
-		  (setq end (1+ (point-at-eol)))))))) ; no, string ends at EOL
+      (gnuplot-with-silent-modifications
+       (let* ((begin (1- begin))
+              (end nil)
+              (opener (match-string 0))
+              (limit (point-at-eol))
+              (end-at-eob-p nil)
+              (re
+               (cond ((string= opener "#") nil)
+                     ((string= opener "'") "''?")
+                     ((string= opener "\"") "\\\\\"\\|\\\\\\\\\\|\"")))) 
+         (while (not end)
+           (if (and (not (eobp)) (bolp) (eolp)) ; Empty continuation line:
+               (setq end (point))               ; end at newline
+             (if re
+                 (setq end (search-forward-regexp re limit 'go-to-limit))
+               (end-of-line))	    ; Comments end only at end-of-line
+                                               
+             (if end
+                 (when (and re
+                            (let ((m (match-string 0)))
+                              (or (string= m "\\\"")
+                                  (string= m "\\\\")
+                                  (string= m "''"))))
+                   (setq end nil))  ; Skip over escapes and look again
+                                                 
+               ;; We got to EOL without finding an ending delimiter
+               (if (eobp)
+                   (setq end (point)
+                         end-at-eob-p t) ; string/comment ends at EOB
+                 ;; Otherwise see if the line is continued with a backslash
+                 (if (save-excursion (backward-char) (looking-at "\\\\"))
+                     (progn		; yes, check out next line
+                       (beginning-of-line 2)
+                       (setq limit (point-at-eol)))
+                   (setq end (1+ (point-at-eol)))))))) ; no, string ends at EOL
 
-	;; Set the syntax properties
-	(let ((begin-marker		(copy-marker begin))
-	      (begin-quote-marker	(copy-marker (1+ begin)))
-	      (end-quote-marker		(copy-marker (1- end)))
-	      (end-marker		(copy-marker end)))
-	  
-	  (let ((syntax (if (string= opener "#") 
-			    '(syntax-table (14))  ; 'comment fence'
-			  '(syntax-table (15))))) ; 'string fence'
-	    (add-text-properties begin-marker begin-quote-marker syntax)
-	    (unless end-at-eob-p
-	      (add-text-properties end-quote-marker end-marker syntax)))
-	
-	  ;; Mark multiline constructs for font-lock
-	  (add-text-properties begin-marker end-marker '(font-lock-multiline t))))
+         ;; Set the syntax properties
+         (let ((begin-marker		(copy-marker begin))
+               (begin-quote-marker	(copy-marker (1+ begin)))
+               (end-quote-marker		(copy-marker (1- end)))
+               (end-marker		(copy-marker end)))
+                                             
+           (let ((syntax (if (string= opener "#") 
+                             '(syntax-table (14))  ; 'comment fence'
+                           '(syntax-table (15))))) ; 'string fence'
+             (add-text-properties begin-marker begin-quote-marker syntax)
+             (unless end-at-eob-p
+               (add-text-properties end-quote-marker end-marker syntax)))
+                                             
+           ;; Mark multiline constructs for font-lock
+           (add-text-properties begin-marker end-marker '(font-lock-multiline t)))))
 
       ;; We found something
       t)))
