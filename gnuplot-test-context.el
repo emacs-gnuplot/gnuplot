@@ -388,7 +388,8 @@
 		   n n-files fname)
 	  (with-current-buffer gnuplot-test-result-buffer
 	    (goto-char (point-max))
-	    (recenter)))))
+	    (recenter)
+            (redisplay t)))))
     (let ((success-rate
            (/ (+ gnuplot-test-success-count 0.0)
               gnuplot-test-count)))
@@ -396,8 +397,8 @@
         (insert (format "\n\nPassed %s out of %s tests (%.2f%%)\n"
                         gnuplot-test-success-count
                         gnuplot-test-count
-                        (* 100 success-rate)))
-        (compilation-mode))
+                        (* 100 success-rate))))
+      (compilation-mode)
       success-rate)))
 
 (defun gnuplot-test-parse-buffer (&optional buffer fname)
