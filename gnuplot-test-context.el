@@ -6,10 +6,15 @@
 (require 'ert)
 
 (eval-when-compile
-  (if (not (fboundp 'deftest))
-      (defalias 'deftest 'ert-deftest)))
+  (if (not (fboundp 'ert-deftest))
+      (defalias 'ert-deftest 'deftest)))
 
+(defun gnuplot-run-tests ()
+  (interactive)
+  (ert-run-tests-interactively "^gnuplot-"))
 
+
+;;
 (defun gnuplot-tokenize-string (string)
   (with-temp-buffer
     (gnuplot-mode)
@@ -89,16 +94,18 @@
 			  ,rest)))))
 	  pairs))))
 
+
+;;; The tests
 
 ;; Number
-(deftest gnuplot-number ()
+(ert-deftest gnuplot-number ()
   (should-match [number]
     ("123")
     (".05")
     ("1e7")))
 
 ;; name
-(deftest gnuplot-name ()
+(ert-deftest gnuplot-name ()
   (should-match [name]
     ("foo")
     ("name_with_underscores")
@@ -107,20 +114,20 @@
 ;; string-constant
 
 ;; Note that the id of a string constant token includes the delimiters
-(deftest gnuplot-string-constant ()
+(ert-deftest gnuplot-string-constant ()
   (should-match [string]
     ("\"double quoted string\"")
     ("'single quoted'")))
 
 ;; sequence
-(deftest gnuplot-sequence ()
+(ert-deftest gnuplot-sequence ()
   (should-match [number name]
     ("1.34 name garbage" '(garbage))
     ("2.718 xy")
     ("1e9 123 2.718281828459045" :none)))
 
 ;; either
-(deftest gnuplot-either ()
+(ert-deftest gnuplot-either ()
   (should-match
       (either number name)
     ("1359, 349" '(\, 349))
@@ -128,7 +135,7 @@
     ("'quoted string constant' name" :none)))
 
 ;; many
-(deftest gnuplot-many ()
+(ert-deftest gnuplot-many ()
   (should-match (many number)
     ("123 456 789")
     ("not a number" '(not a number))
@@ -138,14 +145,14 @@
     ("tom dick harry 1.34" '(1.34))))
 
 ;; maybe
-(deftest gnuplot-maybe ()
+(ert-deftest gnuplot-maybe ()
   (should-match (maybe name)
     ("foo bar baz" '(bar baz))
     ("1.23" '(1.23))
     ("'string' quux" '("'string'" quux))))
 
 ;; delimited list
-(deftest gnuplot-delimited-list ()
+(ert-deftest gnuplot-delimited-list ()
   (should-match (delimited-list number ":")
     ("1:2:3")
     ("1e2:2.78")
@@ -162,7 +169,7 @@
     ("1 - 2 - y" '(- y))))
 
 ;; keyword
-(deftest gnuplot-keyword ()
+(ert-deftest gnuplot-keyword ()
   (should-match (either (kw ("w" . "ord"))
 			(kw ("ot" . "her_word") "ow" "alt"))
     ("word")
@@ -178,7 +185,7 @@
     ("alt")))
 
 ;; primary-expression
-(deftest gnuplot-primary-expression ()
+(ert-deftest gnuplot-primary-expression ()
   (should-match primary-expression
     ("name")
     ("123")
@@ -194,7 +201,7 @@
     ("," :none)
     ("]" :none)))
 
-(deftest gnuplot-function-call ()
+(ert-deftest gnuplot-function-call ()
   (should-match function-call
     "abs(2)"
     "sin(pi*2)"
@@ -203,7 +210,7 @@
     "y(n)"))
 
 ;; expression
-(deftest gnuplot-infix-expression ()
+(ert-deftest gnuplot-infix-expression ()
   (should-match expression
     ("-2")
     ("!~foo ^ bar , " '(\,))
@@ -215,7 +222,7 @@
      '(: garbage))))
 
 ;; assignments
-(deftest gnuplot-assignment ()
+(ert-deftest gnuplot-assignment ()
   (should-match lhs
     ("x")
     ("long_identifier")
@@ -229,12 +236,12 @@
     ("f(a) = y(x) = 5")))
 
 ;; parenthesized exprs (including assignments)
-(deftest gnuplot-parenthesized-expression ()
+(ert-deftest gnuplot-parenthesized-expression ()
   (should-match parenthesized-expression
     ("(sum = sum + $2, sum/2)")))
 
 ;; axis ranges
-(deftest gnuplot-axis-range ()
+(ert-deftest gnuplot-axis-range ()
   (should-match axis-range
     ("[-pi:pi]")
     ("[-1:1]")
@@ -250,14 +257,14 @@
     ("[\"1/6/93 12:00\":\"5/6/93 12:00\"]")))
 
 ;; iteration
-(deftest gnuplot-iteration-spec ()
+(ert-deftest gnuplot-iteration-spec ()
   (should-match iteration-spec
     ("for [x = 1:9]")
     ("for [y=-2*pi:2*pi:0.1]")
     ("for[1:2:3]" :none)))
 
 ;; plot expression, ignoring assignments
-(deftest gnuplot-plot-expression ()
+(ert-deftest gnuplot-plot-expression ()
   (should-match plot-expression
     ("sin(x) + 2")
     ("a=5, foo")
@@ -265,7 +272,7 @@
     ("i=3, j=sin(x)+9 k = 1**2!! f(x) garbage" '(garbage))))
 
 ;; plot modifiers
-(deftest gnuplot-plot-modifier ()
+(ert-deftest gnuplot-plot-modifier ()
   (should-match plot-modifier
     ("lines 5 + 2")
     ("lw 9")
@@ -278,7 +285,7 @@
     ("axes" :none)
     ("axes 2 + 3" :none)))
 
-(deftest gnuplot-with-modifier ()
+(ert-deftest gnuplot-with-modifier ()
   (should-match with-modifier
     ("with impulses")
     ("w points")
@@ -288,7 +295,7 @@
     ("w lines")
     ("w errorbars")))
 
-(deftest gnuplot-filledcurves ()
+(ert-deftest gnuplot-filledcurves ()
   (should-match filledcurves-style-clause
     ("filledcurves closed")
     ("filledcurves x1")
@@ -297,7 +304,7 @@
     ("filledcurves below y2=42")
     ("filledcurves xy=10,20")))
 
-(deftest gnuplot-plot-command ()
+(ert-deftest gnuplot-plot-command ()
   (should-match plot-command
     ("plot sin(x) with impulses")
     ("plot x w points, x**2")
@@ -312,7 +319,7 @@
     ("plot x*x, (x>=-5 && x<=5 ? 40 : 1/0) with filledcurve y1=10 lt 8")))
 
 ;;; set cntrparam
-(deftest gnuplot-cntrparam ()
+(ert-deftest gnuplot-cntrparam ()
   (should-match set-cntrparam-clause
     ("cntrparam bspline")
     ("cntrparam points 7")
@@ -322,6 +329,12 @@
     ("cntrparam levels incremental  0,1,4")
     ("cntrparam levels 10")
     ("cntrparam levels incremental 100,50")))
+
+;;; parse all the demos
+(ert-deftest gnuplot-test-all-demos ()
+  (should (> (gnuplot-test-parse-all-demos)
+             .83)))
+
 
 
 ;;
@@ -376,14 +389,16 @@
 	  (with-current-buffer gnuplot-test-result-buffer
 	    (goto-char (point-max))
 	    (recenter)))))
-
-    (with-current-buffer gnuplot-test-result-buffer
-      (insert (format "\n\nPassed %s out of %s tests (%.2f%%)\n"
-		      gnuplot-test-success-count
-		      gnuplot-test-count
-		      (* 100 (/ (+ gnuplot-test-success-count 0.0)
-				gnuplot-test-count))))
-      (compilation-mode))))
+    (let ((success-rate
+           (/ (+ gnuplot-test-success-count 0.0)
+              gnuplot-test-count)))
+      (with-current-buffer gnuplot-test-result-buffer
+        (insert (format "\n\nPassed %s out of %s tests (%.2f%%)\n"
+                        gnuplot-test-success-count
+                        gnuplot-test-count
+                        (* 100 success-rate)))
+        (compilation-mode))
+      success-rate)))
 
 (defun gnuplot-test-parse-buffer (&optional buffer fname)
   (interactive nil)
