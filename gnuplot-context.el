@@ -406,7 +406,7 @@ off. With no argument, toggle context-sensitive mode."
   start	    ; Buffer start position
   end	    ; Buffer end position
   id	    ; Text
-  type)	    ; name, number, string, operator, end-of-command
+  type)	    ; a symbol: name, number, string, operator, separator
 
 (defvar gnuplot-operator-regexp
   (eval-when-compile
@@ -440,7 +440,11 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 	(stop-point (min (point)
 			 (gnuplot-point-at-end-of-command))))
     (save-excursion
-      (gnuplot-beginning-of-command)
+      (if (save-excursion               ; HACK FIXME
+            (gnuplot-beginning-of-continuation)
+            (looking-at "\\s-*if\\s-*("))
+          (gnuplot-beginning-of-continuation)
+        (gnuplot-beginning-of-command))
       (while
 	  ;; Skip whitespace and continuation lines
 	  (progn
@@ -457,7 +461,8 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 		 ((gnuplot-tokenize-by-regexps
 		   ("[A-Za-z_][A-Za-z0-9_]*" name)
 		   ("[0-9]+\\(\\.[0-9]*\\)?\\([eE][+-]?[0-9]+\\)?\\|\\.[0-9]+\\([eE][+-]?[0-9]+\\)?" number)
-		   (gnuplot-operator-regexp operator)))
+		   (gnuplot-operator-regexp operator)
+                   (";" separator)))
 
 		 ((looking-at "['\"]")
 		  (let* ((bounds (bounds-of-thing-at-point 'sexp))
@@ -595,7 +600,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
      ((symbolp pat)
       (case pat
 	((any) `((any)))
-	((name number string) `((token-type ,pat)))
+	((name number string separator) `((token-type ,pat)))
 	(t `((call ,pat)))))
      
      ;; Syntactic sugar: write sequences (sequence ...) as vectors [...]
@@ -910,7 +915,28 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 		   set-command cd-command call-command simple-command
 		   eval-command load-command lower-raise-command pause-command
 		   save-command system-command test-command undefine-command
-		   update-command assignment)))
+		   update-command assignment if-command do-command)))
+
+         (command-list
+          (delimited-list command separator))
+
+         (block ["{" command-list "}"])
+
+;;; old-style one-line if(..) command
+         (if-command
+          (info-keyword
+           "if" parenthesized-expression command-list
+           (maybe separator "else" command-list)))
+
+;;; new-style block-structured if
+         (new-if-command
+          (info-keyword
+           "if" parenthesized-expression block
+           (maybe "else" block)))
+
+;;; block-structured "do"
+         (do-command
+          (info-keyword "do" iteration-spec block))
 
 ;;; PLOT, SPLOT commands
 	 (plot-command
@@ -972,10 +998,11 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 	 ;; Iteration: for [... ]
 	 (iteration-spec
 	  [(:info "iteration")
-	   "for" "[" name
-	   (either ["=" (delimited-list expression ":")]
-		   ["in" expression])
-	   "]"])
+	   (many
+            "for" "[" name
+            (either ["=" (delimited-list expression ":")]
+                    ["in" expression])
+            "]")])
 	 
 	 ;; Expressions to plot can be preceded by any number of
 	 ;; assignments, with or without commas
@@ -1445,7 +1472,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 
 	 (set-label-clause
 	  ["label"
-	   (maybe number)
+	   (maybe expression)
 	   (either label-clause-component expression)
 	   (many label-clause-component)])
 
