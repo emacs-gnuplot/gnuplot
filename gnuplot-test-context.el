@@ -261,6 +261,7 @@
   (should-match iteration-spec
     ("for [x = 1:9]")
     ("for [y=-2*pi:2*pi:0.1]")
+    ("for [x = 1:9] for [y=-2*pi:2*pi:0.1]")
     ("for[1:2:3]" :none)))
 
 ;; plot expression, ignoring assignments

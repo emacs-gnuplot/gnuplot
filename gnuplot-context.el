@@ -998,7 +998,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 	 ;; Iteration: for [... ]
 	 (iteration-spec
 	  [(:info "iteration")
-	   (many
+	   (many1
             "for" "[" name
             (either ["=" (delimited-list expression ":")]
                     ["in" expression])
