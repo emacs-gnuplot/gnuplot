@@ -915,12 +915,12 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 		   set-command cd-command call-command simple-command
 		   eval-command load-command lower-raise-command pause-command
 		   save-command system-command test-command undefine-command
-		   update-command assignment if-command do-command)))
+		   update-command assignment if-command new-if-command do-command)))
 
          (command-list
           (delimited-list command separator))
 
-         (block ["{" command-list "}"])
+         (block ["{" command-list (maybe separator) "}"])
 
 ;;; old-style one-line if(..) command
          (if-command
