@@ -3,5 +3,3 @@
 (setq load-path             (append (list ".") load-path)
       byte-compile-verbose  nil
       byte-compile-warnings nil)
-(require 'font-lock)
-(defun hilit-repaint-command (foo))

@@ -12,3 +12,17 @@
 /config.cache
 /config.status
 /info-look.el
+/autom4te.cache/*
+/elc-stamp
+/elisp-comp
+/missing
+/aclocal.m4
+/configure.scan
+/gpelcard.ps
+/install-sh
+/Makefile.in
+/configure
+elisp-comp
+install-sh
+missing
+gnuplot-mode-*.tar.gz
