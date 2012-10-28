@@ -270,11 +270,6 @@
 These have to be compiled from the Gnuplot source tree using
 `doc2texi.el'.")
 
-(condition-case nil
-    (load-library "gnuplot-eldoc")
-  (error
-   (setq gnuplot-eldoc-hash (make-hash-table))))
-
 
 ;;;; Compatibility for Emacs version < 23
 (eval-when-compile
@@ -394,7 +389,18 @@ off. With no argument, toggle context-sensitive mode."
   (eldoc-add-command 'comint-dynamic-complete)
 
   (when gnuplot-eldoc-mode
-    (eldoc-mode))
+    (unless gnuplot-eldoc-hash
+      (condition-case nil
+          (load-library "gnuplot-eldoc")
+        (error
+         (message "gnuplot-eldoc.el not found. Install it from the Gnuplot distribution.")
+         (setq gnuplot-eldoc-hash nil
+               gnuplot-eldoc-mode nil))))
+
+    (if gnuplot-eldoc-hash
+        (eldoc-mode 1)
+      (eldoc-mode 0)))
+
   (when gnuplot-tab-completion
     (set (make-local-variable 'tab-always-indent) 'complete)))
 
@@ -2172,10 +2178,10 @@ there."
 			  (t info)))
 		   (when gnuplot-info-at-point
 		     (gnuplot-trace "\tset info to \"%s\"\n" gnuplot-info-at-point)
-		     (when (not gnuplot-eldoc)
-		       (let ((eldoc
-			      (car (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
-			 (when eldoc
+		     (when (and (not gnuplot-eldoc) gnuplot-eldoc-hash)
+                       (let ((eldoc
+                              (car (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
+                         (when eldoc
 			   (setq gnuplot-eldoc eldoc)
 			   (gnuplot-trace "\tand set eldoc to \"%s\"\n" eldoc))))))))
 
@@ -2246,7 +2252,7 @@ there."
   "Pop up the extended documentation for the construction at point."
   (interactive)
   (gnuplot-parse-at-point nil)
-  (if gnuplot-info-at-point
+  (if (and gnuplot-info-at-point gnuplot-eldoc-hash)
       (let ((eldoc
 	     (cadr (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
 	(if eldoc (message eldoc)))))
