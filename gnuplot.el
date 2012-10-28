@@ -2591,7 +2591,8 @@ Add additional indentation for continuation lines."
             (condition-case nil
                 (progn
                   (beginning-of-line)
-                  (skip-syntax-forward "-)" (point-at-eol))
+                  (skip-syntax-forward "-" (point-at-eol))
+                  (if (looking-at "\\s)") (forward-char))
                   (backward-up-list)
                   (gnuplot-beginning-of-continuation)
                   (setq indent (+ gnuplot-basic-offset (current-indentation))))
