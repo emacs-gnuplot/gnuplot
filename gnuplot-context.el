@@ -30,64 +30,56 @@
 ;; program's maintainer or write to: The Free Software Foundation,
 ;; Inc.; 675 Massachusetts Avenue; Cambridge, MA 02139, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; send bug reports to the author (j.j.oddie@gmail.com)
+;; send bug reports to the author (j.j.oddie@gmail.com) or report via
+;; github (https://github.com/bruceravel/gnuplot-mode)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Commentary:
 
 ;;
-;; This file enhances gnuplot-mode by providing context-sensitive
-;; completion, ElDoc support, and info page lookup for gnuplot script
-;; and shell buffers.
+;; This file enhances gnuplot-mode with context-sensitive completion,
+;; ElDoc support, and info page lookup for gnuplot script and shell
+;; buffers.
 ;; 
 ;; Usage 
 ;; =====
 ;;
-;; Put this file somewhere in your load path, byte compile it
-;; (important!) and (require 'gnuplot-context).  This will give you
-;; context-sensitive TAB-completion and info page lookup, provided
-;; that you have the correct version of the Gnuplot Info file
-;; installed somewhere in your Info path (see `Info-directory-list').
+;; Make sure to byte-compile this file, or things will be noticeably
+;; slow.
 ;;
 ;; Summary of key bindings:
 ;;     C-c C-d            read info page for construction at point
 ;;     C-u C-c C-d        prompt for info page to read
-;;     C-c M-h, C-c C-/   pop up multi-line Eldoc string for construction
-;;          at point (requires additional installation steps)
-;;         
-;; This file rebinds "C-c C-d" in both `gnuplot-mode' and
-;; `gnuplot-comint-mode' to a new function, `gnuplot-info-at-point',
-;; which does a partial parse of the current line in order to find the
-;; most relevant info page node. If given a "C-u" prefix argument (or
-;; if it fails to parse the command at point), `gnuplot-info-at-point'
-;; will instead prompt for the Info node to read.
+;;     C-c M-h, C-c C-/   pop up multi-line ElDoc string for construction
+;;                          at point
 ;;
-;; This file also redefines `gnuplot-completion-at-point' to use the
-;; same parsing engine for finding completions, which should hopefully
-;; be more accurate than matching against the entire (long) list of
-;; gnuplot keywords.  Completion is bound to TAB in the gnuplot comint
-;; buffer, and usually to M-TAB in other buffers.  In recent Emacs
-;; versions, you can make TAB choose intelligently between indentation
-;; and context-sensitive completion in other buffers by setting the
-;; variable `tab-always-indent' to `complete'.  This allows entering,
-;; for example, "set cntrparam" into a gnuplot script with the
-;; keystrokes "s e TAB SPC c n TAB".
-;; 
-;; ElDoc support (one-line help displayed in the mode line) has to be
-;; compiled from the source for the Gnuplot documentation in the
-;; Gnuplot source tree.  Running "doc2texi.el" in the "docs" directory
-;; should produce an Elisp "gnuplot-eldoc.el" file with ElDoc strings
-;; extracted from the gnuplot.doc documentation source.  Install this
-;; somewhere in your load path.  You can then toggle ElDoc on and off
-;; by typing M-x `eldoc-mode' in a gnuplot/gnuplot-comint buffer.  Put
-;; it in the relevant load hook if you always want it on.
+;; Gnuplot's context sensitive mode is best controlled using Customize
+;; (M-x customize-group gnuplot): simply enable the
+;; `gnuplot-context-sensitive-mode' setting. On recent Emacs (>= 23),
+;; you may also want to turn on `gnuplot-tab-completion' so that the
+;; TAB key does auto-completion on lines which are already
+;; indented. (This just sets the Emacs variable `tab-always-indent' to
+;; `complete' in Gnuplot buffers).
 ;;
-;; ElDoc only displays one line of information automatically.  To pop
-;; up a fuller multi-line syntax description of a construct in the
-;; echo area, type C-c M-h or C-c C-/ (`gnuplot-help-function'). This
-;; works whether ElDoc mode is currently enabled or not.
-;; 
-;; 
+;; If you need to turn context sensitivity on or off from Lisp code
+;; for some reason, call the function
+;; `gnuplot-context-sensitive-mode', which behaves like a minor mode.
+;;
+;; With `eldoc-mode' support, gnuplot-mode will show one-line syntax
+;; hints automatically in the echo area.  Whether eldoc-mode is active
+;; or not, you can always pop up a longer description of syntax using
+;; `gnuplot-help-function' (C-c C-/ or C-c M-h).  ElDoc support also
+;; requires an additional file of help strings, `gnuplot-eldoc.el',
+;; which should be included in recent Gnuplot releases. If it didn't
+;; come with your Gnuplot installation, you'll need to grab a recent
+;; source distribution of Gnuplot from http://gnuplot.info, and use
+;; the `doc2texi.el' program in the docs/ directory to create it.  So
+;; long as the file is on your Emacs load path somewhere it will be
+;; loaded automatically when needed.
+;;
+;; You can customize gnuplot-mode to turn on eldoc mode automatically
+;; using variable `gnuplot-eldoc-mode'.  Simply calling `eldoc-mode'
+;; will also work.
 ;;
 ;; Internal details
 ;; ================
@@ -130,8 +122,9 @@
 ;;    any
 ;; 	Match any token
 ;;
-;;    name, number, string
-;; 	Match a token of the given type
+;;    name, number, string, separator
+;; 	Match a token of the given type. "Separator" is semicolon, the
+;; 	statement separator.
 ;;
 ;;    Any other symbol
 ;; 	Match another named rule in the grammar. May be recursive.
