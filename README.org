@@ -16,7 +16,7 @@ See the homepage at [[http://xafs.org/BruceRavel/GnuplotMode]]
   | gnuplot-gui.el     | a GUI for setting command arguments interactively |
   | gnuplot-context.el | context-sensitive completion and help lookup      |
   | dot.el             | a short lisp file used by the Makefile            |
-  | gnuplot.info       | info version of gnuplot 3.6 help                  |
+  | gnuplot.info       | info version of gnuplot 4.6 help                  |
   | gpelcard.tex       | quick reference card for gnuplot mode (latex)     |
   | dotemacs.el        | example .emacs lines for enabling gnuplot mode    |
 
