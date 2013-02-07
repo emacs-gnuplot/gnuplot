@@ -2,7 +2,7 @@
 %% Time-stamp: <2011-09-13 10:22:26 bruce>
 
 %% This document is copyright (C) 1998-2002, 2011 Bruce Ravel <bruceravel1@gmail.com>
-%% This page covers version 0.6.1 of gnuplot-mode.
+%% This page covers version 0.7.0 of gnuplot-mode.
 
 %% This document is distributed in the hope that it will be useful,
 %% but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -131,8 +131,10 @@ file \file{gnuplot.el} for instructions on installing gnuplot-mode.
       \texttt{C-c C-c} & comment region \\
       \texttt{C-c C-o} & set arguments of command at point \\
       \texttt{S-mouse-2} & set arguments of command under mouse \\
-      \texttt{C-c C-h} & get help from the gnuplot info file \\
+      \texttt{C-c C-d} & get help from the gnuplot info file \\
+      \texttt{C-c M-h} & get quick syntax help in context-sensitive mode \\
       \texttt{C-c C-e} & look at the gnuplot process buffer \\
+      \texttt{C-c M-i} & toggle inline plot display \\
       & \\[-1.5ex]
       \texttt{C-c C-k} & kill the gnuplot process \\
       \texttt{C-c C-u} & submit a bug report about gnuplot-mode \\
@@ -144,6 +146,7 @@ file \file{gnuplot.el} for instructions on installing gnuplot-mode.
       \hline
       \texttt{M-C-p}   & plot script \\
       \texttt{M-C-f}   & load file containing script \\
+      \texttt{C-c C-e} & pop back to script \\
       \hline \hline
     \end{tabular}
   \end{center}
@@ -289,8 +292,27 @@ gnuplot-mode.
 
 \variable{gnuplot-buffer-max-size}{1000}{The maximum size in lines of
 the gnuplot buffer.  Excess lines are trimmed.  0 means to never trim.}
+%
+\variable{gnuplot-context-sensitive-mode}{t}{Whether to try to do
+  intelligent keyword completion by parsing the current script line.}
+%
+\variable{gnuplot-tab-completion}{nil}{Whether the TAB key should try
+  to complete the symbol at point, on lines that are already indented.}
+%
+\variable{gnuplot-inline-image-mode}{nil}{Whether to display Gnuplot
+  plot output inline in the comint process buffer as images.}
+%
+\variable{gnuplot-eldoc-mode}{nil}{Whether to enable eldoc-mode
+  automatically in gnuplot buffers. Requires both
+  context-sensitive-mode and some additional configuration steps.}
+%
+\variable{gnuplot-basic-offset}{4}{How many spaces to indent Gnuplot
+  4's block-structured \texttt{do} and \texttt{if} statements}
 
 %%\vspace{1ex}
+
+\vfill\eject
+
 \begin{center}
   \begin{Boxedminipage}{0.75\linewidth}
     \begin{center}
@@ -314,11 +336,7 @@ the gnuplot buffer.  Excess lines are trimmed.  0 means to never trim.}
 %
 \variable{gnuplot-info-hook}{nil}{Functions run before setting up
   info-look in the gnuplot-mode buffer.}
-%
 
-
-
-\vfill\eject
 
 
 \begin{center}
@@ -442,6 +460,7 @@ used.}
   computer to the terminal drivers.}
 %
 
+\vfill\eject
 
 \begin{center}
   \begin{Boxedminipage}{0.75\linewidth}
