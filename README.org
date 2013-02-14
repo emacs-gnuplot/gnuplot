@@ -1,38 +1,27 @@
 
 * gnuplot-mode, version 0.7
 
-This directory contains files for running Gnuplot from within emacs.
-This package was assembled by Bruce Ravel <bruceravel1@gmail.com>.
-See the homepage at [[http://xafs.org/BruceRavel/GnuplotMode]]
-
+  This directory contains files for running Gnuplot from within emacs.
+  This package was assembled by Bruce Ravel <bruceravel1@gmail.com>.
+  See the homepage at [[http://xafs.org/BruceRavel/GnuplotMode]]
 
 ** Contents
 
-  | File               | Description                                          |
-  |--------------------+------------------------------------------------------|
-  | README.org         | this file                                            |
-  | INSTALL.org        | thorough installation instructions                   |
-  | gnuplot.el         | gnuplot mode for emacs                               |
-  | gnuplot-gui.el     | a GUI for setting command arguments interactively    |
-  | gnuplot-context.el | context-sensitive completion and help lookup         |
-  | gnuplot.info       | info version of gnuplot 4.6 help                     |
-  | gpelcard.tex       | quick reference card for gnuplot mode (latex)        |
-  | dotemacs.el        | example .emacs lines for enabling gnuplot mode       |
-  | configure.ac       | Definitions for `autoconf`                           |
-  | Makefile.am        | Definitions for `automake`                           |
-  | Makefile.dst       | Alternative makefile, avoiding configure & autotools |
-  | dot.el             | a short lisp file used by Makefile.dst               |
-  | configure          | `configure` script generated from configure.ac       |
-  | aclocal.m4         | m4 macros generated from configure.ac                |
-  | Makefile.in        | Makefile template generated from Makefile.am         |
-  | install-sh         | scripts needed by configure and make                 |
-  | missing            |                                                      |
+   | File               | Description                                          |
+   |--------------------+------------------------------------------------------|
+   | README.org         | this file                                            |
+   | INSTALL.org        | thorough installation instructions                   |
+   | gnuplot.el         | gnuplot mode for emacs                               |
+   | gnuplot-gui.el     | a GUI for setting command arguments interactively    |
+   | gnuplot-context.el | context-sensitive completion and help lookup         |
+   | gnuplot.info       | info version of gnuplot 4.6 help                     |
+   | gpelcard.tex       | quick reference card for gnuplot mode (latex)        |
 
 ** Installation
 *** Installing from MELPA
     In recent versions of Emacs, gnuplot-mode can be installed directly
     from the [[http://melpa.milkbox.net][MELPA]] package repository as the ~gnuplot~ package (note:
-    not ~gnuplot-mode~, which is an alternative gnuplot package). 
+    not ~gnuplot-mode~, which is an alternative gnuplot package).
 
     After [[http://melpa.milkbox.net/#installing][configuring Emacs to use MELPA]], you should be able to
     install gnuplot-mode by typing
@@ -54,6 +43,14 @@ See the homepage at [[http://xafs.org/BruceRavel/GnuplotMode]]
     See the file INSTALL.org for details.
 
 ** New features for gnuplot-mode 0.7
+   Version 0.7 of gnuplot-mode is designed for use with gnuplot
+   version 4.4 and up. It will also mostly work fine with older
+   versions. If it doesn't work with newer versions, report a bug.
+
+   This version has mostly been tested under GNU Emacs 23 and 24.
+   It should also work on GNU Emacs 22 and XEmacs 21. It may work
+   with earlier versions, but it has not been tested.
+
 *** New syntax for gnuplot version 4
     This version of gnuplot-mode supports the new curly-brace-block
     ~do~ and ~if~ statements introduced in recent versions of gnuplot.
@@ -63,16 +60,23 @@ See the homepage at [[http://xafs.org/BruceRavel/GnuplotMode]]
 
 *** Context-sensitive keyword completion
     By default gnuplot-mode will try to parse your commands as you
-    type, so that tab completion via M-TAB or TAB will only suggest
-    relevant completion candidates.  For example, with point after the
-    ~with~ of a ~plot~ command, tab completion will suggest only
-    plotting styles.  This also enables more specific help topic lookup
-    in the gnuplot info file, provided you have the right version of
-    ~gnuplot.info~ installed.
+    type and suggest only relevant completion candidates on typing
+    M-TAB or TAB. For example, with point after the ~with~ of a ~plot~
+    command, tab completion will suggest only plotting styles. This
+    also enables more specific help topic lookup in the gnuplot info
+    file, provided you have the right version of ~gnuplot.info~
+    installed.
 
-    If the context-sensitivity annoys you, you can get the old behavior
-    back by toggling ~gnuplot-context-sensitive-mode~.  See also the
-    variable ~gnuplot-tab-completion~.
+    If the context-sensitivity annoys you, you can get simple
+    non-context-sensitive completion back by toggling
+    ~gnuplot-context-sensitive-mode~. See also the variable
+    ~gnuplot-tab-completion~.
+
+    By its nature, the completion code has to know a fair bit about
+    the structure of the gnuplot language. If you use it with an old
+    version of gnuplot (pre version 4) it will make mistakes. Most of
+    gnuplot 4.6's command language is parsed correctly except for the
+    =set terminal= commands.
 
 *** Eldoc mode
     If you install the file ~gnuplot-eldoc.el~ from a recent Gnuplot
@@ -89,29 +93,15 @@ See the homepage at [[http://xafs.org/BruceRavel/GnuplotMode]]
     Gnuplot to have ~png~ support and a GNU Emacs with image support.
     Please report bugs.
 
-
 ** NOTES
-
-   1. Version 0.7 of gnuplot-mode is designed for use with gnuplot
-      version 4.4 and up.  It will also mostly work fine with older
-      versions.  If it doesn't work with newer versions, report a bug.
-
-      This version has mostly been tested under GNU Emacs 23 and 24.
-      It should also work on GNU Emacs 22 and XEmacs 21. It may work
-      with earlier versions, but it has not been tested.
-
-   2. If "configure" doesn't work for you, the file "Makefile.dst" can be
-      used.  In that case do, "make -f Makefile.dst" and carry on from
-      there.
-
-   3. The gnuplot-mode distribution comes with the version of the gnuplot
+   1. The gnuplot-mode distribution comes with the version of the gnuplot
       info file that gets made by gnuplot 4.6.  Use it rather than the
       old one.  If you really must use the older info file, see the
       document string for the variable `gnuplot-info-hook'.  If you
       already have the info file installed on your computer, you will not
       need the one that comes with gnuplot-mode.
 
-   4. The interactive graphical graphical interface to setting command
+   2. The interactive graphical graphical interface to setting command
       arguments contained in gnuplot-gui.el is experimental.  It is
       incomplete and may make mistakes.  Hopefully, you will find it
       useful.  It *requires* that you are using a version of emacs with
@@ -120,26 +110,18 @@ See the homepage at [[http://xafs.org/BruceRavel/GnuplotMode]]
       with the widget library.  For version numbers in the 19's, it can
       be obtained at [[http://www.dina.kvl.dk/~abraham/custom/]]
 
-   5. By definition, the context sensitive completion has to know a
-      fair bit about the structure of the gnuplot language.  If you use
-      it with an old version of gnuplot (pre version 4) it may make
-      mistakes.  Most of gnuplot 4.6's command language is parsed
-      correctly, with the exception of the various =set terminal=
-      commands.
-
-   6. Gnuplot's ~pause -1~ command, which waits for the user to press a
+   3. Gnuplot's ~pause -1~ command, which waits for the user to press a
       key, is problematic when running under Emacs.  Sending =pause -1=
       to the running gnuplot process will make Emacs appear to freeze.
       (It isn't really crashed: typing =C-g= will unlock it and let you
       continue).  The workaround for now is to make Gnuplot output a
       string before pausing, by doing
-      
+
       #+BEGIN_EXAMPLE
       pause -1 "Hit return"
       #+END_EXAMPLE
 
       or similar.  Thanks to Jim Mehl for reporting this issue.
-
 
 ** The todo list
    1. Use [[http://tromey.com/elpa/][ELPA]]
