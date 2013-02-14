@@ -35,6 +35,16 @@ See the homepage at [[http://xafs.org/BruceRavel/GnuplotMode]]
     always builds the latest commit to the ~master~ branch, which may
     be ahead of the official release.
 
+*** el-get users
+    [[https://github.com/dimitri/el-get.git][El-get]] does contain gnuplot-mode recipe. So to install simply call,
+
+   : M-x el-get-install RET gnuplot-mode
+
+    Alternatively, you can place the following in your init file sothat
+    ~el-get~ can install and load gnuplot-mode at Emacs start up.
+
+    : (el-get 'sync 'gnuplot-mode)
+
 *** Installing from the git repository
     To do a full install from a clone of the git repository you will
     need recent versions of GNU Autotools.  This is for consistency
