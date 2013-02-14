@@ -102,13 +102,12 @@
       need the one that comes with gnuplot-mode.
 
    2. The interactive graphical graphical interface to setting command
-      arguments contained in gnuplot-gui.el is experimental.  It is
-      incomplete and may make mistakes.  Hopefully, you will find it
-      useful.  It *requires* that you are using a version of emacs with
+      arguments contained in gnuplot-gui.el is experimental. It is
+      incomplete and may make mistakes. Hopefully, you will find it
+      useful. It *requires* that you are using a version of emacs with
       the widget library installed or that you have installed it
-      yourself.  Version numbers in the 20's of Emacs and XEmacs ship
-      with the widget library.  For version numbers in the 19's, it can
-      be obtained at [[http://www.dina.kvl.dk/~abraham/custom/]]
+      yourself. Version numbers in the 20's of Emacs and XEmacs ship
+      with the widget library.
 
    3. Gnuplot's ~pause -1~ command, which waits for the user to press a
       key, is problematic when running under Emacs.  Sending =pause -1=
@@ -116,11 +115,7 @@
       (It isn't really crashed: typing =C-g= will unlock it and let you
       continue).  The workaround for now is to make Gnuplot output a
       string before pausing, by doing
-
-      #+BEGIN_EXAMPLE
-      pause -1 "Hit return"
-      #+END_EXAMPLE
-
+      : pause -1 "Hit return"
       or similar.  Thanks to Jim Mehl for reporting this issue.
 
 ** The todo list
