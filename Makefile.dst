@@ -1,33 +1,39 @@
+# -*- mode: makefile -*-
 
-## set this variable to "xemacs" if you use XEmacs
+## Set this variable to "xemacs" if you use XEmacs
 EMACS = emacs
 
 ## You will probably not need to change anything below this line
 
 BYTE = $(EMACS) -batch -q -no-site-file -l dot.el -f batch-byte-compile
 
-.PHONY:	all default clean
+.PHONY: all default clean pdf ps
 
-default:
-	$(MAKE) gnuplot.elc gnuplot-gui.elc gnuplot-context.elc
+default: gnuplot.elc gnuplot-gui.elc gnuplot-context.elc
 
-gnuplot.elc:	gnuplot.el
+pdf: gpelcard.pdf
+
+ps: gpelcard.ps
+
+all: gnuplot.elc gnuplot-gui.elc gnuplot-context.elc gpelcard.pdf gpelcard.ps
+
+gnuplot.elc: gnuplot.el
 	$(BYTE) gnuplot.el
 
-gnuplot-gui.elc:	gnuplot-gui.el
+gnuplot-gui.elc: gnuplot-gui.el
 	$(BYTE) gnuplot-gui.el
 
-gnuplot-context.elc:	gnuplot-context.el
+gnuplot-context.elc: gnuplot-context.el
 	$(BYTE) gnuplot-context.el
 
-gpelcard.ps:	gpelcard.dvi
+gpelcard.ps: gpelcard.dvi
 	dvips -o gpelcard.ps gpelcard.dvi
 
-gpelcard.dvi:	gpelcard.tex
-	 latex gpelcard.tex
+gpelcard.pdf: gpelcard.tex
+	pdflatex gpelcard.tex
 
-all:
-	$(MAKE) gnuplot.elc gnuplot-gui.elc gpelcard.ps
+gpelcard.dvi: gpelcard.tex
+	 latex gpelcard.tex
 
 clean:
 	rm -f *.elc gpelcard.dvi gpelcard.log gpelcard.aux
