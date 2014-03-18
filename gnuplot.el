@@ -6,7 +6,7 @@
 ;; Maintainer: Bruce Ravel <bruceravel1@gmail.com>
 ;; Created:    June 28 1998
 ;; Updated:    November 1 2012
-;; Version:    0.7-beta
+;; Version:    0.7.0
 ;; Keywords:   gnuplot, plotting
 
 ;; This file is not part of GNU Emacs.
@@ -296,7 +296,7 @@
 ;;  0.6.0 Dec 13 2002 <BR> Changed numbering scheme to accommodate
 ;;        gnuplot packaging requirements
 ;;  0.6.1 Sep 13 2011 <BR> Moved to github, updated contact info
-;;  0.7   Oct 20 2012 <jjo> Contextual completion & help, inline plots,
+;;  0.7.0 Oct 20 2012 <jjo> Contextual completion & help, inline plots,
 ;;        some other stuff
  
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

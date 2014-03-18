@@ -1,12 +1,12 @@
 ;;; gnuplot-context.el -- context-sensitive help and completion for gnuplot
 
-;; Copyright (C) 2012 Jon Oddie <jonxfield@gmail.com>
+;; Copyright (C) 2012-2013 Jon Oddie <jonxfield@gmail.com>
 
 ;; Author:     Jon Oddie <jonxfield@gmail.com>
 ;; Maintainer: Jon Oddie <jonxfield@gmail.com>
 ;; Created:    Wednesday, 08 February 2012
-;; Updated:    Friday, 20 April 2012
-;; Version:    0.6.1
+;; Updated:    Friday, 07 February 2013
+;; Version:    0.7.0
 ;; Keywords:   gnuplot, plotting
 
 ;; This file is not part of GNU Emacs.
