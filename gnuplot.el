@@ -412,29 +412,7 @@ real work."
       (funcall fun)
     (add-hook 'gnuplot-load-hook fun)))
 
-;; Workaround missing with-silent-modifications: taken from subr.el in
-;; GNU Emacs 24
-(eval-when-compile
-  (if (not (fboundp 'with-silent-modifications))
-      (defmacro gnuplot-with-silent-modifications (&rest body)
-        "Execute BODY, pretending it does not modify the buffer."
-        (declare (debug t) (indent 0))
-        (let ((modified (make-symbol "modified")))
-          `(let* ((,modified (buffer-modified-p))
-                  (buffer-undo-list t)
-                  (inhibit-read-only t)
-                  (inhibit-modification-hooks t)
-                  deactivate-mark
-                  ;; Avoid setting and removing file locks and checking
-                  ;; buffer's uptodate-ness w.r.t the underlying file.
-                  buffer-file-name
-                  buffer-file-truename)
-             (unwind-protect
-                 (progn
-                   ,@body)
-               (unless ,modified
-                 (restore-buffer-modified-p nil))))))
-    (defalias 'gnuplot-with-silent-modifications 'with-silent-modifications)))
+
 
 ;;;;
 (defconst gnuplot-xemacs-p (string-match "XEmacs" (emacs-version)))
@@ -1810,116 +1788,76 @@ These are highlighted using `font-lock-constant-face'.")
       (put 'gnuplot-mode 'font-lock-defaults
 	   gnuplot-font-lock-defaults)))
 
-;; Gnuplot's shell-like strings and comments don't quite agree with
-;; Emacs' built-in sexp parser:
+;; Some corner cases in Gnuplot's comment and string syntax are
+;; difficult to handle accurately using Emacs's built-in syntax tables
+;; and parser:
 ;;
 ;; - strings can continue over several lines, but only by using a
 ;;   backslash to escape the newline
 ;; 
-;; - double quoted strings can contain escaped quotes \" and escaped
-;;   backslashes \\, while single quotes can escape the quote by
-;;   doubling '' and backslash is not special (except at eol)
+;; - double-quoted strings can contain escaped quotes, \", and escaped
+;;   backslashes, \\; but in single-quoted strings the quote is
+;;   escaped by doubling it, '', and backslash is only special at
+;;   end-of-line
 ;; 
-;; - strings can end at newline without needing a closing delimiter
+;; - either type of string can end at newline without needing a
+;; - closing delimiter
 ;; 
 ;; - comments continue over continuation lines
-;; 
-;; Trying to write a regexp to match these rules is horrible, so we
-;; use this matching function instead (in GNU Emacs - I can't figure out
-;; how to do this in XEmacs.)
-(defun gnuplot-syntax-propertize (begin end)
-  "Scan a gnuplot script buffer for strings and comments.
+;;
+;; The following syntax-propertize rules should accurately mark string
+;; and comment boundaries using the "generic string fence" and
+;; "generic comment fence" syntax properties.  When syntax-propertize
+;; is unavailable (on Emacs versions <24), we fall back to using the
+;; normal syntax-table parser, which is accurate enough for most
+;; normal cases. (See the definition of `gnuplot-mode-syntax-table'.)
+(defalias 'gnuplot-syntax-propertize
+    (when (fboundp 'syntax-propertize-rules)
+      (syntax-propertize-rules
+       ;; Double quoted strings
+       ((rx
+         (group "\"")
+         (+ (or (seq "\\" anything)
+                (not (any "\"" "\n"))))
+         (group (or "\"" "\n" buffer-end)))
+        (1 "|") (2 "|"))
 
-This function is set as the value of `syntax-propertize-function'
-in gnuplot-mode buffers."
-  (gnuplot-with-silent-modifications
-   (remove-text-properties begin (min (1+ end) (point-max))
-                           '(syntax-table nil)))
+       ;; Single quoted strings
+       ((rx
+         (group "'")
+         (+ (or (seq "\\" "\n")
+                "''"
+                (not (any "'" "\n"))))
+         (group (or "'" "\n" buffer-end)))
+        (1 "|") (2 "|"))
 
-  (save-excursion
-    (goto-char begin)
-    (while (gnuplot-scan-next-string-or-comment end))))
+       ;; Comments
+       ((rx
+         (group "#")
+         (+ (or (seq "\\" "\n")
+                any))
+         (or (group "\n") buffer-end))
+        (1 "!") (2 "!")))))
 
 (defun gnuplot-syntax-propertize-extend-region (start end)
   "Expand the region to syntax-propertize for strings and comments.
+
+Ensures that the region being searched begins and ends outside of
+any lines continued with a backslash.
 
 This function is added to
 `syntax-propertize-extend-region-functions' in gnuplot-mode
 buffers."
   (let ((continuation-start
-         (gnuplot-point-at-beginning-of-continuation start))
+         (min start
+              (gnuplot-point-at-beginning-of-continuation start)))
         (continuation-end
-         (gnuplot-point-at-end-of-continuation end)))
+         (max end
+              (gnuplot-point-at-end-of-continuation end))))
     (if (and (= continuation-start start)
              (= continuation-end end))
         nil
       (cons continuation-start continuation-end))))
-
-(defun gnuplot-scan-next-string-or-comment (limit)
-  "Put appropriate syntax-table text properties on the next comment or string.
-
-Scans forward from point as far as LIMIT (which should be at the
-end of a line). Leaves point at the end of the comment or string,
-or at LIMIT if nothing was found. Returns t if a comment or
-string was found, otherwise nil."
-  (let ((begin (search-forward-regexp "[#'\"]" limit 'go-to-limit)))
-    (if (not begin)
-	nil
-      (gnuplot-with-silent-modifications
-       (let* ((begin (1- begin))
-              (end nil)
-              (opener (match-string 0))
-              (limit (point-at-eol))
-              (end-at-eob-p nil)
-              (re
-               (cond ((string= opener "#") nil)
-                     ((string= opener "'") "''?")
-                     ((string= opener "\"") "\\\\\"\\|\\\\\\\\\\|\"")))) 
-         (while (not end)
-           (if (and (not (eobp)) (bolp) (eolp)) ; Empty continuation line:
-               (setq end (point))               ; end at newline
-             (if re
-                 (setq end (search-forward-regexp re limit 'go-to-limit))
-               (end-of-line))	    ; Comments end only at end-of-line
-                                               
-             (if end
-                 (when (and re
-                            (let ((m (match-string 0)))
-                              (or (string= m "\\\"")
-                                  (string= m "\\\\")
-                                  (string= m "''"))))
-                   (setq end nil))  ; Skip over escapes and look again
-                                                 
-               ;; We got to EOL without finding an ending delimiter
-               (if (eobp)
-                   (setq end (point)
-                         end-at-eob-p t) ; string/comment ends at EOB
-                 ;; Otherwise see if the line is continued with a backslash
-                 (if (save-excursion (backward-char) (looking-at "\\\\"))
-                     (progn		; yes, check out next line
-                       (beginning-of-line 2)
-                       (setq limit (point-at-eol)))
-                   (setq end (1+ (point-at-eol)))))))) ; no, string ends at EOL
-
-         ;; Set the syntax properties
-         (let ((begin-marker		(copy-marker begin))
-               (begin-quote-marker	(copy-marker (1+ begin)))
-               (end-quote-marker		(copy-marker (1- end)))
-               (end-marker		(copy-marker end)))
-                                             
-           (let ((syntax (if (string= opener "#") 
-                             '(syntax-table (14))  ; 'comment fence'
-                           '(syntax-table (15))))) ; 'string fence'
-             (add-text-properties begin-marker begin-quote-marker syntax)
-             (unless end-at-eob-p
-               (add-text-properties end-quote-marker end-marker syntax)))
-                                             
-           ;; Mark multiline constructs for font-lock
-           (add-text-properties begin-marker end-marker '(font-lock-multiline t)))))
-
-      ;; We found something
-      t)))
-
 
 ;; Parsing utilities to tell if we are inside a string or comment
 
@@ -2217,7 +2155,8 @@ buffer."
     (progn
       (setq font-lock-defaults gnuplot-font-lock-defaults)
       (set (make-local-variable 'parse-sexp-lookup-properties) t)
-      (add-hook 'after-change-functions 'gnuplot-scan-after-change nil t)))
+      (set (make-local-variable 'syntax-propertize-function)
+           #'gnuplot-syntax-propertize)))
 
   ;; XEmacs needs the call to make-local-hook
   (when (and (featurep 'xemacs)
@@ -3194,7 +3133,8 @@ a list:
 	(turn-on-font-lock))
     (progn
       ;; Add syntax-propertizing functions to search for strings and comments
-      (setq-local syntax-propertize-function #'gnuplot-scan-after-change)
+      (set (make-local-variable 'syntax-propertize-function)
+           #'gnuplot-syntax-propertize)
       (add-hook 'syntax-propertize-extend-region-functions
                 #'gnuplot-syntax-propertize-extend-region nil t)
 
