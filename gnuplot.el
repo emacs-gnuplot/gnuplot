@@ -1825,25 +1825,33 @@ These are highlighted using `font-lock-constant-face'.")
 ;; Trying to write a regexp to match these rules is horrible, so we
 ;; use this matching function instead (in GNU Emacs - I can't figure out
 ;; how to do this in XEmacs.)
-(defun gnuplot-scan-after-change (begin end &optional unused)
+(defun gnuplot-syntax-propertize (begin end)
   "Scan a gnuplot script buffer for strings and comments.
 
-This is called once on the whole buffer when gnuplot-mode is turned on,
-and installed as a hook in `after-change-functions'."
+This function is set as the value of `syntax-propertize-function'
+in gnuplot-mode buffers."
+  (gnuplot-with-silent-modifications
+   (remove-text-properties begin (min (1+ end) (point-max))
+                           '(syntax-table nil)))
+
   (save-excursion
-    (setq end (progn
-		(goto-char end)
-		(gnuplot-point-at-end-of-continuation))
-	  begin (progn
-		  (goto-char begin)
-		  (gnuplot-beginning-of-continuation)
-		  (point)))
-
-    (gnuplot-with-silent-modifications
-     (remove-text-properties begin (min (1+ end) (point-max))
-                             '(syntax-table nil)))
-
+    (goto-char begin)
     (while (gnuplot-scan-next-string-or-comment end))))
+
+(defun gnuplot-syntax-propertize-extend-region (start end)
+  "Expand the region to syntax-propertize for strings and comments.
+
+This function is added to
+`syntax-propertize-extend-region-functions' in gnuplot-mode
+buffers."
+  (let ((continuation-start
+         (gnuplot-point-at-beginning-of-continuation start))
+        (continuation-end
+         (gnuplot-point-at-end-of-continuation end)))
+    (if (and (= continuation-start start)
+             (= continuation-end end))
+        nil
+      (cons continuation-start continuation-end))))
 
 (defun gnuplot-scan-next-string-or-comment (limit)
   "Put appropriate syntax-table text properties on the next comment or string.
@@ -2653,19 +2661,21 @@ If there are no continuation lines, move point to end-of-line."
 
 ;; Save-excursion wrappers for the above to return point at beginning
 ;; or end of continuation
-(defun gnuplot-point-at-beginning-of-continuation ()
+(defun gnuplot-point-at-beginning-of-continuation (&optional pos)
   "Return value of point at beginning of the continued block containing point.
 
 If there are no continuation lines, returns point-at-bol."
   (save-excursion
+    (when pos (goto-char pos))
     (gnuplot-beginning-of-continuation)
     (point)))
 
-(defun gnuplot-point-at-end-of-continuation ()
+(defun gnuplot-point-at-end-of-continuation (&optional pos)
   "Return value of point at the end of the continued block containing point.
 
 If there are no continuation lines, returns point-at-eol."
   (save-excursion
+    (when pos (goto-char pos))
     (gnuplot-end-of-continuation)
     (point)))
 
@@ -3181,12 +3191,15 @@ a list:
       (when (fboundp 'turn-on-font-lock)
 	(turn-on-font-lock))
     (progn
-      (gnuplot-scan-after-change (point-min) (point-max))
-      (add-hook 'after-change-functions 'gnuplot-scan-after-change nil t)
+      ;; Add syntax-propertizing functions to search for strings and comments
+      (setq-local syntax-propertize-function #'gnuplot-scan-after-change)
+      (add-hook 'syntax-propertize-extend-region-functions
+                #'gnuplot-syntax-propertize-extend-region nil t)
+
+      ;; Set up font-lock 
       (setq font-lock-defaults gnuplot-font-lock-defaults)
       (set (make-local-variable 'font-lock-multiline) t)
       (set (make-local-variable 'parse-sexp-lookup-properties) t)))
-
 
   (if (fboundp 'widget-create)		; gnuplot-gui
       (condition-case ()
