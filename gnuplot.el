@@ -402,6 +402,18 @@ real work."
     (defalias 'gnuplot-set-process-query-on-exit-flag 'set-process-query-on-exit-flag)
   (defalias 'gnuplot-set-process-query-on-exit-flag 'process-kill-without-query))
 
+;; Workaround for missing syntax-ppss in XEmacs
+(if (fboundp 'syntax-ppss)
+    (defalias 'gnuplot-syntax-ppss 'syntax-ppss)
+  (defun gnuplot-syntax-ppss (&optional pos)
+      (save-excursion
+	(unless pos (setq pos (point)))
+	(let ((begin
+	       (save-excursion
+		 (goto-char pos)
+		 (gnuplot-point-at-beginning-of-continuation))))
+	  (parse-partial-sexp begin pos)))))
+
 
 ;;;;
 (defconst gnuplot-xemacs-p (string-match "XEmacs" (emacs-version)))
@@ -1914,19 +1926,6 @@ buffers."
       (cons continuation-start continuation-end))))
 
 ;; Parsing utilities to tell if we are inside a string or comment
-
-;; XEmacs doesn't have syntax-ppss
-(if (featurep 'xemacs)
-    (defun gnuplot-syntax-ppss (&optional pos)
-      (save-excursion
-	(unless pos (setq pos (point)))
-	(let ((begin
-	       (save-excursion
-		 (goto-char pos)
-		 (gnuplot-point-at-beginning-of-continuation))))
-	  (parse-partial-sexp begin pos))))
-  (defalias 'gnuplot-syntax-ppss 'syntax-ppss))
-
 (defun gnuplot-in-string (&optional where)
   "Returns non-nil if the text at WHERE is within a string.
 
