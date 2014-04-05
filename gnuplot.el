@@ -1664,19 +1664,21 @@ static char *help_btn[] = {
 
     (modify-syntax-entry ?_ "w" table )
 
-    ;; In GNU Emacs we scan for strings and comments ourselves in
-    ;; `gnuplot-scan-after-change'.  I can't get this to work in xemacs,
-    ;; so there we'll make ", ', and # delimiters as normal, and use the
-    ;; built-in parser
-    (if (featurep 'xemacs)
+    ;; In GNU Emacs >=24 we can use `syntax-propertize-function' to
+    ;; accurately scan for strings and comments (see
+    ;; `gnuplot-syntax-propertize').  If there's no
+    ;; `syntax-propertize', fall back to using the built-in parser and
+    ;; making ", ', and # string or comment delimiters as normal.
+    (if (not (boundp 'syntax-propertize-function))
 	(progn
 	  (modify-syntax-entry ?\' "\"" table)
 	  (modify-syntax-entry ?# "<" table)
 	  (modify-syntax-entry ?\n ">" table)
 	  (modify-syntax-entry ?\\ "\\" table))
 
-      ;; GNU Emacs: Make ", ', and # punctuation, so the built-in parser
-      ;; doesn't interfere with them
+      ;; When syntax-propertize is available, ", ', and # should be
+      ;; punctuation so that the built-in parser doesn't interfere
+      ;; with the syntax-propertize search.
       (modify-syntax-entry ?\" "." table)
       (modify-syntax-entry ?\' "." table)
       (modify-syntax-entry ?` "." table)
