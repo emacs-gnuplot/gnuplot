@@ -368,7 +368,7 @@
       (require 'info-look)
     (error nil)))
 
-;; Hack for Emacs < 22
+;; Workaround missing `completion-at-point' in (X)Emacs < 22
 (if (not (fboundp 'completion-at-point))
     (defun gnuplot-xemacs-completion-at-point ()
       "Perform completion on keyword preceding point.
@@ -381,7 +381,7 @@ real work."
              '(gnuplot-comint-complete)))
         (comint-dynamic-complete))))
 
-;; Work around window-full-height-p
+;; Work around missing `window-full-height-p'
 (if (not (fboundp 'window-full-height-p))
     ;; The below is taken from GNU Emacs window.el
     (defun gnuplot-window-full-height-p (&optional window)
