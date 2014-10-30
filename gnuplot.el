@@ -368,21 +368,6 @@
       (require 'info-look)
     (error nil)))
 
-;; Misc. compatibility hacks
-(if (featurep 'xemacs)
-    ;; XEmacs
-    (progn
-      (defun gnuplot-set-minor-mode (variable value)
-        ":set function for minor mode variables."
-        (funcall variable (if value 1 0)))
-
-      ;; Inline image mode only works on GNU Emacs for now. Sorry.
-      (defun gnuplot-display-images-p () nil))
-
-  ;; GNU Emacs
-  (defalias 'gnuplot-set-minor-mode 'custom-set-minor-mode)
-  (defalias 'gnuplot-display-images-p 'display-images-p))
-
 ;; Hack for Emacs < 22
 (if (not (fboundp 'completion-at-point))
     (defun gnuplot-xemacs-completion-at-point ()
@@ -412,6 +397,10 @@ real work."
       (funcall fun)
     (add-hook 'gnuplot-load-hook fun)))
 
+;; Workaround obsolete `process-kill-without-query'
+(if (fboundp 'set-process-query-on-exit-flag)
+    (defalias 'gnuplot-set-process-query-on-exit-flag 'set-process-query-on-exit-flag)
+  (defalias 'gnuplot-set-process-query-on-exit-flag 'process-kill-without-query))
 
 
 ;;;;
@@ -641,7 +630,6 @@ beginning the continued command."
 ;; 		(const :tag "3.8 or newer" "3.8")
 ;; 		(const :tag "3.7 or older" "3.7")))
 
-
 (defvar gnuplot-info-frame nil)
 (defvar gnuplot-info-nodes '())
 
@@ -713,6 +701,51 @@ symbol `complete' in gnuplot-mode buffers."
   :group 'gnuplot
   :type 'boolean)
 
+(defun gnuplot-set-display-mode (variable value &rest args)
+  "Customize :set function for `gnuplot-inline-image-mode'."
+  (if (and (eq variable 'gnuplot-inline-image-mode)
+           (eq value 'inline)
+           (not (gnuplot-display-images-p)))
+      (error "Displaying images is not supported."))
+  (set variable value)
+  (gnuplot-setup-comint-for-image-mode))
+
+(defcustom gnuplot-inline-image-mode nil
+  "Whether to display Gnuplot output in Emacs.
+
+Possible values are nil, `inline' and `dedicated'.
+
+When this is `nil', Gnuplot output is handled outside of Emacs in
+the normal way.  Otherwise, Emacs attempts to capture Gnuplot's
+output and display it in a buffer.  Output is inserted inline in
+the Gnuplot interaction buffer it this is `inline', in a
+separate dedicated buffer if it is `dedicated'.
+
+Use Customize to set this variable, or the commands
+`gnuplot-external-display-mode', `gnuplot-inline-display-mode',
+and `gnuplot-dedicated-display-mode'."
+  :group 'gnuplot
+  :type '(radio
+          (const :tag "No" nil)
+          (const :tag "In Comint buffer" inline)
+          (const :tag "In dedicated buffer" dedicated))
+  :initialize 'custom-initialize-default
+  :set 'gnuplot-set-display-mode)
+
+(defcustom gnuplot-image-format "png"
+  "Image format to use for displaying images within Emacs.
+
+This will be sent directly to Gnuplot as a command of the form
+\"set terminal <FORMAT>\".  Common values are \"png\" and
+\"svg\".
+
+This only has an effect when `gnuplot-inline-image-mode' is
+non-nil."
+  :group 'gnuplot
+  :type 'string
+  :initialize 'custom-initialize-default
+  :set 'gnuplot-set-display-mode)
+
 (defgroup gnuplot-faces nil
   "Text faces used by gnuplot-mode."
   :prefix "gnuplot-"
@@ -766,8 +799,30 @@ symbol `complete' in gnuplot-mode buffers."
     map))
 
 (defvar gnuplot-mode-menu nil)
+
+(defvar gnuplot-display-options-menu
+  (flet ((make-image-setter (type)
+           `[,(concat (upcase type) " images")
+              (lambda () (interactive) (gnuplot-set-image-format ,type))
+              :style toggle
+              :selected (eq gnuplot-image-format ,type)]))
+    `("Display plot output"
+      ["Externally" gnuplot-external-display-mode
+       :style toggle
+       :selected (null gnuplot-inline-image-mode)]
+      ["In Comint buffer" gnuplot-inline-display-mode
+       :active (gnuplot-display-images-p)
+       :style toggle
+       :selected (eq gnuplot-inline-image-mode 'comint)]
+      ["In dedicated buffer" gnuplot-dedicated-display-mode
+       :style toggle
+       :selected (eq gnuplot-inline-image-mode 'dedicated)]
+      "---"
+      ,@(mapcar #'make-image-setter (list "png" "jpeg" "svg"))
+      ["Other image type..." gnuplot-set-image-format])))
+
 (defvar gnuplot-menu
-  '("Gnuplot"
+  `("Gnuplot"
     ["Send line to gnuplot"             gnuplot-send-line-to-gnuplot   t]
     ["Send line & move forward"         gnuplot-send-line-and-forward (not (eobp))]
     ["Send region to gnuplot"           gnuplot-send-region-to-gnuplot
@@ -775,10 +830,7 @@ symbol `complete' in gnuplot-mode buffers."
     ["Send buffer to gnuplot"           gnuplot-send-buffer-to-gnuplot t]
     ["Send file to gnuplot"             gnuplot-send-file-to-gnuplot t]
     "---"
-    ["Inline plot display"              gnuplot-inline-image-mode
-     :active (gnuplot-display-images-p)
-     :style toggle
-     :selected gnuplot-inline-image-mode]
+    ,gnuplot-display-options-menu
     ["Contextual completion and help"   gnuplot-context-sensitive-mode
      :style toggle
      :selected (gnuplot-context-mode-p)]
@@ -2200,17 +2252,15 @@ buffer."
 ;; Menu for gnuplot-comint-mode
 (defvar gnuplot-comint-mode-menu nil
   "Menu for `gnuplot-comint-mode'.")
+
 (defvar gnuplot-comint-menu
-  '("Gnuplot"
+  `("Gnuplot"
     ["Plot most recent gnuplot buffer"		gnuplot-plot-from-comint
      (buffer-live-p gnuplot-comint-recent-buffer)]
     ["Save and plot most recent gnuplot buffer"	gnuplot-save-and-plot-from-comint
      (buffer-live-p gnuplot-comint-recent-buffer)]
     "---"
-    ["Inline plot display"                      gnuplot-inline-image-mode
-     :active (gnuplot-display-images-p)
-     :style toggle
-     :selected gnuplot-inline-image-mode]
+    ,gnuplot-display-options-menu
     ["Contextual completion and help"           gnuplot-context-sensitive-mode
      :style toggle
      :selected (gnuplot-context-mode-p)]
@@ -2242,19 +2292,18 @@ buffer."
 ;; Switch to the gnuplot program buffer
 (defun gnuplot-make-gnuplot-buffer ()
   "Switch to the gnuplot program buffer or create one if none exists."
-  (or (and gnuplot-process (get-process gnuplot-process)
-	   gnuplot-buffer (buffer-name gnuplot-buffer))
-      (progn
-	(message "Starting gnuplot plotting program...")
-	(setq gnuplot-buffer (make-comint gnuplot-process-name gnuplot-program)
-	      gnuplot-process (get-process gnuplot-process-name))
-	(process-kill-without-query gnuplot-process nil)
-	(with-current-buffer gnuplot-buffer
-	  (gnuplot-comint-mode)
-          (when gnuplot-inline-image-mode
-            (sleep-for gnuplot-delay)
-            (gnuplot-inline-image-mode 1))
-	  (message "Starting gnuplot plotting program...Done")))))
+  (unless (and gnuplot-process (eq (process-status gnuplot-process) 'run)
+               gnuplot-buffer (buffer-live-p gnuplot-buffer))
+    (message "Starting gnuplot plotting program...")
+    (setq gnuplot-buffer (make-comint gnuplot-process-name gnuplot-program)
+          gnuplot-process (get-buffer-process gnuplot-buffer))
+    (gnuplot-set-process-query-on-exit-flag gnuplot-process nil)
+    (with-current-buffer gnuplot-buffer
+      (gnuplot-comint-mode)
+      (when gnuplot-inline-image-mode
+        (sleep-for gnuplot-delay)
+        (gnuplot-setup-comint-for-image-mode)))
+    (message "Starting gnuplot plotting program...Done")))
 
 (defun gnuplot-fetch-version-number ()
   "Determine the installed version of the gnuplot program.
@@ -2386,42 +2435,44 @@ gnuplot process buffer will be displayed in a window."
 	 (switch-to-buffer gnuplot-buffer))))
 
 
-;;; --- Support for displaying plot images inline in process buffer,
-;;; using `set terminal png' <JJO>
+;;; Support for displaying plotted images within Emacs
 
-(defun gnuplot-inline-image-mode (&optional enable called-interactively-p)
-  "Turn inline display of Gnuplot output in the comint buffer on or off.
+(defvar gnuplot-inline-image-filename nil
+  "Name of the current Gnuplot output file.")
 
-This works by having Gnuplot save its output to temporary .png
-files using \"set terminal png\" and \"set output\" commands,
-which are sent invisibly to the running Gnuplot process between
-user commands.
+(defvar gnuplot-image-buffer-name "*gnuplot output*")
 
-Works like a minor mode: with argument, turn inline image display
-on if ENABLE is positive, otherwise turn it off and restores the
-previous Gnuplot terminal setting. With no argument, toggle
-inline image display."
-  (interactive (list (if current-prefix-arg
-                         (prefix-numeric-value current-prefix-arg))
-                     t))
-  (setq gnuplot-inline-image-mode
-        (if (null enable) (not gnuplot-inline-image-mode)
-          (> (prefix-numeric-value enable) 0)))
+(defun gnuplot-display-images-p ()
+  ;; Inline images require GNU Emacs.
+  (and (not (featurep 'xemacs))
+       (fboundp 'display-images-p)
+       (display-images-p)))
 
-  (let (message)
-    (if gnuplot-inline-image-mode
-        (if (gnuplot-display-images-p)
-            (setq message "Plot output will be displayed in gnuplot buffer.")
-          (setq gnuplot-inline-image-mode nil
-                message "Displaying images is not supported."))
-      (setq message "Plot output will be displayed on external terminal."))
-    (when called-interactively-p (message message)))
+(defun gnuplot-external-display-mode ()
+  (interactive)
+  (gnuplot-set-display-mode 'gnuplot-inline-image-mode nil))
 
+(defun gnuplot-inline-display-mode ()
+  (interactive)
+  (gnuplot-set-display-mode 'gnuplot-inline-image-mode 'inline))
+
+(defun gnuplot-dedicated-display-mode ()
+  (interactive)
+  (gnuplot-set-display-mode 'gnuplot-inline-image-mode 'dedicated))
+
+(defun gnuplot-set-image-format (format)
+  (interactive "sGnuplot image format: ")
+  (gnuplot-set-display-mode 'gnuplot-image-format format)
+  (unless gnuplot-inline-image-mode
+    (message "Setting will take effect when plots are displayed in Emacs")))
+
+(defun gnuplot-setup-comint-for-image-mode ()
   (when (and gnuplot-buffer (buffer-name gnuplot-buffer))
     (with-current-buffer gnuplot-buffer
       (if gnuplot-inline-image-mode
           (progn
-            (gnuplot-send-hiding-output "set terminal png\n")
+            (gnuplot-send-hiding-output
+             (format "set terminal %s\n" gnuplot-image-format))
             (gnuplot-inline-image-set-output)
             (add-hook 'comint-output-filter-functions
                       'gnuplot-insert-inline-image-output nil t))
@@ -2429,26 +2480,14 @@ inline image display."
         (remove-hook 'comint-output-filter-functions
                      'gnuplot-insert-inline-image-output t)))))
 
-;; Has to be defined below the function, due to how
-;; custom-set-minor-mode works. Or is there a better way??
-(defcustom gnuplot-inline-image-mode nil
-  "Whether to enable inline display of Gnuplot output in the process buffer.
-Don't set this variable directly from Lisp code; instead, use
-Customize or call the `gnuplot-inline-image-mode' function, which
-behaves like a minor-mode function."
-  :group 'gnuplot
-  :type 'boolean
-  :set 'gnuplot-set-minor-mode)
-
-(defvar gnuplot-inline-image-filename nil
-  "Name of the current Gnuplot PNG output file.")
-		      
 (defun gnuplot-inline-image-set-output ()
   "Set Gnuplot's output file to `gnuplot-inline-image-filename'."
   (let ((tmp (make-temp-file "gnuplot")))
     (setq gnuplot-inline-image-filename tmp)
     (gnuplot-send-hiding-output (format "set output '%s'\n" tmp))))
-  
+
+(defvar gnuplot-inhibit-filter nil)
+
 (defun gnuplot-insert-inline-image-output (string)
   "Insert Gnuplot graphical output in the gnuplot-comint buffer.
 
@@ -2458,18 +2497,35 @@ file `gnuplot-inline-image-filename'; if it exists and has
 nonzero size, inserts it as an inline image, stores a new
 temporary filename in `gnuplot-inline-image-filename', and
 updates Gnuplot with the appropriate 'set output' command."
-  (save-excursion
-    (goto-char (point-max))
-    (beginning-of-line)
-    (when (looking-at gnuplot-prompt-regexp)
-      (let* ((filename gnuplot-inline-image-filename)
-	     (size (nth 7 (file-attributes filename))))
-	(if (and size (> size 0))
-	  (let ((image (create-image filename)))
-	    (beginning-of-line)
-	    (insert-image image)
-	    (insert "\n")
-	    (gnuplot-inline-image-set-output)))))))
+  (unless gnuplot-inhibit-filter        ; Prevent recursively entering this filter
+    (let ((gnuplot-inhibit-filter t))   ; (causing an infinite loop)
+      (save-excursion
+        (goto-char (point-max))
+        (beginning-of-line)
+        (when (looking-at gnuplot-prompt-regexp)
+          (let* ((filename gnuplot-inline-image-filename)
+                 (size (nth 7 (file-attributes filename))))
+            (when (and size (> size 0))
+              (gnuplot-send-hiding-output "set output\n") ; Flush output file
+              (sit-for 0.1)             ; Hack: wait for Gnuplot IO to finish
+              (ecase gnuplot-inline-image-mode
+                (nil nil)
+                (inline
+                 (ignore-errors
+                   (let ((image (create-image filename)))
+                     (beginning-of-line)
+                     (insert-image image)
+                     (insert "\n")
+                     (gnuplot-inline-image-set-output))))
+                (dedicated
+                 (with-current-buffer
+                     (get-buffer-create gnuplot-image-buffer-name)
+                   (let ((inhibit-read-only t))
+                     (erase-buffer)
+                     (insert-file-contents filename)
+                     (ignore-errors (normal-mode))
+                     (display-buffer (current-buffer))
+                     (gnuplot-inline-image-set-output))))))))))))
 
 ;;; Send commands to GNUPLOT silently & without generating an extra prompt
 (defvar gnuplot-hidden-output-buffer " *gnuplot output*")
@@ -2481,7 +2537,7 @@ updates Gnuplot with the appropriate 'set output' command."
 	      'gnuplot-discard-output nil t))
   (with-current-buffer (get-buffer-create gnuplot-hidden-output-buffer)
     (erase-buffer))
-  (comint-send-string gnuplot-process string))
+  (comint-send-string (get-buffer-process gnuplot-buffer) string))
 
 (defun gnuplot-discard-output (string)
   ;; Temporary preoutput filter for hiding Gnuplot output & prompt.
