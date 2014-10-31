@@ -391,12 +391,6 @@ real work."
       (= (window-height window)
 	 (window-height (frame-root-window (window-frame window))))))
 
-;; Workaround for differing eval-after-load behavior
-(defun gnuplot--run-after-load (fun)
-  (if (featurep 'gnuplot)
-      (funcall fun)
-    (add-hook 'gnuplot-load-hook fun)))
-
 ;; Workaround obsolete `process-kill-without-query'
 (if (fboundp 'set-process-query-on-exit-flag)
     (defalias 'gnuplot-set-process-query-on-exit-flag 'set-process-query-on-exit-flag)
