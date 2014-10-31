@@ -2226,7 +2226,12 @@ buffer."
 	    'gnuplot-protect-prompt-fn
 	    nil t)
 
-  (add-hook 'comint-dynamic-complete-functions 'gnuplot-comint-complete)
+  ;; Set up completion, using completion-at-point in recent Emacs,
+  ;; comint-dynamic-complete in older Emacs
+  (if (and (>= emacs-major-version 24)
+           (>= emacs-minor-version 1))
+      (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point nil t)
+    (add-hook 'comint-dynamic-complete-functions 'gnuplot-comint-complete nil t))
 
   ;; Set up menu (see below)
   (easy-menu-define
