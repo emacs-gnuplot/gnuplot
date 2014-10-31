@@ -819,9 +819,9 @@ non-nil."
     ,gnuplot-display-options-menu
     ["Contextual completion and help"   gnuplot-context-sensitive-mode
      :style toggle
-     :selected (gnuplot-context-mode-p)]
+     :selected gnuplot-context-sensitive-mode]
     ["Echo area help (eldoc-mode)" eldoc-mode
-     :active (gnuplot-context-mode-p)
+     :active gnuplot-context-sensitive-mode
      :style toggle
      :selected eldoc-mode]
     "---"
@@ -831,10 +831,10 @@ non-nil."
     ["Keyword help"                     gnuplot-info-lookup-symbol
      (or gnuplot-keywords gnuplot-keywords-pending)]
     ["Quick help for thing at point"    gnuplot-help-function
-     (gnuplot-context-mode-p)]
+     gnuplot-context-sensitive-mode]
     ["Info documentation on thing at point"
      gnuplot-info-at-point
-     (gnuplot-context-mode-p)]
+     gnuplot-context-sensitive-mode]
     ["Show gnuplot process buffer"      gnuplot-show-gnuplot-buffer t]
     ["Set arguments at point"           gnuplot-gui-set-options-and-insert
      (fboundp 'gnuplot-gui-set-options-and-insert)]
@@ -850,10 +850,6 @@ non-nil."
     )
   "Menu for `gnuplot-mode'.")
 
-;; Disable or enable menu items that depend on gnuplot-context being
-;; loaded and enabled
-(defsubst gnuplot-context-mode-p ()
-  (and (boundp 'gnuplot-context-sensitive-mode) gnuplot-context-sensitive-mode))
 
 
 ;;; --- insertions variables and menus
@@ -2241,9 +2237,9 @@ buffer."
     ,gnuplot-display-options-menu
     ["Contextual completion and help"           gnuplot-context-sensitive-mode
      :style toggle
-     :selected (gnuplot-context-mode-p)]
+     :selected gnuplot-context-sensitive-mode]
     ["Echo area help (eldoc-mode)" eldoc-mode
-     :active (gnuplot-context-mode-p)
+     :active gnuplot-context-sensitive-mode
      :style toggle
      :selected eldoc-mode]
     "---"
@@ -2252,10 +2248,10 @@ buffer."
     ["Keyword help"				gnuplot-info-lookup-symbol
      (or gnuplot-keywords gnuplot-keywords-pending)]
     ["Quick help for thing at point"            gnuplot-help-function
-     (gnuplot-context-mode-p)]
+     gnuplot-context-sensitive-mode]
     ["Info documentation on thing at point"
      gnuplot-info-at-point
-     (gnuplot-context-mode-p)]
+     gnuplot-context-sensitive-mode]
     ["Switch to recent gnuplot script buffer"	gnuplot-pop-to-recent-buffer
      (buffer-live-p gnuplot-comint-recent-buffer)]
     "---"
