@@ -666,36 +666,14 @@ time that data is needed."
   '(radio (const :tag "Parse info file when gnuplot-mode starts"    immediately)
 	  (const :tag "Parse info file the first time it is needed" deferred)))
 
-(defun gnuplot-set-context-mode (variable value)
-  "Turn context-sensitive mode on or off through Customize.
+(defcustom gnuplot-use-context-sensitive-completion t
+  "Enable `gnuplot-context-sensitive-mode' by default in Gnuplot buffers.
 
-Unlike the built-in custom-set-minor-mode, this avoids loading
-gnuplot-context if it is not being enabled."
-  (if (featurep 'gnuplot-context)
-      ;; Already loaded, OK to enable or disable
-      (gnuplot-context-sensitive-mode (if value 1 0))
-    ;; Not loaded; autoload gnuplot-context only if enabling
-    (if value
-        ;; Prevent recursive (require 'gnuplot) loop when running
-        ;; interpreted
-        (gnuplot--run-after-load
-         #'(lambda ()
-             (gnuplot-context-sensitive-mode 1)))
-      (setq gnuplot-context-sensitive-mode nil))))
-
-(defcustom gnuplot-context-sensitive-mode t
-  "Non-nil if contextual completion and help for gnuplot are enabled.
-
-With context-sensitive mode on, gnuplot-mode's tab completion and
-info file lookup try to parse the current command line to find
-the most useful completions or info pages.
-
-Don't set this variable from Lisp code; instead, use Customize or
-call the `gnuplot-context-sensitive-mode' function, which behaves
-like a minor mode."
+In context-sensitive mode, gnuplot-mode's tab completion and info
+file lookup try to parse the current command line to find the
+most useful completions or info pages."
   :group 'gnuplot
   :type 'boolean
-  :set 'gnuplot-set-context-mode
   :link '(emacs-commentary-link "gnuplot-context"))
 
 (defcustom gnuplot-eldoc-mode nil

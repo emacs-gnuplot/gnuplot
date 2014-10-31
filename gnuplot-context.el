@@ -296,6 +296,10 @@ syntax at point in the minibuffer. To have one-line syntax
 summaries appear in the echo area as you type, toggle
 `eldoc-mode' or customize `gnuplot-eldoc-mode'.
 
+To choose whether to use this mode by default in Gnuplot buffers,
+customize the variable
+`gnuplot-use-context-sensitive-completion'.
+
 Note: help strings for eldoc-mode and \\[gnuplot-help-function]
 need to be provided in an Emacs-readable form by the Gnuplot
 distribution. See gnuplot-context.el for details."
