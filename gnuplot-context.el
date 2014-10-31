@@ -248,7 +248,6 @@
 ;; Library dependencies
 (eval-when-compile
   (require 'cl)
-  (require 'advice)
 
   ;; Prevent compiler warnings about undefined functions
   (require 'gnuplot))
@@ -338,9 +337,7 @@ off. With no argument, toggle context-sensitive mode."
            ,@forms)))))
 
 (defun gnuplot--turn-on-context-sensitive-mode ()
-  (ad-enable-advice 'gnuplot-completion-at-point
-                    'around 'gnuplot-context)
-  (ad-activate 'gnuplot-completion-at-point)
+  (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)
 
   (dolist (keymap (list gnuplot-mode-map gnuplot-comint-mode-map))
     (define-key keymap (kbd "C-c M-h") 'gnuplot-help-function)
@@ -357,21 +354,13 @@ off. With no argument, toggle context-sensitive mode."
     (define-key keymap (kbd "C-c M-h") 'undefined)
     (define-key keymap (kbd "C-c C-/") 'undefined)
     (define-key keymap (kbd "C-c C-d") 'gnuplot-info-lookup-symbol))
-  (ad-disable-advice 'gnuplot-completion-at-point
-                     'around 'gnuplot-context)
-  (ad-activate 'gnuplot-completion-at-point)
+  (setq gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look)
 
   (remove-hook 'gnuplot-mode-hook 'gnuplot-setup-eldoc)
   (remove-hook 'gnuplot-comint-mode-hook 'gnuplot-setup-eldoc)
   (gnuplot-foreach-buffer
     (setq eldoc-documentation-function nil)
     (eldoc-mode 0)))
-
-;; Has to be defined here. Grumble.
-(defadvice gnuplot-completion-at-point (around gnuplot-context disable)
-  ;; This around-advice gets activated/deactivated when turning
-  ;; context-sensitivity on and off
-  (setq ad-return-value (gnuplot-context-completion-at-point)))
 
 (defun gnuplot-setup-eldoc ()
   (set (make-local-variable 'eldoc-documentation-function)
