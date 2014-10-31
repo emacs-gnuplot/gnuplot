@@ -2870,12 +2870,106 @@ Return a list of keywords."
     (delete "nil" store)
     store ))
 
+
+;;;; Completion at point
+
+;; There are two alternative completion-at-point mechanisms: the old
+;; one using info-look and the new one (enabled by default) which
+;; parses the command line to provide smarter completions.
+
+;; `gnuplot-completion-at-point-function' defines which one is
+;; used. `gnuplot-context-sensitive-mode' toggles between the two.
+
 (defvar gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look
   "Function to call to perform completion in Gnuplot buffers.")
 
 (defun gnuplot-completion-at-point ()
   (funcall gnuplot-completion-at-point-function))
 
+;; Enable and disable context-sensitive completion
+(define-minor-mode gnuplot-context-sensitive-mode
+  "Use context-sensitive completion and help in gnuplot-mode.
+
+When context-sensitive mode is enabled, gnuplot-mode tries to
+provide more useful completions and help suggestions for built-in
+keywords and functions by parsing each command as you type.  It
+attempts to take into account Gnuplot's many abbreviated
+keywords.  For example, with point at the end of a line reading
+\"plot 'datafile' w \", typing \\[completion-at-point] will pop
+up a list of plotting styles.
+
+Key bindings:
+
+\\[completion-at-point] will complete the keyword at point based
+on its context in the command. To make keyword completion work on
+pressing TAB, set `tab-always-indent' to `complete', or customize
+`gnuplot-tab-completion' to make this automatic in gnuplot-mode
+buffers.
+
+\\[gnuplot-info-at-point] will try to find the most relevant
+Gnuplot info node for the construction at point, prompting for a
+node name if nothing is found.
+
+\\[gnuplot-help-function] will pop up a brief summary of the
+syntax at point in the minibuffer. To have one-line syntax
+summaries appear in the echo area as you type, toggle
+`eldoc-mode' or customize `gnuplot-eldoc-mode'.
+
+To choose whether to use this mode by default in Gnuplot buffers,
+customize the variable
+`gnuplot-use-context-sensitive-completion'.
+
+Note: help strings for eldoc-mode and \\[gnuplot-help-function]
+need to be provided in an Emacs-readable form by the Gnuplot
+distribution. See gnuplot-context.el for details."
+  :keymap
+  `((,(kbd "C-c C-/") . gnuplot-help-function)
+    (,(kbd "C-c C-d") . gnuplot-info-at-point))
+  (unless (derived-mode-p 'gnuplot-mode 'gnuplot-comint-mode)
+    (message "Gnuplot context-sensitive mode works only in Gnuplot-mode buffers")
+    (setq gnuplot-context-sensitive-mode nil))
+  (if gnuplot-context-sensitive-mode
+      ;; Turn on
+      (progn
+        (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)
+        (define-key gnuplot-comint-mode-map (kbd "TAB") 'comint-dynamic-complete)
+
+        ;; Setup Eldoc
+        (set (make-local-variable 'eldoc-documentation-function)
+             'gnuplot-eldoc-function)
+        (eldoc-add-command 'completion-at-point)     ; Check for eldoc after completion
+        (when (fboundp 'comint-dynamic-complete)
+          (eldoc-add-command 'comint-dynamic-complete))
+
+        ;; Try to load Eldoc strings
+        (when gnuplot-eldoc-mode
+          (unless gnuplot-eldoc-hash
+            (condition-case nil
+                (load-library "gnuplot-eldoc")
+              (error
+               (message "gnuplot-eldoc.el not found. Install it from the Gnuplot distribution.")
+               (setq gnuplot-eldoc-hash nil
+                     gnuplot-eldoc-mode nil))))
+
+          (if gnuplot-eldoc-hash
+              (eldoc-mode 1)
+            (eldoc-mode 0)))
+
+        ;; Set up tab-to-complete
+        (when gnuplot-tab-completion
+          (set (make-local-variable 'tab-always-indent) 'complete))
+
+        (when called-interactively-p
+          (message "Gnuplot context-sensitive help & completion enabled.")))
+
+    ;; Turn off
+    (setq gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look)
+    (setq eldoc-documentation-function nil)
+    (eldoc-mode 0)
+    (when called-interactively-p
+      (message "Gnuplot context-sensitive help & completion disabled."))))
+
+;; Older completion method using info-look
 (defun gnuplot-completion-at-point-info-look ()
   "Return completions of keyword preceding point.
 
@@ -2914,6 +3008,7 @@ completion."
 	   candidates))
       nil)))
 
+
 (defun gnuplot-info-lookup-symbol (symbol &optional mode)
   "Wrapper for `info-lookup-symbol'.
 Takes SYMBOL and MODE as arguments exactly as
