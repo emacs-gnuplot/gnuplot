@@ -660,6 +660,14 @@ time that data is needed."
   '(radio (const :tag "Parse info file when gnuplot-mode starts"    immediately)
 	  (const :tag "Parse info file the first time it is needed" deferred)))
 
+(defun gnuplot-set-context-sensitive-completion (_variable value)
+  "Customize :set function for `gnuplot-use-context-sensitive-completion'."
+  (dolist (buffer (buffer-list))
+    (with-current-buffer buffer
+      (when (derived-mode-p 'gnuplot-mode 'gnuplot-comint-mode)
+        (gnuplot-context-sensitive-mode
+         (if gnuplot-use-context-sensitive-completion 1 0))))))
+
 (defcustom gnuplot-use-context-sensitive-completion t
   "Enable `gnuplot-context-sensitive-mode' by default in Gnuplot buffers.
 
@@ -668,6 +676,8 @@ file lookup try to parse the current command line to find the
 most useful completions or info pages."
   :group 'gnuplot
   :type 'boolean
+  :initialize 'custom-set-default
+  :set 'gnuplot-set-context-sensitive-completion
   :link '(emacs-commentary-link "gnuplot-context"))
 
 (defcustom gnuplot-eldoc-mode nil
