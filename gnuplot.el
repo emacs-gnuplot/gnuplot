@@ -2150,6 +2150,8 @@ this function is attached to `gnuplot-after-plot-hook'"
 This sets font-lock and keyword completion in the comint/gnuplot
 buffer."
 
+  (set-syntax-table gnuplot-mode-syntax-table)
+
   (if gnuplot-xemacs-p			; deal with font-lock
       (if (fboundp 'turn-on-font-lock) (turn-on-font-lock))
     (progn
