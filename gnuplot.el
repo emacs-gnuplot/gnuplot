@@ -382,14 +382,14 @@ real work."
         (comint-dynamic-complete))))
 
 ;; Work around missing `window-full-height-p'
-(if (not (fboundp 'window-full-height-p))
-    ;; The below is taken from GNU Emacs window.el
-    (defun gnuplot-window-full-height-p (&optional window)
+(if (fboundp 'window-full-height-p)
+    (defalias 'gnuplot-window-full-height-p 'window-full-height-p)
+  ;; The below is taken from window.el in GNU Emacs
+  (defun gnuplot-window-full-height-p (&optional window)
       (unless window
 	(setq window (selected-window)))
       (= (window-height window)
-	 (window-height (frame-root-window (window-frame window)))))
-  (defalias 'gnuplot-window-full-height-p 'window-full-height-p))
+	 (window-height (frame-root-window (window-frame window))))))
 
 ;; Workaround for differing eval-after-load behavior
 (defun gnuplot--run-after-load (fun)
