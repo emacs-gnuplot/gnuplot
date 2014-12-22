@@ -19,6 +19,7 @@
   (with-temp-buffer
     (gnuplot-mode)
     (insert string)
+    (syntax-propertize (point-max))
     (goto-char (point-max))
     (gnuplot-tokenize)))
 
