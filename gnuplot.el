@@ -1817,7 +1817,7 @@ These are highlighted using `font-lock-constant-face'.")
        ;; Double quoted strings
        ((rx
          (group "\"")
-         (+ (or (seq "\\" anything)
+         (* (or (seq "\\" anything)
                 (not (any "\"" "\n"))))
          (group (or "\"" "\n" buffer-end)))
         (1 "|") (2 "|"))
@@ -1825,7 +1825,7 @@ These are highlighted using `font-lock-constant-face'.")
        ;; Single quoted strings
        ((rx
          (group "'")
-         (+ (or (seq "\\" "\n")
+         (* (or (seq "\\" "\n")
                 "''"
                 (not (any "'" "\n"))))
          (group (or "'" "\n" buffer-end)))
@@ -1834,7 +1834,7 @@ These are highlighted using `font-lock-constant-face'.")
        ;; Comments
        ((rx
          (group "#")
-         (+ (or (seq "\\" "\n")
+         (* (or (seq "\\" "\n")
                 any))
          (or (group "\n") buffer-end))
         (1 "!") (2 "!")))))
