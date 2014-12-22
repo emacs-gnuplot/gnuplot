@@ -582,7 +582,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
 ;;
 
 
-(eval-when-compile
+(eval-and-compile
   ;; Compile a single pattern into a list of instructions. Leaves
   ;; calls to other rules as symbolic instructions (call SYMBOL) and
   ;; jumps, commits etc. as relative offsets; these are resolved into

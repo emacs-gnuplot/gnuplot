@@ -2,14 +2,12 @@
 ;; automated tests for gnuplot-mode context matching
 ;;
 
-;; Because of eval-when-compile clauses, these tests only run when the
-;; interpreted version of "gnuplot-context" is loaded.  TODO: Fix
-;; this. :-/
-(require 'gnuplot-context "gnuplot-context.el")
+(require 'gnuplot-context)
 
 (require 'ert)
 
 (eval-when-compile
+  (require 'cl)
   (if (not (fboundp 'ert-deftest))
       (defalias 'ert-deftest 'deftest))
 
@@ -29,14 +27,6 @@
     (syntax-propertize (point-max))
     (goto-char (point-max))
     (gnuplot-tokenize)))
-
-(defmacro with-gnuplot-tokens-from-string (binding &rest body)
-  (declare (indent 1))
-  `(with-temp-buffer
-     (gnuplot-mode)
-     (insert ,(cadr binding))
-     (let ((,(car binding) (gnuplot-tokenize)))
-       ,@body)))
 
 (defun gnuplot-simplify-tokens (tokens)
   (mapcar
