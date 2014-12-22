@@ -1,7 +1,7 @@
 # -*- mode: makefile -*-
 
 ## Set this variable to "xemacs" if you use XEmacs
-EMACS = emacs
+EMACS ?= emacs
 
 ## You will probably not need to change anything below this line
 
@@ -17,14 +17,14 @@ ps: gpelcard.ps
 
 all: gnuplot.elc gnuplot-gui.elc gnuplot-context.elc gpelcard.pdf gpelcard.ps
 
-gnuplot.elc: gnuplot.el
-	$(BYTE) gnuplot.el
+%.elc: %.el
+	$(BYTE) "$<"
 
-gnuplot-gui.elc: gnuplot-gui.el
-	$(BYTE) gnuplot-gui.el
-
-gnuplot-context.elc: gnuplot-context.el
-	$(BYTE) gnuplot-context.el
+test: gnuplot.elc gnuplot-context.elc gnuplot-tests.elc gnuplot-test-context.elc
+	$(EMACS) --batch -L .				\
+	  --load=gnuplot-tests				\
+	  --load=gnuplot-test-context			\
+	  --eval='(ert-run-tests-batch "^gnuplot-")'
 
 gpelcard.ps: gpelcard.dvi
 	dvips -o gpelcard.ps gpelcard.dvi

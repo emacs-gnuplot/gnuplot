@@ -31,4 +31,10 @@ DISTCLEANFILES =
 pdf: gpelcard.pdf
 ps: gpelcard.ps
 
+test: gnuplot.elc gnuplot-context.elc gnuplot-tests.elc gnuplot-test-context.elc
+	emacs --batch -L .				\
+	  --load=gnuplot-tests				\
+	  --load=gnuplot-test-context			\
+	  --eval='(ert-run-tests-batch "^gnuplot-")'
+
 SUFFIXES = .el .elc .pdf .ps .tex

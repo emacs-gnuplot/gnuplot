@@ -2,12 +2,19 @@
 ;; automated tests for gnuplot-mode context matching
 ;;
 
-(require 'gnuplot-context)
+;; Because of eval-when-compile clauses, these tests only run when the
+;; interpreted version of "gnuplot-context" is loaded.  TODO: Fix
+;; this. :-/
+(require 'gnuplot-context "gnuplot-context.el")
+
 (require 'ert)
 
 (eval-when-compile
   (if (not (fboundp 'ert-deftest))
-      (defalias 'ert-deftest 'deftest)))
+      (defalias 'ert-deftest 'deftest))
+
+  (if (not (fboundp 'line-number-at-pos))
+      (defalias 'line-number-at-pos 'line-number)))
 
 (defun gnuplot-run-tests ()
   (interactive)
@@ -331,11 +338,6 @@
     ("cntrparam levels 10")
     ("cntrparam levels incremental 100,50")))
 
-;;; parse all the demos
-(ert-deftest gnuplot-test-all-demos ()
-  (should (> (gnuplot-test-parse-all-demos)
-             .83)))
-
 
 
 ;;
@@ -347,14 +349,21 @@
 ;;
 
 ;; Set this to wherever the gnuplot demos are
-(defvar gnuplot-demo-dir "~/dev/gnuplot/demo/")
+(defvar gnuplot-demo-dir (getenv "GNUPLOT_DEMO_DIR"))
 
 (defvar gnuplot-test-result-buffer "*gnuplot parse test results*")
 (defvar gnuplot-test-count 0)
 (defvar gnuplot-test-success-count 0)
 
-(if (not (fboundp 'line-number-at-pos))
-    (defalias 'line-number-at-pos 'line-number))
+(ert-deftest gnuplot-test-all-demos ()
+  (let ((demo-dir-exists (and (stringp gnuplot-demo-dir)
+                              (file-directory-p gnuplot-demo-dir))))
+    (unless demo-dir-exists
+      (message "Directory `%s' not found, skipping test" gnuplot-demo-dir)
+      (message "(Set the environment variable GNUPLOT_DEMO_DIR to run it.)"))
+    (skip-unless demo-dir-exists)
+    (should (> (gnuplot-test-parse-all-demos)
+               .83))))
 
 (defun gnuplot-test-parse-all-demos ()
   (interactive)
