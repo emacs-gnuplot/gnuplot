@@ -5,7 +5,7 @@
 
 (require 'gnuplot)
 (require 'ert)
-(require 'cl-lib)
+(eval-when-compile (require 'cl))
 
 ;; Hide an annoying interactive message during batch testing
 (when (require 'nadvice nil t)
@@ -42,8 +42,8 @@ represented by a format-string with a single %s placeholder.
 
 Returns non-nil if STRING is correctly recognised as a single
 string by `scan-sexps'."
-  (pcase-let
-      ((`(,prologue ,epilogue) (split-string context "%s")))
+  (destructuring-bind (prologue epilogue)
+      (split-string context "%s")
     (with-temp-buffer
       (gnuplot-mode)
       (let (start end)
@@ -53,7 +53,8 @@ string by `scan-sexps'."
           (insert string)
           (setq end (point))
           (insert epilogue))
-        (syntax-propertize (point-max))
+        (when (fboundp 'syntax-propertize)
+          (syntax-propertize (point-max)))
         (string= (buffer-substring start (scan-sexps start 1))
                  string)))))
 
@@ -66,7 +67,7 @@ string-literal in multiple different contexts, as determined by
   (declare (indent 1))
   `(ert-deftest ,name ()
      ,string
-     ,@(cl-loop for context in gnuplot-string-test-contexts
+     ,@(loop for context in gnuplot-string-test-contexts
                 collect
                 `(should (gnuplot-test-string-in-context ,string ,context)))))
 
@@ -188,8 +189,8 @@ comment
 
 (defun gnuplot-test-comment-in-context (comment context)
   "Non-nil if COMMENT is correctly recognised within CONTEXT in gnuplot-mode."
-  (pcase-let
-      ((`(,prologue ,epilogue) (split-string context "%s")))
+  (destructuring-bind (prologue epilogue)
+      (split-string context "%s")
     (with-temp-buffer
       (gnuplot-mode)
       (let (start end)
@@ -199,13 +200,14 @@ comment
           (insert comment)
           (setq end (point))
           (insert epilogue))
-        (syntax-propertize (point-max))
+        (when (fboundp 'syntax-propertize)
+          (syntax-propertize (point-max)))
         (goto-char (1+ start))
-        (cl-flet ((in-comment-p (position)
+        (flet ((in-comment-p (position)
                     (nth 4 (syntax-ppss position))))
           (and
            (not (in-comment-p start))
-           (cl-loop for position from (1+ start) upto end
+           (loop for position from (1+ start) upto end
                     always (in-comment-p position))
            (or (= end (point-max))
                (not (in-comment-p (1+ end))))))))))
@@ -219,7 +221,7 @@ string-literal in multiple different contexts, as determined by
   (declare (indent 1))
   `(ert-deftest ,name ()
      ,comment
-     ,@(cl-loop for context in gnuplot-comment-test-contexts
+     ,@(loop for context in gnuplot-comment-test-contexts
                 collect
                 `(should (gnuplot-test-comment-in-context ,comment ,context)))))
 
