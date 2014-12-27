@@ -704,10 +704,12 @@ symbol `complete' in gnuplot-mode buffers."
 (defun gnuplot-set-display-mode (variable value &rest args)
   "Customize :set function for `gnuplot-inline-image-mode'."
   (if (and (eq variable 'gnuplot-inline-image-mode)
-           (eq value 'inline)
+           value
            (not (gnuplot-display-images-p)))
-      (error "Displaying images is not supported."))
-  (set variable value)
+      (progn
+        (message "Displaying images is not supported.")
+        (set variable nil))
+    (set variable value))
   (gnuplot-setup-comint-for-image-mode))
 
 (defcustom gnuplot-inline-image-mode nil
@@ -2467,7 +2469,8 @@ gnuplot process buffer will be displayed in a window."
     (message "Setting will take effect when plots are displayed in Emacs")))
 
 (defun gnuplot-setup-comint-for-image-mode ()
-  (when (and gnuplot-buffer (buffer-name gnuplot-buffer))
+  (when (and gnuplot-buffer (buffer-live-p gnuplot-buffer)
+             (get-buffer-process gnuplot-buffer))
     (with-current-buffer gnuplot-buffer
       (if gnuplot-inline-image-mode
           (progn
