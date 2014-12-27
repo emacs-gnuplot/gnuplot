@@ -3174,6 +3174,13 @@ following in your .emacs file:
   (switch-to-buffer gnuplot-gnuplot-buffer)
   (gnuplot-mode))
 
+;;;###autoload
+(defun run-gnuplot ()
+  "Run an inferior Gnuplot process."
+  (interactive)
+  (gnuplot-make-gnuplot-buffer)
+  (pop-to-buffer gnuplot-buffer))
+
 (defun gnuplot-show-version ()
   "Show version number in echo area"
   (interactive)
