@@ -2251,8 +2251,13 @@ buffer."
 (define-key gnuplot-comint-mode-map "\M-\C-p"	'gnuplot-plot-from-comint)
 (define-key gnuplot-comint-mode-map "\M-\C-f"	'gnuplot-save-and-plot-from-comint)
 (define-key gnuplot-comint-mode-map "\C-d"	'gnuplot-delchar-or-maybe-eof)
-(define-key gnuplot-comint-mode-map "\M-\r"	'comint-dynamic-complete)
-(define-key gnuplot-comint-mode-map "\M-\t"	'comint-dynamic-complete)
+(let ((completion-function
+       (if (and (>= emacs-major-version 24)
+                (>= emacs-minor-version 1))
+           'completion-at-point
+         'comint-dynamic-complete)))
+  (define-key gnuplot-comint-mode-map "\M-\r"	completion-function)
+  (define-key gnuplot-comint-mode-map "\M-\t"	completion-function))
 (define-key gnuplot-comint-mode-map "\C-c\C-d"  'gnuplot-info-lookup-symbol)
 (define-key gnuplot-comint-mode-map "\C-c\C-w"	'gnuplot-show-version)
 (define-key gnuplot-comint-mode-map "\C-c\C-i"	'gnuplot-insert-filename)
@@ -2941,7 +2946,6 @@ distribution. See gnuplot-context.el for details."
         (load-library "gnuplot-context")
         (load-library "eldoc")
         (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)
-        (define-key gnuplot-comint-mode-map (kbd "TAB") 'comint-dynamic-complete)
 
         ;; Setup Eldoc
         (set (make-local-variable 'eldoc-documentation-function)
