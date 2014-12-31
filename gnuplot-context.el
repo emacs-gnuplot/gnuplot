@@ -255,13 +255,6 @@
 ;; We need ElDoc support
 (require 'eldoc)
 
-;; Load external ElDoc strings if we can find them.
-(defvar gnuplot-eldoc-hash nil
-  "ElDoc strings for gnuplot-mode.
-
-These have to be compiled from the Gnuplot source tree using
-`doc2texi.el'.")
-
 ;; Compatibility for Emacs version < 23
 (eval-when-compile
   (when (not (fboundp 'string-match-p))

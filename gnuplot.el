@@ -346,13 +346,7 @@
 (require 'easymenu)
 (eval-when-compile (require 'cl))
 
-;; Keep gnuplot-context separate from main gnuplot library, for people
-;; who don't want to load the whole thing. Load it automatically on
-;; choosing the menu item.
-(autoload 'gnuplot-context-sensitive-mode "gnuplot-context"
-  "Toggle gnuplot context-sensitive completion and help mode."
-  t)
-
+(declare-function 'eldoc-add-command "eldoc")
 
 
 ;;; --- variable definitions + eval-and-compile clauses
@@ -666,14 +660,14 @@ time that data is needed."
     (with-current-buffer buffer
       (when (derived-mode-p 'gnuplot-mode 'gnuplot-comint-mode)
         (gnuplot-context-sensitive-mode
-         (if gnuplot-use-context-sensitive-completion 1 0))))))
+         (if value 1 0))))))
 
 (defcustom gnuplot-use-context-sensitive-completion t
-  "Enable `gnuplot-context-sensitive-mode' by default in Gnuplot buffers.
+  "Non-nil if `gnuplot-context-sensitive-mode' should be enabled by default. 
 
-In context-sensitive mode, gnuplot-mode's tab completion and info
-file lookup try to parse the current command line to find the
-most useful completions or info pages."
+In context-sensitive mode, gnuplot-mode parses the current
+command line to provide smarter completion and documentation
+suggestions."
   :group 'gnuplot
   :type 'boolean
   :initialize 'custom-set-default
@@ -2173,8 +2167,44 @@ this function is attached to `gnuplot-after-plot-hook'"
 
 ;;; --- functions controlling the gnuplot process
 
-;; Define gnuplot-comint-mode, the mode for the gnuplot process
-;; buffer, by deriving from comint-mode    
+;; Menu for the comint-mode buffer
+(defvar gnuplot-comint-menu
+  `("Gnuplot"
+    ["Plot most recent gnuplot buffer"		gnuplot-plot-from-comint
+     (buffer-live-p gnuplot-comint-recent-buffer)]
+    ["Save and plot most recent gnuplot buffer"	gnuplot-save-and-plot-from-comint
+     (buffer-live-p gnuplot-comint-recent-buffer)]
+    "---"
+    ,gnuplot-display-options-menu
+    ["Contextual completion and help"           gnuplot-context-sensitive-mode
+     :style toggle
+     :selected gnuplot-context-sensitive-mode]
+    ["Echo area help (eldoc-mode)" eldoc-mode
+     :active gnuplot-context-sensitive-mode
+     :style toggle
+     :selected eldoc-mode]
+    "---"
+    ["Insert filename at point"			gnuplot-insert-filename t]
+    ["Negate set option"			gnuplot-negate-option t]
+    ["Keyword help"				gnuplot-info-lookup-symbol
+     (or gnuplot-keywords gnuplot-keywords-pending)]
+    ["Quick help for thing at point"            gnuplot-help-function
+     gnuplot-context-sensitive-mode]
+    ["Info documentation on thing at point"
+     gnuplot-info-at-point
+     gnuplot-context-sensitive-mode]
+    ["Switch to recent gnuplot script buffer"	gnuplot-pop-to-recent-buffer
+     (buffer-live-p gnuplot-comint-recent-buffer)]
+    "---"
+    ["Customize gnuplot"			gnuplot-customize t]
+    ["Submit bug report"			gnuplot-bug-report t]
+    ["Show gnuplot-mode version"		gnuplot-show-version t]
+    ["Show gnuplot version"			gnuplot-show-gnuplot-version t]
+    "---"
+    ["Kill gnuplot"				gnuplot-kill-gnuplot-buffer t]
+    ))
+
+;; Major mode `gnuplot-comint-mode' for the interaction buffer
 (define-derived-mode gnuplot-comint-mode comint-mode "Gnuplot interaction"
   "Major mode for interacting with a gnuplot process in a buffer.
 
@@ -2237,42 +2267,6 @@ buffer."
 (defvar gnuplot-comint-mode-menu nil
   "Menu for `gnuplot-comint-mode'.")
 
-(defvar gnuplot-comint-menu
-  `("Gnuplot"
-    ["Plot most recent gnuplot buffer"		gnuplot-plot-from-comint
-     (buffer-live-p gnuplot-comint-recent-buffer)]
-    ["Save and plot most recent gnuplot buffer"	gnuplot-save-and-plot-from-comint
-     (buffer-live-p gnuplot-comint-recent-buffer)]
-    "---"
-    ,gnuplot-display-options-menu
-    ["Contextual completion and help"           gnuplot-context-sensitive-mode
-     :style toggle
-     :selected gnuplot-context-sensitive-mode]
-    ["Echo area help (eldoc-mode)" eldoc-mode
-     :active gnuplot-context-sensitive-mode
-     :style toggle
-     :selected eldoc-mode]
-    "---"
-    ["Insert filename at point"			gnuplot-insert-filename t]
-    ["Negate set option"			gnuplot-negate-option t]
-    ["Keyword help"				gnuplot-info-lookup-symbol
-     (or gnuplot-keywords gnuplot-keywords-pending)]
-    ["Quick help for thing at point"            gnuplot-help-function
-     gnuplot-context-sensitive-mode]
-    ["Info documentation on thing at point"
-     gnuplot-info-at-point
-     gnuplot-context-sensitive-mode]
-    ["Switch to recent gnuplot script buffer"	gnuplot-pop-to-recent-buffer
-     (buffer-live-p gnuplot-comint-recent-buffer)]
-    "---"
-    ["Customize gnuplot"			gnuplot-customize t]
-    ["Submit bug report"			gnuplot-bug-report t]
-    ["Show gnuplot-mode version"		gnuplot-show-version t]
-    ["Show gnuplot version"			gnuplot-show-gnuplot-version t]
-    "---"
-    ["Kill gnuplot"				gnuplot-kill-gnuplot-buffer t]
-    ))
-
 ;; Switch to the gnuplot program buffer
 (defun gnuplot-make-gnuplot-buffer ()
   "Switch to the gnuplot program buffer or create one if none exists."
@@ -2288,6 +2282,7 @@ buffer."
         (sleep-for gnuplot-delay)
         (gnuplot-setup-comint-for-image-mode)))
     (message "Starting gnuplot plotting program...Done")))
+
 
 (defun gnuplot-fetch-version-number ()
   "Determine the installed version of the gnuplot program.
@@ -2877,7 +2872,7 @@ Return a list of keywords."
     store ))
 
 
-;;;; Completion at point
+;;;; Completion at point and Eldoc.
 
 ;; There are two alternative completion-at-point mechanisms: the old
 ;; one using info-look and the new one (enabled by default) which
@@ -2891,6 +2886,12 @@ Return a list of keywords."
 
 (defun gnuplot-completion-at-point ()
   (funcall gnuplot-completion-at-point-function))
+
+(defvar gnuplot-eldoc-hash nil
+  "ElDoc strings for gnuplot-mode.
+
+These have to be compiled from the Gnuplot source tree using
+`doc2texi.el'.")
 
 ;; Enable and disable context-sensitive completion
 (define-minor-mode gnuplot-context-sensitive-mode
@@ -2937,6 +2938,8 @@ distribution. See gnuplot-context.el for details."
   (if gnuplot-context-sensitive-mode
       ;; Turn on
       (progn
+        (load-library "gnuplot-context")
+        (load-library "eldoc")
         (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)
         (define-key gnuplot-comint-mode-map (kbd "TAB") 'comint-dynamic-complete)
 
@@ -2965,15 +2968,13 @@ distribution. See gnuplot-context.el for details."
         (when gnuplot-tab-completion
           (set (make-local-variable 'tab-always-indent) 'complete))
 
-        (when called-interactively-p
-          (message "Gnuplot context-sensitive help & completion enabled.")))
+	(message "Gnuplot context-sensitive help & completion enabled."))
 
     ;; Turn off
     (setq gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look)
     (setq eldoc-documentation-function nil)
     (eldoc-mode 0)
-    (when called-interactively-p
-      (message "Gnuplot context-sensitive help & completion disabled."))))
+    (message "Gnuplot context-sensitive help & completion disabled.")))
 
 ;; Older completion method using info-look
 (defun gnuplot-completion-at-point-info-look ()
