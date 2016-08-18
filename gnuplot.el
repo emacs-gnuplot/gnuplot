@@ -570,7 +570,8 @@ The values are
 		(const :tag "Separate window" window)
 		(const :tag "This window"     nil)))
 
-(defcustom gnuplot-echo-command-line-flag (not gnuplot-ntemacs-p)
+(defcustom gnuplot-echo-command-line-flag (and (not gnuplot-ntemacs-p)
+                                               (not (eq window-system 'w32)))
   "*This sets the fall-back value of `comint-process-echos'.
 If `gnuplot-mode' cannot figure out what version number of gnuplot
 this is, then the value of this variable will be used for
@@ -2278,7 +2279,14 @@ buffer."
   (unless (and gnuplot-process (eq (process-status gnuplot-process) 'run)
                gnuplot-buffer (buffer-live-p gnuplot-buffer))
     (message "Starting gnuplot plotting program...")
-    (setq gnuplot-buffer (make-comint gnuplot-process-name gnuplot-program)
+    (setq gnuplot-buffer
+          (if (and (eq window-system 'w32)
+                   (string= "cmdproxy.exe"
+                            (file-name-nondirectory shell-file-name)))
+              (make-comint gnuplot-process-name shell-file-name
+                           nil
+                           "/C" (expand-file-name gnuplot-program))
+            (make-comint gnuplot-process-name gnuplot-program))
           gnuplot-process (get-buffer-process gnuplot-buffer))
     (gnuplot-set-process-query-on-exit-flag gnuplot-process nil)
     (with-current-buffer gnuplot-buffer

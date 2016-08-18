@@ -124,7 +124,14 @@
       Gnuplot-mode is already on http://melpa.milkbox.net, but it would
       be good to get it into the other repositories too.
 
-   2. Using gnuplot-mode on windows is problematic.  John Handy says:
+   2. Using gnuplot-mode on windows might be problematic.
+
+      The latest version has been reported to work on Windows 10 and
+      W32 Emacs if you use =cmdproxy.exe= as your =shell-file-name=
+      (the default) and point =gnuplot-program= to =gnuplot.exe= (not
+      =wgnuplot.exe=).
+
+      Nevertheless, John Handy says:
 
       You probably get nagged quite a bit about this. Some have been running into
       issues with gnuplot-mode and Windows and I'm wondering if you have any
