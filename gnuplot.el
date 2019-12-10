@@ -2,7 +2,9 @@
 
 ;; Copyright (C) 1998, 2011 Phil Type and Bruce Ravel, 1999-2012 Bruce Ravel
 
-;; Author:     Bruce Ravel <bruceravel1@gmail.com> and Phil Type
+;; Author: Jon Oddie
+;;         Bruce Ravel
+;;         Phil Type
 ;; Maintainer: Bruce Ravel <bruceravel1@gmail.com>
 ;; Created:    June 28 1998
 ;; Updated:    November 1 2012
@@ -408,8 +410,7 @@ real work."
 (defconst gnuplot-ntemacs-p (string-match "msvc" (emacs-version)))
 (defvar   gnuplot-three-eight-p "")
 
-(defconst gnuplot-maintainer "Bruce Ravel")
-(defconst gnuplot-maintainer-email "bruceravel1@gmail.com>")
+(defconst gnuplot-maintainer "Jon Oddie")
 (defconst gnuplot-maintainer-url
   "http://github.com/bruceravel/gnuplot-mode/")
 (defconst gnuplot-version "0.7-beta")
