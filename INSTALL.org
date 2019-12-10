@@ -91,5 +91,4 @@
   | missing            |                                                      |
 
 * Problems?
-  Contact gnuplot-mode's author Bruce Ravel <bruceravel1@gmail.com> or
-  submit an issue on github: http://github.com/bruceravel/gnuplot-mode
+  Submit an issue on github: http://github.com/bruceravel/gnuplot-mode
