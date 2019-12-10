@@ -129,7 +129,7 @@
 ;;                         ============
 ;;
 ;; A recent version of this file can be found at
-;;   http://github.com/bruceravel/gnuplot-mode/
+;;   https://github.com/emacsorphanage/gnuplot/
 ;;
 ;; To autoload gnuplot-mode on any file with gp extension, put this in
 ;; your .emacs file
@@ -412,7 +412,7 @@ real work."
 
 (defconst gnuplot-maintainer "Jon Oddie")
 (defconst gnuplot-maintainer-url
-  "http://github.com/bruceravel/gnuplot-mode/")
+  "https://github.com/emacsorphanage/gnuplot/")
 (defconst gnuplot-version "0.7-beta")
 
 (defgroup gnuplot nil
@@ -423,7 +423,7 @@ real work."
   :group 'local
   :link '(emacs-library-link :tag "Lisp File" "gnuplot.el")
   :link '(url-link :tag "Homepage"
-		   "http://github.com/bruceravel/gnuplot-mode/")
+		   "https://github.com/emacsorphanage/gnuplot/")
   :link '(custom-manual "(gnuplot)Top")
   :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el") )
 (defgroup gnuplot-insertions nil
@@ -3130,7 +3130,7 @@ to make a list of keywords.
 
 The info file should be installed by default with the Gnuplot
 distribution, or is available at the `gnuplot-mode' web page:
-http://github.com/bruceravel/gnuplot-mode/
+https://github.com/emacsorphanage/gnuplot/
 
 With the new context-sensitive mode active, gnuplot-mode can also
 provide `eldoc-mode' syntax hints as you type.  This requires a
