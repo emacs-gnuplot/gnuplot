@@ -2,7 +2,7 @@
 * gnuplot-mode, version 0.7
 
   This directory contains files for running Gnuplot from within emacs.
-  See the homepage at https://github.com/bruceravel/gnuplot-mode
+  See the homepage at https://github.com/emacsorphanage/gnuplot
 
 ** Contents
 

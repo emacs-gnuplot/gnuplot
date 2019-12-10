@@ -3,7 +3,7 @@
 ;; Copyright (C) 1998, 2011 Phil Type and Bruce Ravel, 1999-2012 Bruce Ravel
 
 ;; Authors:    Jon Oddie, Bruce Ravel, Phil Type, and others
-;; Maintainer: https://github.com/bruceravel/gnuplot-mode
+;; Maintainer: https://github.com/emacsorphanage/gnuplot
 ;; Created:    June 28 1998
 ;; Updated:    November 1 2012
 ;; Version:    0.7.0
@@ -30,7 +30,7 @@
 ;; program's maintainer or write to: The Free Software Foundation,
 ;; Inc.; 675 Massachusetts Avenue; Cambridge, MA 02139, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Report bugs as issues at https://github.com/bruceravel/gnuplot-mode
+;; Report bugs as issues at https://github.com/emacsorphanage/gnuplot
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Commentary:
@@ -127,7 +127,7 @@
 ;;                         ============
 ;;
 ;; A recent version of this file can be found at
-;;   http://github.com/bruceravel/gnuplot-mode/
+;;   https://github.com/emacsorphanage/gnuplot/
 ;;
 ;; To autoload gnuplot-mode on any file with gp extension, put this in
 ;; your .emacs file
@@ -410,7 +410,7 @@ real work."
 
 (defconst gnuplot-maintainer "Jon Oddie")
 (defconst gnuplot-maintainer-url
-  "http://github.com/bruceravel/gnuplot-mode/")
+  "https://github.com/emacsorphanage/gnuplot/")
 (defconst gnuplot-version "0.7-beta")
 
 (defgroup gnuplot nil
@@ -421,7 +421,7 @@ real work."
   :group 'local
   :link '(emacs-library-link :tag "Lisp File" "gnuplot.el")
   :link '(url-link :tag "Homepage"
-		   "http://github.com/bruceravel/gnuplot-mode/")
+		   "https://github.com/emacsorphanage/gnuplot/")
   :link '(custom-manual "(gnuplot)Top")
   :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el") )
 (defgroup gnuplot-insertions nil
@@ -3205,7 +3205,7 @@ shown."
 This was written with version 4.6 of gnuplot in mind, but should
 work with newer and older versions.
 
-Report bugs in `gnuplot-mode' as issues at https://github.com/bruceravel/gnuplot-mode
+Report bugs in `gnuplot-mode' as issues at https://github.com/emacsorphanage/gnuplot
 
 			    ------O------
 
@@ -3219,7 +3219,7 @@ to make a list of keywords.
 
 The info file should be installed by default with the Gnuplot
 distribution, or is available at the `gnuplot-mode' web page:
-http://github.com/bruceravel/gnuplot-mode/
+https://github.com/emacsorphanage/gnuplot/
 
 With the new context-sensitive mode active, gnuplot-mode can also
 provide `eldoc-mode' syntax hints as you type.  This requires a
