@@ -2,7 +2,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ([2.61])
-AC_INIT([gnuplot-mode], [0.7], [bruceravel1@gmail.com])
+AC_INIT([gnuplot-mode], [0.7], [https://github.com/emacsorphanage/gnuplot])
 AM_INIT_AUTOMAKE
 
 # Checks for programs.

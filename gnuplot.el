@@ -2,7 +2,9 @@
 
 ;; Copyright (C) 1998, 2011 Phil Type and Bruce Ravel, 1999-2012 Bruce Ravel
 
-;; Author:     Bruce Ravel <bruceravel1@gmail.com> and Phil Type
+;; Author: Jon Oddie
+;;         Bruce Ravel
+;;         Phil Type
 ;; Maintainer: Bruce Ravel <bruceravel1@gmail.com>
 ;; Created:    June 28 1998
 ;; Updated:    November 1 2012
@@ -30,8 +32,8 @@
 ;; program's maintainer or write to: The Free Software Foundation,
 ;; Inc.; 675 Massachusetts Avenue; Cambridge, MA 02139, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; send bug reports to the author (bruceravel1@gmail.com)
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Report bugs at https://github.com/emacsorphanage/gnuplot/issues
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Commentary:
 
@@ -127,7 +129,7 @@
 ;;                         ============
 ;;
 ;; A recent version of this file can be found at
-;;   http://github.com/bruceravel/gnuplot-mode/
+;;   https://github.com/emacsorphanage/gnuplot/
 ;;
 ;; To autoload gnuplot-mode on any file with gp extension, put this in
 ;; your .emacs file
@@ -408,10 +410,9 @@ real work."
 (defconst gnuplot-ntemacs-p (string-match "msvc" (emacs-version)))
 (defvar   gnuplot-three-eight-p "")
 
-(defconst gnuplot-maintainer "Bruce Ravel")
-(defconst gnuplot-maintainer-email "bruceravel1@gmail.com>")
+(defconst gnuplot-maintainer "Jon Oddie")
 (defconst gnuplot-maintainer-url
-  "http://github.com/bruceravel/gnuplot-mode/")
+  "https://github.com/emacsorphanage/gnuplot/")
 (defconst gnuplot-version "0.7-beta")
 
 (defgroup gnuplot nil
@@ -422,7 +423,7 @@ real work."
   :group 'local
   :link '(emacs-library-link :tag "Lisp File" "gnuplot.el")
   :link '(url-link :tag "Homepage"
-		   "http://github.com/bruceravel/gnuplot-mode/")
+		   "https://github.com/emacsorphanage/gnuplot/")
   :link '(custom-manual "(gnuplot)Top")
   :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el") )
 (defgroup gnuplot-insertions nil
@@ -772,7 +773,6 @@ non-nil."
     (define-key map "\C-c\C-p"    'gnuplot-show-gnuplot-version)
     (define-key map "\C-c\C-r"    'gnuplot-send-region-to-gnuplot)
     (define-key map (kbd "C-M-x") 'gnuplot-send-line-to-gnuplot)
-    (define-key map "\C-c\C-u"    'gnuplot-bug-report)
     (define-key map "\C-c\C-v"    'gnuplot-send-line-and-forward)
     (define-key map "\C-c\C-z"    'gnuplot-customize)
     (define-key map "\C-i"        'indent-for-tab-command)
@@ -846,7 +846,6 @@ non-nil."
      (fboundp 'gnuplot-gui-swap-simple-complete)]
     "---"
     ["Customize gnuplot"                gnuplot-customize t]
-    ["Submit bug report"                gnuplot-bug-report t]
     ["Show gnuplot-mode version"        gnuplot-show-version t]
     ["Show gnuplot version"             gnuplot-show-gnuplot-version t]
     "---"
@@ -2197,7 +2196,6 @@ this function is attached to `gnuplot-after-plot-hook'"
      (buffer-live-p gnuplot-comint-recent-buffer)]
     "---"
     ["Customize gnuplot"			gnuplot-customize t]
-    ["Submit bug report"			gnuplot-bug-report t]
     ["Show gnuplot-mode version"		gnuplot-show-version t]
     ["Show gnuplot version"			gnuplot-show-gnuplot-version t]
     "---"
@@ -2263,7 +2261,6 @@ buffer."
 (define-key gnuplot-comint-mode-map "\C-c\C-i"	'gnuplot-insert-filename)
 (define-key gnuplot-comint-mode-map "\C-c\C-n"	'gnuplot-negate-option)
 (define-key gnuplot-comint-mode-map "\C-c\C-p"	'gnuplot-show-gnuplot-version)
-(define-key gnuplot-comint-mode-map "\C-c\C-u"	'gnuplot-bug-report)
 (define-key gnuplot-comint-mode-map "\C-c\C-z"	'gnuplot-customize)
 (define-key gnuplot-comint-mode-map "\C-c\C-e"	'gnuplot-pop-to-recent-buffer)
 (define-key gnuplot-comint-mode-map "\C-c\M-i"  'gnuplot-inline-image-mode)
@@ -2341,9 +2338,9 @@ defaults to 3.7."
 	       (require 'xpm)
 	       (gnuplot-make-toolbar-function))
 	(error nil)))
-  (message "gnuplot-mode %s (gnuplot %s) -- report bugs with %S"
+  (message "gnuplot-mode %s (gnuplot %s) -- report bugs as issues at %s"
 	   gnuplot-version gnuplot-program-version
-	   (substitute-command-keys "\\[gnuplot-bug-report]")))
+	   gnuplot-maintainer-url))
 
 (defvar gnuplot-prompt-regexp
   (regexp-opt '("gnuplot> " "multiplot> "))
@@ -3111,93 +3108,6 @@ shown."
 	     "Help no longer displayed after insertions.")))
 
 
-;;; --- bug reports
-;; grep '(defcustom' gnuplot.el gnuplot-gui.el | awk '{print $2}'
-(defun gnuplot-bug-report ()
-  "Submit a bug report about `gnuplot-mode' by email.
-Please do not send any bug reports about gnuplot itself to the
-maintainer of `gnuplot-mode'."
-  (interactive)
-  (let ((line (make-string 62 ?-)))
-    (require 'reporter)
-    (and (y-or-n-p
-	  "Do you really want to submit an email report about gnuplot? ")
-	 (y-or-n-p
-	  (concat "Variable values will be written to the message.  "
-		  "Don't erase them.  OK? "))
-	 (reporter-submit-bug-report
-	  (format "%s <%s>" gnuplot-maintainer gnuplot-maintainer-email)
-	  (format "gnuplot-mode (version %s)" gnuplot-version)
-	  (append      ; variables to display values of in mail
-	   '(gnuplot-mode-hook
-	     gnuplot-load-hook
-	     gnuplot-after-plot-hook
-	     gnuplot-info-hook
-	     gnuplot-comint-setup-hook
-	     gnuplot-program
-	     gnuplot-program-version
-	     gnuplot-process-name
-	     gnuplot-gnuplot-buffer
-	     gnuplot-display-process
-	     gnuplot-info-display
-	     gnuplot-echo-command-line-flag
-	     gnuplot-insertions-show-help-flag
-	     gnuplot-delay
-	     gnuplot-quote-character
-	     gnuplot-keywords-when
-	     ;;gnuplot-insertions-menu-flag
-	     ;;gnuplot-insertions-adornments
-	     ;;gnuplot-insertions-plot-options
-	     ;;gnuplot-insertions-terminal
-	     ;;gnuplot-insertions-x-axis
-	     ;;gnuplot-insertions-x2-axis
-	     ;;gnuplot-insertions-y-axis
-	     ;;gnuplot-insertions-y2-axis
-	     ;;gnuplot-insertions-z-axis
-	     ;;gnuplot-insertions-parametric-plots
-	     ;;gnuplot-insertions-polar-plots
-	     ;;gnuplot-insertions-surface-plots
-	     gnuplot-toolbar-display-flag
-	     gnuplot-toolbar-use-toolbar
-	     gnuplot-gui-popup-flag
-	     gnuplot-gui-frame-plist
-	     gnuplot-gui-frame-parameters
-	     gnuplot-gui-fontname-list
-	     gnuplot-gui-plot-splot-fit-style
-             gnuplot-inline-image-mode
-             gnuplot-tab-completion
-             gnuplot-eldoc-mode
-             gnuplot-context-sensitive-mode
-             gnuplot-basic-offset
-             gnuplot-buffer-max-size
-             gnuplot-comint-mode-hook
-	     ;; plus a few more...
-	     gnuplot-comint-recent-buffer
-	     gnuplot-version
-	     Info-directory-list
-	     exec-path
-	     features ))
-	  nil				; pre-hooks
-	  nil				; post-hooks
-	  (concat line                  ; salutation
-	   "\nInsert your description of the gnuplot-mode bug here.\n"
-	   "Please be as specific as possible.\n\n"
-	   "There are several known shortcomings of gnuplot-mode.\n"
-	   "Many of these have to do with the complicated and inconsistent\n"
-	   "syntax of gnuplot itself.  See the document string for the\n"
-	   "function `gnuplot-mode' (use `"
-	   (substitute-command-keys "\\[describe-function]")
-	   "') for details.\n\n"
-	   "Note that this bug report form should be used for problems\n"
-	   "with gnuplot-mode only.  Problems with gnuplot itself should\n"
-	   "be addressed directly to the developers of gnuplot.\n"
-	   "The maintainer of gnuplot-mode will not field questions about\n"
-	   "gnuplot itself.  Thank you.\n"
-	   line)
-	  ))))
-
-
-
 ;;; --- autoloaded functions: gnuplot-mode and gnuplot-make-buffer
 
 ;;;###autoload
@@ -3206,7 +3116,7 @@ maintainer of `gnuplot-mode'."
 This was written with version 4.6 of gnuplot in mind, but should
 work with newer and older versions.
 
-Report bugs in `gnuplot-mode' using \\[gnuplot-bug-report].
+Report bugs at https://github.com/emacsorphanage/gnuplot/issues
 
 			    ------O------
 
@@ -3220,7 +3130,7 @@ to make a list of keywords.
 
 The info file should be installed by default with the Gnuplot
 distribution, or is available at the `gnuplot-mode' web page:
-http://github.com/bruceravel/gnuplot-mode/
+https://github.com/emacsorphanage/gnuplot/
 
 With the new context-sensitive mode active, gnuplot-mode can also
 provide `eldoc-mode' syntax hints as you type.  This requires a

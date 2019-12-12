@@ -3,7 +3,7 @@
   The easiest way to install gnuplot-mode in a recent Emacs is to use
   the Emacs package system with the MELPA repository, or the el-get
   package (described in README.org). Either method will install the
-  most recent gnuplot-mode from the [[https://github.com/bruceravel/gnuplot-mode][Github repository]]. If you want to
+  most recent gnuplot-mode from the [[https://github.com/emacsorphanage/gnuplot][Github repository]]. If you want to
   install gnuplot-mode yourself from a cloned repository, read on.
 
   Gnuplot-mode has been included with Gnuplot since the 3.7
@@ -91,5 +91,4 @@
   | missing            |                                                      |
 
 * Problems?
-  Contact gnuplot-mode's author Bruce Ravel <bruceravel1@gmail.com> or
-  submit an issue on github: http://github.com/bruceravel/gnuplot-mode
+  Submit an issue on github: https://github.com/emacsorphanage/gnuplot
