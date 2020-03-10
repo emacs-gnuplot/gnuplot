@@ -1342,7 +1342,7 @@ This is basically swiped from VM."
       (set-specifier top-toolbar-height    height frame tag-set))) ))
 
 (defvar gnuplot-line-xpm
-  (if (featurep 'xpm)
+  (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
       (toolbar-make-button-list
        "/* XPM */
 static char *line[] = {
@@ -1398,7 +1398,7 @@ static char *line[] = {
   "XPM format image used for the \"plot line\" button"))
 
 (defvar gnuplot-region-xpm
-  (if (featurep 'xpm)
+  (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
       (toolbar-make-button-list
        "/* XPM */
 static char *region[] = {
@@ -1454,7 +1454,7 @@ static char *region[] = {
   "XPM format image used for the \"plot region\" button"))
 
 (defvar gnuplot-buffer-xpm
-  (if (featurep 'xpm)
+  (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
       (toolbar-make-button-list
        "/* XPM */
 static char *buffer[] = {
@@ -1510,7 +1510,7 @@ static char *buffer[] = {
   "XPM format image used for the \"plot buffer\" button"))
 
 (defvar gnuplot-doc-xpm
-  (if (featurep 'xpm)
+  (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
       (toolbar-make-button-list
        "/* XPM */
 static char *book_index[] = {
@@ -1567,7 +1567,7 @@ static char *book_index[] = {
   "XPM format image used for the \"document\" button"))
 
 (defvar gnuplot-help-xpm
-  (if (featurep 'xpm)
+  (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
       (toolbar-make-button-list
        "/* XPM */
 static char *help_btn[] = {
