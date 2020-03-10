@@ -73,7 +73,7 @@
         (require 'wid-edit))
     (error nil)))
 (require 'cl)
-(eval-when-compile			; suppress some compiler warnings
+(eval-when-compile          ; suppress some compiler warnings
   (defvar gnuplot-xemacs-p nil)
   (defvar gnuplot-quote-character nil)
   (defvar gnuplot-info-display nil)
@@ -82,7 +82,7 @@
 ;; (eval-when-compile
 ;;   (require 'wid-edit))
 
-(eval-and-compile			; I need this!
+(eval-and-compile           ; I need this!
   (if (fboundp 'split-string)
       ()
     (defun split-string (string &optional pattern)
@@ -326,7 +326,7 @@ See the doc-string for `gnuplot-gui-all-types'.")
                   '(("POINTSIZE"        'number " ")
                     ("LINEWIDTH"        'number " ")
                     ("INTERVAL "        'number " ")))
-            (cons "vgagl"		; for pm3d patch (also persist, raise in x11) <MT>
+            (cons "vgagl"       ; for pm3d patch (also persist, raise in x11) <MT>
                   '(("BACKGROUND"       'position  " " "background" 3)
                     ("INTERPOLATION"    'list " " "uniform" "interpolate")
                     ("DUMP"             'file " ")
@@ -838,8 +838,8 @@ The value of REST depends upon TYPE:
 Here is an example entry for the png terminal type:
 
   (cons \"png\"
-	'((\"SIZE\"  'list \" \" \"small\" \"medium\" \"large\")
-	  (\"COLOR\" 'list \" \" \"monochrome\" \"gray\" \"color\")))
+    '((\"SIZE\"  'list \" \" \"small\" \"medium\" \"large\")
+      (\"COLOR\" 'list \" \" \"monochrome\" \"gray\" \"color\")))
 
 This alist is formed at load time by appending together
 `gnuplot-gui-terminal-types', `gnuplot-gui-set-types' and
@@ -1030,10 +1030,10 @@ from the list and concatenates the strings that are part of a quoted
 argument, for example an axis label or a font name.  It also replaces
 bounding single quotes with double quotes, since double quotes are
 used in `gnuplot-gui-all-types'."
-  (let (fixed-list quote quoted)	; remove blanks
+  (let (fixed-list quote quoted)    ; remove blanks
     (setq list (remove* "\\s-+" list :test 'string-match)
           list (remove* ""      list :test 'string=))
-    (while list				; concatinate parts of quoted string
+    (while list             ; concatinate parts of quoted string
       (if (not (string-match "^\\([\]\[()'\"]\\)" (car list)))
           (setq fixed-list (append fixed-list (list (car list))))
         (setq quote (match-string 1 (car list))
@@ -1074,7 +1074,7 @@ arguments."
                                (cons tag (cons (car default) (cdr default))))
                               (t (cons tag default))))
              (temp-list arg-list) )
-        ;;(message "%S" temp-list)	; want to lop values off arg-list
+        ;;(message "%S" temp-list)  ; want to lop values off arg-list
                                         ; as they are found
         (if (symbolp (cadr values))
             (setq values (symbol-value (cadr values))))
@@ -1138,9 +1138,9 @@ arguments."
            ;; ---------------------------- range
            ((equal symbol 'range)
             (if (string-match (concat "\\[\\s-*" ; opening bracket
-                                      "\\([^:, \t]*\\)"	; first argument
+                                      "\\([^:, \t]*\\)" ; first argument
                                       "\\s-*[:,]\\s-*" ; separator
-                                      "\\([^\] \t]*\\)"	; second argument
+                                      "\\([^\] \t]*\\)" ; second argument
                                       "\\s-*\\]") ; closing bracket
                               (car temp-list))
                 (setq this-cons
@@ -1328,7 +1328,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
            (list    (gnuplot-gui-type-list   this)))
       (if (symbolp (cadr list))
           (setq list (symbol-value (cadr list))))
-      (widget-insert "\t")		; insert the appropriate widget
+      (widget-insert "\t")      ; insert the appropriate widget
       (cond
        ;;------------------------------ list, list* ------------
        ((member* (eval wtype) '(list list*) :test 'equal)
@@ -1716,7 +1716,7 @@ is non-nil if this is a 'range widget."
   "A link to an info file for the Gnuplot GUI."
   :action '(lambda (widget &optional event)
              (let ((gnuplot-info-display 'frame))
-               (if gnuplot-keywords-pending		; <HW>
+               (if gnuplot-keywords-pending     ; <HW>
                    (gnuplot-setup-info-look))
                (gnuplot-info-lookup-symbol (widget-value widget)
                                            'gnuplot-mode))))

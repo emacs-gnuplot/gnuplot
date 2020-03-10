@@ -129,7 +129,7 @@
 ;;
 ;; Something like
 ;;   (setq auto-mode-alist (append '(("\\.gp$" . gnuplot-mode))
-;;			           auto-mode-alist))
+;;                                 auto-mode-alist))
 ;; is useful for having files ending in .gp start up in gnuplot-mode.
 ;;
 ;; Something like
@@ -145,7 +145,7 @@
 ;;   2.  Make sure info can find gnuplot.info by putting this in your
 ;;       .emacs file:
 ;;         (setenv "INFOPATH"
-;;	      (concat (getenv "INFOPATH") ":"
+;;            (concat (getenv "INFOPATH") ":"
 ;;                    (expand-file-name "/path/to/file")))
 ;;       where "/path/to/file" is the location of gnuplot.info
 ;;
@@ -416,7 +416,7 @@ real work."
   :link '(url-link :tag "Homepage"
                    "https://github.com/emacsorphanage/gnuplot/")
   :link '(custom-manual "(gnuplot)Top")
-  :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el") )
+  :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el"))
 (defgroup gnuplot-insertions nil
   "Insert commands into gnuplot-scripts from a pull-down menu."
   :prefix "gnuplot-insertions-"
@@ -462,27 +462,27 @@ version 20.2.
 For the newer version of info-look, do this:
 
   (add-hook \'gnuplot-info-hook
-	    \'(lambda ()
-	       (let ((elem (assoc \'gnuplot-mode info-lookup-alist)))
-	         (delete elem info-lookup-alist)
-		 (info-lookup-maybe-add-help
-		  :mode 'gnuplot-mode :topic 'symbol
-		  :regexp \"[a-zA-Z][_a-zA-Z0-9]*\"
-		  :doc-spec '((\"(gnuplot)General Index\" nil
-			       \"[_a-zA-Z0-9]+\"))))))
+            \'(lambda ()
+               (let ((elem (assoc \'gnuplot-mode info-lookup-alist)))
+                 (delete elem info-lookup-alist)
+                 (info-lookup-maybe-add-help
+                  :mode 'gnuplot-mode :topic 'symbol
+                  :regexp \"[a-zA-Z][_a-zA-Z0-9]*\"
+                  :doc-spec '((\"(gnuplot)General Index\" nil
+                               \"[_a-zA-Z0-9]+\"))))))
 
 For the older version of info-look, do this:
 
   (add-hook \'gnuplot-info-hook
-	    \'(lambda ()
-	       (let ((elem (assoc \'gnuplot-mode info-lookup-alist)))
-	         (delete elem info-lookup-alist)
-	         (setq info-lookup-alist
-		       (append info-lookup-alist
-			       \'((gnuplot-mode
-			          \"[a-zA-Z][_a-zA-Z0-9]*\" nil
-			          ((\"(gnuplot)General Index\" nil
-				    \"[_a-zA-Z0-9]+\" )))))))))"
+            \'(lambda ()
+               (let ((elem (assoc \'gnuplot-mode info-lookup-alist)))
+                 (delete elem info-lookup-alist)
+                 (setq info-lookup-alist
+                       (append info-lookup-alist
+                               \'((gnuplot-mode
+                                  \"[a-zA-Z][_a-zA-Z0-9]*\" nil
+                                  ((\"(gnuplot)General Index\" nil
+                                    \"[_a-zA-Z0-9]+\" )))))))))"
   :group 'gnuplot-hooks
   :type 'hook)
 
@@ -619,8 +619,8 @@ beginning the continued command."
 ;;   "Force gnuplot-mode to behave for this version of gnuplot."
 ;;   :group 'gnuplot
 ;;   :type '(radio (const :tag "unspecified"   nil)
-;; 		(const :tag "3.8 or newer" "3.8")
-;; 		(const :tag "3.7 or older" "3.7")))
+;;              (const :tag "3.8 or newer" "3.8")
+;;              (const :tag "3.7 or older" "3.7")))
 
 (defvar gnuplot-info-frame nil)
 (defvar gnuplot-info-nodes '())
@@ -635,7 +635,7 @@ beginning the continued command."
 These are set by `gnuplot-set-keywords-list' from the values in
 `info-lookup-cache'.")
 (defvar gnuplot-keywords-alist nil) ;; For all-completions
-(defvar gnuplot-keywords-pending t	;; <HW>
+(defvar gnuplot-keywords-pending t      ;; <HW>
   "A boolean which gets toggled when the info file is probed.")
 (defcustom gnuplot-keywords-when 'deferred ;; 'immediately
   "This variable controls when the info file is parsed.
@@ -884,9 +884,9 @@ the \"regis\" terminal type to the terminal sub-menu:
   'gnuplot-load-hook
   '(lambda ()
       (setq gnuplot-insertions-terminal
-	    (append gnuplot-insertions-terminal
-		    (list
-		     [\"regis\"
+            (append gnuplot-insertions-terminal
+                    (list
+                     [\"regis\"
                       (gnuplot-insert \"set terminal regis\")
                        t])))))")
 
@@ -905,42 +905,42 @@ create a `gnuplot-mode' buffer."
 (defcustom gnuplot-insertions-adornments ; this is icky...
   (if gnuplot-three-eight-p
       '("adornments"
-        ["arrow"       (gnuplot-insert "set arrow ")	      t]
-        ["bar"	       (gnuplot-insert "set bar")	      t]
-        ["border"      (gnuplot-insert "set border")	      t]
-        ["boxwidth"    (gnuplot-insert "set boxwidth ")	      t]
-        ["format"      (gnuplot-insert "set format ")	      t]
-        ["grid"	       (gnuplot-insert "set grid")	      t]
-        ["key"	       (gnuplot-insert "set key ")	      t]
-        ["label"       (gnuplot-insert "set label ")	      t]
+        ["arrow"       (gnuplot-insert "set arrow ")          t]
+        ["bar"         (gnuplot-insert "set bar")             t]
+        ["border"      (gnuplot-insert "set border")          t]
+        ["boxwidth"    (gnuplot-insert "set boxwidth ")       t]
+        ["format"      (gnuplot-insert "set format ")         t]
+        ["grid"        (gnuplot-insert "set grid")            t]
+        ["key"         (gnuplot-insert "set key ")            t]
+        ["label"       (gnuplot-insert "set label ")          t]
         ["pointsize"   (gnuplot-insert "set pointsize ")      t]
-        ["samples"     (gnuplot-insert "set samples ")	      t]
-        ["size"        (gnuplot-insert "set size ")	      t]
+        ["samples"     (gnuplot-insert "set samples ")        t]
+        ["size"        (gnuplot-insert "set size ")           t]
         ["style"       (gnuplot-insert "set style ")          t]
-        ["tics"        (gnuplot-insert "set tics ")	      t]
+        ["tics"        (gnuplot-insert "set tics ")           t]
         ["timefmt"     (gnuplot-insert "set timefmt ")        t]
         ["timestamp"   (gnuplot-insert "set timestamp ")      t]
-        ["title"       (gnuplot-insert "set title ")	      t]
-        ["zeroaxis"    (gnuplot-insert "set zeroaxis")        t] )
+        ["title"       (gnuplot-insert "set title ")          t]
+        ["zeroaxis"    (gnuplot-insert "set zeroaxis")        t])
     '("adornments"
       ["data style"     (gnuplot-insert "set data style ")     t]
       ["function style" (gnuplot-insert "set function style ") t]
-      ["arrow"          (gnuplot-insert "set arrow ")	       t]
-      ["bar"	        (gnuplot-insert "set bar")	       t]
-      ["border"         (gnuplot-insert "set border")	       t]
+      ["arrow"          (gnuplot-insert "set arrow ")          t]
+      ["bar"            (gnuplot-insert "set bar")             t]
+      ["border"         (gnuplot-insert "set border")          t]
       ["boxwidth"       (gnuplot-insert "set boxwidth ")       t]
-      ["format"         (gnuplot-insert "set format ")	       t]
-      ["grid"	        (gnuplot-insert "set grid")	       t]
-      ["key"	        (gnuplot-insert "set key ")	       t]
-      ["label"          (gnuplot-insert "set label ")	       t]
+      ["format"         (gnuplot-insert "set format ")         t]
+      ["grid"           (gnuplot-insert "set grid")            t]
+      ["key"            (gnuplot-insert "set key ")            t]
+      ["label"          (gnuplot-insert "set label ")          t]
       ["pointsize"      (gnuplot-insert "set pointsize ")      t]
-      ["samples"        (gnuplot-insert "set samples ")	       t]
-      ["size"           (gnuplot-insert "set size ")	       t]
-      ["tics"           (gnuplot-insert "set tics ")	       t]
+      ["samples"        (gnuplot-insert "set samples ")        t]
+      ["size"           (gnuplot-insert "set size ")           t]
+      ["tics"           (gnuplot-insert "set tics ")           t]
       ["timefmt"        (gnuplot-insert "set timefmt ")        t]
       ["timestamp"      (gnuplot-insert "set timestamp ")      t]
-      ["title"          (gnuplot-insert "set title ")	       t]
-      ["zeroaxis"       (gnuplot-insert "set zeroaxis")        t] ))
+      ["title"          (gnuplot-insert "set title ")          t]
+      ["zeroaxis"       (gnuplot-insert "set zeroaxis")        t]))
   "Adornments submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -957,18 +957,18 @@ create a `gnuplot-mode' buffer."
 
 (defcustom gnuplot-insertions-plot-options
   '("plot options"
-    ["autoscale"  (gnuplot-insert "set autoscale ")	     t]
-    ["clip"	  (gnuplot-insert "set clip ")		     t]
-    ["encoding"   (gnuplot-insert "set encoding ")	     t]
-    ["locale"     (gnuplot-insert "set locale ")	     t]
-    ["logscale"	  (gnuplot-insert "set logscale ")	     t]
-    ["multiplot"  (gnuplot-insert "set multiplot")	     t]
-    ["missing"	  (gnuplot-insert "set missing \"\"")	     t]
-    ["palette"    (gnuplot-insert "set palette ")            t]	; <MT>
+    ["autoscale"  (gnuplot-insert "set autoscale ")          t]
+    ["clip"       (gnuplot-insert "set clip ")               t]
+    ["encoding"   (gnuplot-insert "set encoding ")           t]
+    ["locale"     (gnuplot-insert "set locale ")             t]
+    ["logscale"   (gnuplot-insert "set logscale ")           t]
+    ["multiplot"  (gnuplot-insert "set multiplot")           t]
+    ["missing"    (gnuplot-insert "set missing \"\"")        t]
+    ["palette"    (gnuplot-insert "set palette ")            t]         ; <MT>
     ["pm3d"       (gnuplot-insert "set pm3d ")               t]
-    ["offsets"	  (gnuplot-insert "set offsets ")	     t]
-    ["output"     (gnuplot-insert "set output ")	     t]
-    ["zero"	  (gnuplot-insert "set zero ")		     t] )
+    ["offsets"    (gnuplot-insert "set offsets ")            t]
+    ["output"     (gnuplot-insert "set output ")             t]
+    ["zero"       (gnuplot-insert "set zero ")               t])
   "Plot options submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -997,9 +997,9 @@ create a `gnuplot-mode' buffer."
     ["tek40xx"    (gnuplot-insert "set terminal tek40xx")    t]
     ["tkcanvas"   (gnuplot-insert "set terminal tkcanvas")   t]
     ["tpic"       (gnuplot-insert "set terminal tpic")       t]
-    ["vgagl"      (gnuplot-insert "set terminal vgagl")      t]	; for pm3d patch
+    ["vgagl"      (gnuplot-insert "set terminal vgagl")      t]         ; for pm3d patch
     ["vttek"      (gnuplot-insert "set terminal vttek")      t]
-    ["x11"        (gnuplot-insert "set terminal x11")        t] )
+    ["x11"        (gnuplot-insert "set terminal x11")        t] §)
   "Terminal submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -1015,14 +1015,14 @@ create a `gnuplot-mode' buffer."
 
 (defcustom gnuplot-insertions-x-axis
   '("x-axis"
-    ["xdata"	  (gnuplot-insert "set xdata ")		     t]
-    ["xlabel"	  (gnuplot-insert "set xlabel ")	     t]
-    ["xrange"	  (gnuplot-insert "set xrange [:]")	     t]
-    ["xtics"	  (gnuplot-insert "set xtics ")		     t]
-    ["mxtics"	  (gnuplot-insert "set mxtics ")	     t]
-    ["xzeroaxis"  (gnuplot-insert "set xzeroaxis ")	     t]
-    ["xdtics"	  (gnuplot-insert "set xdtics ")	     t]
-    ["xmtics"	  (gnuplot-insert "set xmtics ")	     t])
+    ["xdata"      (gnuplot-insert "set xdata ")              t]
+    ["xlabel"     (gnuplot-insert "set xlabel ")             t]
+    ["xrange"     (gnuplot-insert "set xrange [:]")          t]
+    ["xtics"      (gnuplot-insert "set xtics ")              t]
+    ["mxtics"     (gnuplot-insert "set mxtics ")             t]
+    ["xzeroaxis"  (gnuplot-insert "set xzeroaxis ")          t]
+    ["xdtics"     (gnuplot-insert "set xdtics ")             t]
+    ["xmtics"     (gnuplot-insert "set xmtics ")             t])
   "X-axis submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -1038,14 +1038,14 @@ create a `gnuplot-mode' buffer."
 
 (defcustom gnuplot-insertions-x2-axis
   '("x2-axis"
-    ["x2data"	  (gnuplot-insert "set xdata ")		     t]
-    ["x2label"	  (gnuplot-insert "set xlabel ")	     t]
-    ["x2range"	  (gnuplot-insert "set xrange [:]")	     t]
-    ["x2tics"	  (gnuplot-insert "set xtics ")		     t]
-    ["mx2tics"	  (gnuplot-insert "set mxtics ")	     t]
-    ["x2zeroaxis" (gnuplot-insert "set xzeroaxis ")	     t]
-    ["x2dtics"	  (gnuplot-insert "set xdtics ")	     t]
-    ["x2mtics"	  (gnuplot-insert "set xmtics ")	     t])
+    ["x2data"     (gnuplot-insert "set xdata ")              t]
+    ["x2label"    (gnuplot-insert "set xlabel ")             t]
+    ["x2range"    (gnuplot-insert "set xrange [:]")          t]
+    ["x2tics"     (gnuplot-insert "set xtics ")              t]
+    ["mx2tics"    (gnuplot-insert "set mxtics ")             t]
+    ["x2zeroaxis" (gnuplot-insert "set xzeroaxis ")          t]
+    ["x2dtics"    (gnuplot-insert "set xdtics ")             t]
+    ["x2mtics"    (gnuplot-insert "set xmtics ")             t])
   "X2-axis submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -1061,14 +1061,14 @@ create a `gnuplot-mode' buffer."
 
 (defcustom gnuplot-insertions-y-axis
   '("y-axis"
-    ["ydata"	  (gnuplot-insert "set ydata ")		     t]
-    ["ylabel"	  (gnuplot-insert "set ylabel ")	     t]
-    ["ymtics"	  (gnuplot-insert "set ymtics ")	     t]
-    ["yrange"	  (gnuplot-insert "set yrange [:]")	     t]
-    ["ytics"	  (gnuplot-insert "set ytics ")		     t]
-    ["yzeroaxis"  (gnuplot-insert "set yzeroaxis ")	     t]
-    ["ydtics"	  (gnuplot-insert "set ydtics ")	     t]
-    ["mytics"	  (gnuplot-insert "set mytics ")	     t])
+    ["ydata"      (gnuplot-insert "set ydata ")              t]
+    ["ylabel"     (gnuplot-insert "set ylabel ")             t]
+    ["ymtics"     (gnuplot-insert "set ymtics ")             t]
+    ["yrange"     (gnuplot-insert "set yrange [:]")          t]
+    ["ytics"      (gnuplot-insert "set ytics ")              t]
+    ["yzeroaxis"  (gnuplot-insert "set yzeroaxis ")          t]
+    ["ydtics"     (gnuplot-insert "set ydtics ")             t]
+    ["mytics"     (gnuplot-insert "set mytics ")             t])
   "Y-axis submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -1083,14 +1083,14 @@ create a `gnuplot-mode' buffer."
 
 (defcustom gnuplot-insertions-y2-axis
   '("y2-axis"
-    ["y2data"	  (gnuplot-insert "set ydata ")		     t]
-    ["y2label"	  (gnuplot-insert "set ylabel ")	     t]
-    ["y2range"	  (gnuplot-insert "set yrange [:]")	     t]
-    ["y2tics"	  (gnuplot-insert "set ytics ")		     t]
-    ["my2tics"	  (gnuplot-insert "set mytics ")	     t]
-    ["y2zeroaxis"  (gnuplot-insert "set yzeroaxis ")	     t]
-    ["y2mtics"	  (gnuplot-insert "set ymtics ")	     t]
-    ["y2dtics"	  (gnuplot-insert "set ydtics ")	     t])
+    ["y2data"     (gnuplot-insert "set ydata ")              t]
+    ["y2label"    (gnuplot-insert "set ylabel ")             t]
+    ["y2range"    (gnuplot-insert "set yrange [:]")          t]
+    ["y2tics"     (gnuplot-insert "set ytics ")              t]
+    ["my2tics"    (gnuplot-insert "set mytics ")             t]
+    ["y2zeroaxis"  (gnuplot-insert "set yzeroaxis ")         t]
+    ["y2mtics"    (gnuplot-insert "set ymtics ")             t]
+    ["y2dtics"    (gnuplot-insert "set ydtics ")             t])
   "Y2-axis submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -1107,13 +1107,13 @@ create a `gnuplot-mode' buffer."
 
 (defcustom gnuplot-insertions-z-axis
   '("z-axis"
-    ["zdata"	  (gnuplot-insert "set zdata ")		     t]
-    ["zlabel"	  (gnuplot-insert "set zlabel ")	     t]
-    ["zrange"	  (gnuplot-insert "set zrange [:]")	     t]
-    ["ztics"	  (gnuplot-insert "set ztics ")		     t]
-    ["mztics"	  (gnuplot-insert "set mztics ")             t]
-    ["zdtics"	  (gnuplot-insert "set zdtics ")	     t]
-    ["zmtics"	  (gnuplot-insert "set zmtics ")	     t] )
+    ["zdata"      (gnuplot-insert "set zdata ")              t]
+    ["zlabel"     (gnuplot-insert "set zlabel ")             t]
+    ["zrange"     (gnuplot-insert "set zrange [:]")          t]
+    ["ztics"      (gnuplot-insert "set ztics ")              t]
+    ["mztics"     (gnuplot-insert "set mztics ")             t]
+    ["zdtics"     (gnuplot-insert "set zdtics ")             t]
+    ["zmtics"     (gnuplot-insert "set zmtics ")             t])
   "Z-axis submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -1129,12 +1129,12 @@ create a `gnuplot-mode' buffer."
 
 (defcustom gnuplot-insertions-parametric-plots
   '("parametric plots"
-    ["parametric" (gnuplot-insert "set parametric")	     t]
-    ["isosamples" (gnuplot-insert "set isosamples ")	     t]
-    ["dummy"	  (gnuplot-insert "set dummy ")		     t]
-    ["trange"	  (gnuplot-insert "set trange [:]")	     t]
-    ["urange"	  (gnuplot-insert "set urange [:]")	     t]
-    ["vrange"	  (gnuplot-insert "set vrange [:]")	     t] )
+    ["parametric" (gnuplot-insert "set parametric")          t]
+    ["isosamples" (gnuplot-insert "set isosamples ")         t]
+    ["dummy"      (gnuplot-insert "set dummy ")              t]
+    ["trange"     (gnuplot-insert "set trange [:]")          t]
+    ["urange"     (gnuplot-insert "set urange [:]")          t]
+    ["vrange"     (gnuplot-insert "set vrange [:]")          t])
   "Parametric plots submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -1150,9 +1150,9 @@ create a `gnuplot-mode' buffer."
 
 (defcustom gnuplot-insertions-polar-plots
   '("polar plots"
-    ["polar"	  (gnuplot-insert "set polar")		     t]
-    ["angles"	  (gnuplot-insert "set angles ")	     t]
-    ["rrange"	  (gnuplot-insert "set rrange [:]")	     t] )
+    ["polar"      (gnuplot-insert "set polar")               t]
+    ["angles"     (gnuplot-insert "set angles ")             t]
+    ["rrange"     (gnuplot-insert "set rrange [:]")          t])
   "Polar plots submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -1168,14 +1168,14 @@ create a `gnuplot-mode' buffer."
 
 (defcustom gnuplot-insertions-surface-plots
   '("surface plots"
-    ["clabel"	  (gnuplot-insert "set clabel ")	     t]
-    ["cntrparam"  (gnuplot-insert "set cntrparam ")	     t]
-    ["contour"	  (gnuplot-insert "set contour")	     t]
-    ["dgrid3d"	  (gnuplot-insert "set dgrid3d ")	     t]
-    ["hidden3d"	  (gnuplot-insert "set hidden3d ")	     t]
-    ["mapping"	  (gnuplot-insert "set mapping ")	     t]
-    ["surface"	  (gnuplot-insert "set surface ")	     t]
-    ["view"	  (gnuplot-insert "set view ")		     t] )
+    ["clabel"     (gnuplot-insert "set clabel ")             t]
+    ["cntrparam"  (gnuplot-insert "set cntrparam ")          t]
+    ["contour"    (gnuplot-insert "set contour")             t]
+    ["dgrid3d"    (gnuplot-insert "set dgrid3d ")            t]
+    ["hidden3d"   (gnuplot-insert "set hidden3d ")           t]
+    ["mapping"    (gnuplot-insert "set mapping ")            t]
+    ["surface"    (gnuplot-insert "set surface ")            t]
+    ["view"       (gnuplot-insert "set view ")               t])
   "Surface plots submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
@@ -1227,7 +1227,7 @@ opening an argument-setting popup.")
 
 (defun gnuplot-setup-menubar ()
   "Initial setup of gnuplot and insertions menus."
-  (if gnuplot-insertions-menu-flag	; set up insertions menu
+  (if gnuplot-insertions-menu-flag      ; set up insertions menu
       (progn
         (if gnuplot-xemacs-p
             (setq gnuplot-insertions-top
@@ -1253,10 +1253,10 @@ opening an argument-setting popup.")
           "Insertions menu used in Gnuplot-mode"
           gnuplot-insertions-menu)
         (easy-menu-add gnuplot-mode-insertions-menu gnuplot-mode-map)))
-  (easy-menu-define			; set up gnuplot menu
+  (easy-menu-define                     ; set up gnuplot menu
     gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
     gnuplot-menu)
-  (easy-menu-add gnuplot-mode-menu gnuplot-mode-map) )
+  (easy-menu-add gnuplot-mode-menu gnuplot-mode-map))
 
 ;; There is no `mark-active' variable in XEmacs.  Hassle!  This is not
 ;; only replicates mark-active, but it only returns true if the region
@@ -1327,7 +1327,7 @@ This is basically swiped from VM."
      ((eq (symbol-value gnuplot-toolbar-use-toolbar) top-toolbar)
       (setq gnuplot-toolbar-location       "top")
       (set-specifier top-toolbar           toolbar buffer)
-      (set-specifier top-toolbar-height    height frame tag-set))) ))
+      (set-specifier top-toolbar-height    height frame tag-set)))))
 
 (defvar gnuplot-line-xpm
   (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
@@ -1642,7 +1642,7 @@ static char *help_btn[] = {
         (gnuplot-toolbar-setup-toolbar gnuplot-toolbar)
         (add-spec-to-specifier (symbol-value gnuplot-toolbar-use-toolbar)
                                gnuplot-toolbar
-                               (current-buffer) ))))
+                               (current-buffer)))))
 
 ;;(defalias 'gnuplot-make-toolbar 'gnuplot-make-toolbar-function)
 
@@ -1770,7 +1770,7 @@ These are highlighted using `font-lock-constant-face'.")
 (defvar gnuplot-font-lock-syntactic-keywords nil)
 (defvar gnuplot-font-lock-defaults nil)
 
-(when (featurep 'font-lock)		; <KL>
+(when (featurep 'font-lock)             ; <KL>
   (setq gnuplot-font-lock-keywords
         (list
          ;; stuff in brackets, sugg. by <LB>
@@ -1802,9 +1802,9 @@ These are highlighted using `font-lock-constant-face'.")
 
   (setq gnuplot-font-lock-defaults
         '(gnuplot-font-lock-keywords
-          nil				; Use syntactic fontification
-          t				; Use case folding
-          nil				; No extra syntax
+          nil                           ; Use syntactic fontification
+          t                             ; Use case folding
+          nil                           ; No extra syntax
           ;; calls `gnuplot-beginning-of-continuation'
           ;; to find a safe place to begin syntactic highlighting
           beginning-of-defun))
@@ -1933,7 +1933,7 @@ This is a simple wrapper for `syntax-ppss'."
           (setq list (append list (list line))
                 line "")
         (setq line (concat line (char-to-string (elt string index)))))
-      (setq index (1+ index)) )
+      (setq index (1+ index)))
     list))
 
 ;; -- the calls to `sleep-for' are to allow enough time for gnuplot
@@ -1948,7 +1948,7 @@ the type of text being sent to gnuplot and is typically one of
 nil, 'line, 'region, 'buffer, or 'file.  TEXT may be useful for
 functions in `gnuplot-after-plot-hook'.  `gnuplot-after-plot-hook' is
 called by this function after all of STRING is sent to gnuplot."
-  (gnuplot-make-gnuplot-buffer)	; make sure a gnuplot buffer exists
+  (gnuplot-make-gnuplot-buffer)         ; make sure a gnuplot buffer exists
   (gnuplot-fetch-version-number)
   (setq gnuplot-comint-recent-buffer (current-buffer))
 
@@ -2027,7 +2027,7 @@ This sets `gnuplot-recently-sent' to 'line."
              (end-of-line)
              (while (save-excursion
                       (backward-char)
-                      (looking-at "\\\\"))	; go to end of last continuation line
+                      (looking-at "\\\\"))      ; go to end of last continuation line
                (end-of-line 2))
              (beginning-of-line 2)
              (setq end (point)))
@@ -2052,7 +2052,7 @@ NUM is optional arg."
     (while (> num 0)
       (setq end (gnuplot-send-line-to-gnuplot))
       (goto-char end)
-      (backward-char 1)			; <AR>
+      (backward-char 1)                         ; <AR>
       (gnuplot-forward-script-line 1)
       (setq num (1- num)))))
 
@@ -2090,7 +2090,7 @@ This sets `gnuplot-recently-sent' to 'file."
   (let ((string (read-file-name "Name of file to send to gnuplot > " nil nil t)))
     (setq string (concat "load '" (expand-file-name string) "'\n"))
     (message "%S" string)
-    (gnuplot-make-gnuplot-buffer)	; make sure a gnuplot buffer exists
+    (gnuplot-make-gnuplot-buffer)       ; make sure a gnuplot buffer exists
     (gnuplot-send-string-to-gnuplot string 'file)))
 
 ;; suggested by <JS>
@@ -2151,7 +2151,7 @@ this function is attached to `gnuplot-after-plot-hook'"
             (goto-char (point-min))
             (kill-line)
             (setq nlines (1- nlines)))
-          (goto-char (point-max)) ))))
+          (goto-char (point-max))))))
 (add-hook 'gnuplot-after-plot-hook 'gnuplot-trim-gnuplot-buffer nil nil)
 
 
@@ -2160,9 +2160,9 @@ this function is attached to `gnuplot-after-plot-hook'"
 ;; Menu for the comint-mode buffer
 (defvar gnuplot-comint-menu
   `("Gnuplot"
-    ["Plot most recent gnuplot buffer"		gnuplot-plot-from-comint
+    ["Plot most recent gnuplot buffer"          gnuplot-plot-from-comint
      (buffer-live-p gnuplot-comint-recent-buffer)]
-    ["Save and plot most recent gnuplot buffer"	gnuplot-save-and-plot-from-comint
+    ["Save and plot most recent gnuplot buffer"         gnuplot-save-and-plot-from-comint
      (buffer-live-p gnuplot-comint-recent-buffer)]
     "---"
     ,gnuplot-display-options-menu
@@ -2174,23 +2174,23 @@ this function is attached to `gnuplot-after-plot-hook'"
      :style toggle
      :selected eldoc-mode]
     "---"
-    ["Insert filename at point"			gnuplot-insert-filename t]
-    ["Negate set option"			gnuplot-negate-option t]
-    ["Keyword help"				gnuplot-info-lookup-symbol
+    ["Insert filename at point"                         gnuplot-insert-filename t]
+    ["Negate set option"                        gnuplot-negate-option t]
+    ["Keyword help"                             gnuplot-info-lookup-symbol
      (or gnuplot-keywords gnuplot-keywords-pending)]
     ["Quick help for thing at point"            gnuplot-help-function
      gnuplot-context-sensitive-mode]
     ["Info documentation on thing at point"
      gnuplot-info-at-point
      gnuplot-context-sensitive-mode]
-    ["Switch to recent gnuplot script buffer"	gnuplot-pop-to-recent-buffer
+    ["Switch to recent gnuplot script buffer"   gnuplot-pop-to-recent-buffer
      (buffer-live-p gnuplot-comint-recent-buffer)]
     "---"
-    ["Customize gnuplot"			gnuplot-customize t]
-    ["Show gnuplot-mode version"		gnuplot-show-version t]
-    ["Show gnuplot version"			gnuplot-show-gnuplot-version t]
+    ["Customize gnuplot"                        gnuplot-customize t]
+    ["Show gnuplot-mode version"                gnuplot-show-version t]
+    ["Show gnuplot version"                     gnuplot-show-gnuplot-version t]
     "---"
-    ["Kill gnuplot"				gnuplot-kill-gnuplot-buffer t]))
+    ["Kill gnuplot"                             gnuplot-kill-gnuplot-buffer t]))
 
 ;; Major mode `gnuplot-comint-mode' for the interaction buffer
 (define-derived-mode gnuplot-comint-mode comint-mode "Gnuplot interaction"
@@ -2201,7 +2201,7 @@ buffer."
 
   (set-syntax-table gnuplot-mode-syntax-table)
 
-  (if gnuplot-xemacs-p			; deal with font-lock
+  (if gnuplot-xemacs-p                  ; deal with font-lock
       (if (fboundp 'turn-on-font-lock) (turn-on-font-lock))
     (progn
       (setq font-lock-defaults gnuplot-font-lock-defaults)
@@ -2236,23 +2236,23 @@ buffer."
   (easy-menu-add gnuplot-comint-mode-menu gnuplot-comint-mode-map))
 
 ;; Key bindings for gnuplot-comint-mode
-(define-key gnuplot-comint-mode-map "\M-\C-p"	'gnuplot-plot-from-comint)
-(define-key gnuplot-comint-mode-map "\M-\C-f"	'gnuplot-save-and-plot-from-comint)
-(define-key gnuplot-comint-mode-map "\C-d"	'gnuplot-delchar-or-maybe-eof)
+(define-key gnuplot-comint-mode-map "\M-\C-p"   'gnuplot-plot-from-comint)
+(define-key gnuplot-comint-mode-map "\M-\C-f"   'gnuplot-save-and-plot-from-comint)
+(define-key gnuplot-comint-mode-map "\C-d"      'gnuplot-delchar-or-maybe-eof)
 (let ((completion-function
        (if (and (>= emacs-major-version 24)
                 (>= emacs-minor-version 1))
            'completion-at-point
          'comint-dynamic-complete)))
-  (define-key gnuplot-comint-mode-map "\M-\r"	completion-function)
-  (define-key gnuplot-comint-mode-map "\M-\t"	completion-function))
+  (define-key gnuplot-comint-mode-map "\M-\r"   completion-function)
+  (define-key gnuplot-comint-mode-map "\M-\t"   completion-function))
 (define-key gnuplot-comint-mode-map "\C-c\C-d"  'gnuplot-info-lookup-symbol)
-(define-key gnuplot-comint-mode-map "\C-c\C-w"	'gnuplot-show-version)
-(define-key gnuplot-comint-mode-map "\C-c\C-i"	'gnuplot-insert-filename)
-(define-key gnuplot-comint-mode-map "\C-c\C-n"	'gnuplot-negate-option)
-(define-key gnuplot-comint-mode-map "\C-c\C-p"	'gnuplot-show-gnuplot-version)
-(define-key gnuplot-comint-mode-map "\C-c\C-z"	'gnuplot-customize)
-(define-key gnuplot-comint-mode-map "\C-c\C-e"	'gnuplot-pop-to-recent-buffer)
+(define-key gnuplot-comint-mode-map "\C-c\C-w"  'gnuplot-show-version)
+(define-key gnuplot-comint-mode-map "\C-c\C-i"  'gnuplot-insert-filename)
+(define-key gnuplot-comint-mode-map "\C-c\C-n"  'gnuplot-negate-option)
+(define-key gnuplot-comint-mode-map "\C-c\C-p"  'gnuplot-show-gnuplot-version)
+(define-key gnuplot-comint-mode-map "\C-c\C-z"  'gnuplot-customize)
+(define-key gnuplot-comint-mode-map "\C-c\C-e"  'gnuplot-pop-to-recent-buffer)
 (define-key gnuplot-comint-mode-map "\C-c\M-i"  'gnuplot-inline-image-mode)
 
 ;; Menu for gnuplot-comint-mode
@@ -2324,7 +2324,7 @@ defaults to 3.7."
   (gnuplot-setup-menubar)
   ;; set up the toolbar (possibly dependent on version number)
   (if (and gnuplot-xemacs-p gnuplot-toolbar-display-flag)
-      (condition-case ()		; deal with the toolbar
+      (condition-case ()                ; deal with the toolbar
           (and (require 'toolbar)
                (require 'xpm)
                (gnuplot-make-toolbar-function))
@@ -2353,7 +2353,7 @@ STRING is the text as originally inserted in the comint buffer."
             (put-text-property b e 'intangible t)
             (put-text-property b e 'face 'gnuplot-prompt-face)
             ;;(put-text-property b e 'read-only t)
-            )) )))
+            )))))
 
 (defun gnuplot-close-down ()
   "Tidy up when deleting the gnuplot buffer."
@@ -2543,7 +2543,7 @@ Bound to \\[gnuplot-insert-filename]"
   (insert gnuplot-quote-character
           (file-relative-name (read-file-name "Filename > " "")
                               default-directory)
-          gnuplot-quote-character) )
+          gnuplot-quote-character))
 
 
 ;; Adjust indentation for the line containing point
@@ -2663,7 +2663,7 @@ If specify POS, move POS before execution."
 ARG is optional arg."
   (if (not arg) (setq arg 1))
   (if (> arg 0)
-      (catch 'bob		; go to beginning of ARGth prev. defun
+      (catch 'bob               ; go to beginning of ARGth prev. defun
         (dotimes (n arg)
           (when (= (point)
                    (gnuplot-point-at-beginning-of-continuation))
@@ -2675,7 +2675,7 @@ ARG is optional arg."
           (gnuplot-beginning-of-continuation))
         t)
 
-    (catch 'eob		  ; find beginning of (-ARG)th following defun
+    (catch 'eob                   ; find beginning of (-ARG)th following defun
       (dotimes (n (- arg))
         (gnuplot-end-of-continuation)
         (forward-line)
@@ -2744,7 +2744,7 @@ Negatable options are defined in `gnuplot-keywords-negatable-options'."
                         (insert "no"))
                        (t
                         (message "There is not a negatable set option on this line")))))
-        (message "There is not a set option on this line")) )))
+        (message "There is not a set option on this line")))))
 
 ;; (defun gnuplot-set-binding ()
 ;;   "Interactively select a key sequence for binding to a plot function.
@@ -2752,19 +2752,19 @@ Negatable options are defined in `gnuplot-keywords-negatable-options'."
 ;; key bindings (i.e. those covered by pm3d)."
 ;;   (interactive)
 ;;   (let ((keyseq (read-key-sequence "Choose a key sequence now"))
-;; 	(command (read-string "Bind to this command > ")))
+;;      (command (read-string "Bind to this command > ")))
 ;;     (setq keyseq (format "%S" keyseq))
 ;;     (string-match "keypress-event\\s-+" keyseq)
 ;;     (setq keyseq (substring keyseq (match-end 0) -2))
 ;;     ;; need to convert from emacs nomenclature to gnuplot.  what a pain.
 ;;     (let* ((alist '(("backspace" . "Backspace") ("tab" . "Tab") ("linefeed" . "Linefeed")
-;; 		    ("clear" . "Clear") ("return" . "Return") ("pause" . "Pause")
-;; 		    ("scroll-lock" . "Scroll_Lock") ("SysReq" . "sys-req")
-;; 		    ("escape" . "Escape") ("delete" . "Delete") ("home" . "Home")
-;; 		    ("left" . "Left") ("right" . "Right") ("up" . "Up") ("down" . "Down")
-;; 		    ("prior" . "PageUp") ("next" . "PageDown") ("end" . "End")
-;; 		    ("begin". "Begin")))
-;; 	   (match (assoc keyseq alist)))
+;;                  ("clear" . "Clear") ("return" . "Return") ("pause" . "Pause")
+;;                  ("scroll-lock" . "Scroll_Lock") ("SysReq" . "sys-req")
+;;                  ("escape" . "Escape") ("delete" . "Delete") ("home" . "Home")
+;;                  ("left" . "Left") ("right" . "Right") ("up" . "Up") ("down" . "Down")
+;;                  ("prior" . "PageUp") ("next" . "PageDown") ("end" . "End")
+;;                  ("begin". "Begin")))
+;;         (match (assoc keyseq alist)))
 ;;       (if match (setq keyseq (cdr match)))
 ;;
 ;;     (insert (format "bind \"%s\" \"%s\"" keyseq command)))))
@@ -2823,7 +2823,7 @@ See the comments in `gnuplot-info-hook'."
                         `((gnuplot-mode
                            "[a-zA-Z][_a-zA-Z0-9]*" nil
                            ,doc-spec "[_a-zA-Z0-9]+" )))))
-                (t			; newer version
+                (t                      ; newer version
                  (info-lookup-add-help
                   :mode 'gnuplot-mode :topic 'symbol
                   :regexp "[a-zA-Z][_a-zA-Z0-9]*"
@@ -2846,7 +2846,7 @@ See the comments in `gnuplot-info-hook'."
           (and (get-buffer "info dir")    (kill-buffer "info dir"))
           (and (get-buffer "info dir<2>") (kill-buffer "info dir<2>")))
         (setq gnuplot-keywords (gnuplot-set-keywords-list))
-        (setq gnuplot-keywords-alist	; needed for all-completions
+        (setq gnuplot-keywords-alist    ; needed for all-completions
               (mapcar 'list gnuplot-keywords)))
 
     ;; or do something sensible if info-look is not installed
@@ -2985,7 +2985,7 @@ Uses the cache of keywords generated by info-lookup.  See
 \(BEGIN END COMPLETIONS) where BEGIN and END are buffer
 positions and COMPLETIONS is a list."
 
-  (if gnuplot-keywords-pending		; <HW>
+  (if gnuplot-keywords-pending          ; <HW>
       (gnuplot-setup-info-look))
   (let* ((end (point))
          (beg (unwind-protect (save-excursion (backward-sexp 1) (point))))
@@ -3023,7 +3023,7 @@ according to the value of `gnuplot-info-display'."
   (interactive
    (cond (gnuplot-keywords
           (info-lookup-interactive-arguments 'symbol))
-         (gnuplot-keywords-pending	; <HW>
+         (gnuplot-keywords-pending      ; <HW>
           (gnuplot-setup-info-look)
           (info-lookup-interactive-arguments 'symbol))
          (t
@@ -3080,7 +3080,7 @@ shown."
   (cond ((and (not gnuplot-three-eight-p)
               (string-match "\\(emf\\|p\\(alette\\|m3d\\)\\|vgagl\\)" string))
          (message "%S is an option introduced in gnuplot 3.8 (You are using %s)"
-                  string gnuplot-program-version) )
+                  string gnuplot-program-version))
         (t
          (insert string)
          (let ((topic string) term)
@@ -3095,9 +3095,9 @@ shown."
                        gnuplot-gui-popup-flag)
                   (gnuplot-gui-set-options-and-insert))
                  (gnuplot-insertions-show-help-flag
-                  (if gnuplot-keywords-pending		; <HW>
+                  (if gnuplot-keywords-pending          ; <HW>
                       (gnuplot-setup-info-look))
-                  (gnuplot-info-lookup-symbol topic)) ) )) ) )
+                  (gnuplot-info-lookup-symbol topic)))))))
 
 (defun gnuplot-toggle-info-display ()
   "Toggle info display."
@@ -3118,7 +3118,7 @@ work with newer and older versions.
 
 Report bugs at https://github.com/emacsorphanage/gnuplot/issues
 
-			    ------O------
+                            ------O------
 
 Gnuplot-mode includes two different systems for keyword
 completion and documentation lookup: a newer one,
@@ -3137,7 +3137,7 @@ provide function/`eldoc-mode' syntax hints as you type.  This requires a
 separate file of strings, `gnuplot-eldoc.el', which is also
 provided by recent Gnuplot distributions.
 
-			    ------O------
+                            ------O------
 
 There are several known shortcomings of `gnuplot-mode', version 0.5g
 and up.  Many of the shortcomings involve the graphical interface
@@ -3159,7 +3159,7 @@ a list:
  5.  The GUI handling of \"hidden3d\" is flaky and \"cntrparam\" is
      unsupported.
 
-			    ------O------
+                            ------O------
 
  Key bindings:
  \\{gnuplot-mode-map}"
@@ -3185,7 +3185,7 @@ a list:
   (when (eq gnuplot-keywords-when 'immediately) ; <HW>
     (gnuplot-setup-info-look)) ;; <SE>
 
-  (if gnuplot-xemacs-p			; deal with font-lock
+  (if gnuplot-xemacs-p                  ; deal with font-lock
       (when (fboundp 'turn-on-font-lock)
         (turn-on-font-lock))
     (progn
@@ -3200,11 +3200,11 @@ a list:
       (set (make-local-variable 'font-lock-multiline) t)
       (set (make-local-variable 'parse-sexp-lookup-properties) t)))
 
-  (if (fboundp 'widget-create)		; gnuplot-gui
+  (if (fboundp 'widget-create)          ; gnuplot-gui
       (condition-case ()
           (require 'gnuplot-gui)
         (error nil)))
-  (setq gnuplot-first-call nil		; a few more details ...
+  (setq gnuplot-first-call nil          ; a few more details ...
         gnuplot-comint-recent-buffer (current-buffer)
         comint-process-echoes        gnuplot-echo-command-line-flag)
   (run-hooks 'gnuplot-mode-hook)

@@ -106,30 +106,30 @@
 ;; notation as follows:
 ;;
 ;;    any
-;; 	Match any token
+;;      Match any token
 ;;
 ;;    name, number, string, separator
-;; 	Match a token of the given type.  "Separator" is semicolon, the
-;; 	statement separator.
+;;      Match a token of the given type.  "Separator" is semicolon, the
+;;      statement separator.
 ;;
 ;;    Any other symbol
-;; 	Match another named rule in the grammar.  May be recursive.
+;;      Match another named rule in the grammar.  May be recursive.
 ;;
 ;;    "STRING"
-;; 	Match literally: a token with exactly the text "STRING".
+;;      Match literally: a token with exactly the text "STRING".
 ;;
 ;;   (kw KEYWORD ALIASES ...)
-;;	Match abbreviated Gnuplot keywords.  KEYWORD can be a string or
-;;	a cons (PREFIX . SUFFIX).  In the latter case, this pattern
-;;	will match PREFIX plus any number of characters from the
-;;	beginning of SUFFIX.  Any literal string from ALIASES will
-;;	also match.  The token-id of the matching token is mutated to
-;;	the canonical value of KEYWORD.
-;;	Example:
-;;	 (kw ("linew" ."idth") "lw") matches "linew", "linewi",
-;;	... "linewidth" as well as "lw".  Any of these tokens will
-;;	appear as "linewidth" in subsequent processing.  (This is
-;;	important for the "info-keyword" form, see below).
+;;  Match abbreviated Gnuplot keywords.  KEYWORD can be a string or
+;;  a cons (PREFIX . SUFFIX).  In the latter case, this pattern
+;;  will match PREFIX plus any number of characters from the
+;;  beginning of SUFFIX.  Any literal string from ALIASES will
+;;  also match.  The token-id of the matching token is mutated to
+;;  the canonical value of KEYWORD.
+;;  Example:
+;;   (kw ("linew" ."idth") "lw") matches "linew", "linewi",
+;;  ... "linewidth" as well as "lw".  Any of these tokens will
+;;  appear as "linewidth" in subsequent processing.  (This is
+;;  important for the "info-keyword" form, see below).
 ;;
 ;; The other pattern forms combine simpler patterns, much like regular
 ;; expressions or PEGs (parsing expression grammars):
@@ -137,48 +137,48 @@
 ;;    (sequence { (:eldoc "eldoc string") }
 ;;              { (:info "info page") }
 ;;              { (:no-info) }
-;; 	     PATTERN PATTERN... )
-;; 	Match all the PATTERNs in sequence or fail.  Sequences can also
-;; 	have optional ElDoc strings and info pages associated with
-;; 	them; the innermost ElDoc or info page around point is the one
-;; 	shown to the user.  Alternatively, either property may be a
-;; 	symbol, which should be a function to be called to get the
-;; 	real value.  Finally, if no ElDoc string is specified but the
-;; 	variable `gnuplot-eldoc-hash' contains a value for the name of
-;; 	the info page at point, that value is used as the ElDoc string
-;; 	instead.
+;;           PATTERN PATTERN... )
+;;      Match all the PATTERNs in sequence or fail.  Sequences can also
+;;      have optional ElDoc strings and info pages associated with
+;;      them; the innermost ElDoc or info page around point is the one
+;;      shown to the user.  Alternatively, either property may be a
+;;      symbol, which should be a function to be called to get the
+;;      real value.  Finally, if no ElDoc string is specified but the
+;;      variable `gnuplot-eldoc-hash' contains a value for the name of
+;;      the info page at point, that value is used as the ElDoc string
+;;      instead.
 ;;
-;;	For better readability, sequence forms can also be written as
-;;	a vector, omitting the `sequence': [PATTERN PATTERN ...]
+;;  For better readability, sequence forms can also be written as
+;;  a vector, omitting the `sequence': [PATTERN PATTERN ...]
 ;;
 ;;    (either PATTERN PATTERN...)
-;; 	Match the first PATTERN to succeed, or fail if none
-;; 	matches.  Like regexp `|'.
+;;      Match the first PATTERN to succeed, or fail if none
+;;      matches.  Like regexp `|'.
 ;;
 ;;    (many PATTERN)
-;;	Match PATTERN zero or more times, greedily; like regexp
-;;	`*'.  Unlike a regular expression matcher, the parsing machine
-;;	will not backtrack and try to match fewer times if a later
-;;	part of the pattern fails.  This applies equally to the other
-;;	non-deterministic forms "either" and "maybe".
+;;  Match PATTERN zero or more times, greedily; like regexp
+;;  `*'.  Unlike a regular expression matcher, the parsing machine
+;;  will not backtrack and try to match fewer times if a later
+;;  part of the pattern fails.  This applies equally to the other
+;;  non-deterministic forms "either" and "maybe".
 ;;
 ;;    (maybe PATTERN)
-;; 	Match PATTERN zero or one times, like regexp `?'.
+;;      Match PATTERN zero or one times, like regexp `?'.
 ;;
 ;;    (capture NAME PATTERN)
-;; 	Match PATTERN, capturing the tokens in a capture group named
-;; 	NAME.  Capture groups are stored in `gnuplot-captures'
-;; 	and can be retrieved using `gnuplot-capture-group'.  This is
-;; 	used to store the plotting style, which we need in order to
-;; 	give the correct ElDoc string for "using" clauses, and for
-;; 	info keywords (see below)
+;;      Match PATTERN, capturing the tokens in a capture group named
+;;      NAME.  Capture groups are stored in `gnuplot-captures'
+;;      and can be retrieved using `gnuplot-capture-group'.  This is
+;;      used to store the plotting style, which we need in order to
+;;      give the correct ElDoc string for "using" clauses, and for
+;;      info keywords (see below)
 ;;
 ;;    (info-keyword PATTERN)
-;; 	Match PATTERN, and use whatever the value of the first token
-;; 	it matches is to look up info pages for this pattern.  Most
-;; 	Gnuplot info pages have the same name as the keyword they
-;; 	document, so by using this we only have to put :info
-;; 	properties on the few that don't, such as "set".
+;;      Match PATTERN, and use whatever the value of the first token
+;;      it matches is to look up info pages for this pattern.  Most
+;;      Gnuplot info pages have the same name as the keyword they
+;;      document, so by using this we only have to put :info
+;;      properties on the few that don't, such as "set".
 ;;
 ;;    For convenience, "many", "maybe", "capture" and "info-keyword"
 ;;    wrap the rest of their arguments in an implicit "sequence" form,
@@ -186,14 +186,14 @@
 ;;    (maybe (sequence "," expression))
 ;;
 ;;    (delimited-list PATTERN SEPARATOR)
-;; 	Match a list of PATTERNs separated by SEPARATOR.  Sugar for:
-;; 	(sequence PATTERN (many (sequence SEPARATOR PATTERN)))
+;;      Match a list of PATTERNs separated by SEPARATOR.  Sugar for:
+;;      (sequence PATTERN (many (sequence SEPARATOR PATTERN)))
 ;;
 ;;   (assert LISP-FORM)
-;;	Evaluate LISP-FORM and fail if it returns NIL.  We need this in
-;;	the patterns for "plot" and "splot" to check whether the
-;;	command at point should be parsed in parametric mode or
-;;	not.  See `gnuplot-guess-parametric-p'.
+;;  Evaluate LISP-FORM and fail if it returns NIL.  We need this in
+;;  the patterns for "plot" and "splot" to check whether the
+;;  command at point should be parsed in parametric mode or
+;;  not.  See `gnuplot-guess-parametric-p'.
 ;;
 ;;
 ;; Bugs, TODOs, etc.
@@ -251,10 +251,10 @@
 ;;;; The tokenizer.
 
 (defstruct gnuplot-token
-  start	    ; Buffer start position
-  end	    ; Buffer end position
-  id	    ; Text
-  type)	    ; a symbol: name, number, string, operator, separator
+  start         ; Buffer start position
+  end       ; Buffer end position
+  id        ; Text
+  type)         ; a symbol: name, number, string, operator, separator
 
 (defvar gnuplot-operator-regexp
   (eval-when-compile
@@ -353,41 +353,41 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 ;; instructions" are the following:
 ;;
 ;;    (any)
-;; 	Match any token (fails only at end of command).
+;;      Match any token (fails only at end of command).
 ;;
 ;;    (literal LITERAL NO-COMPLETE)
-;; 	Match token with `gnuplot-token-id' LITERAL or fail. If we
-;; 	have reached the token before point, include LITERAL in the
-;; 	completion list unless NO-COMPLETE is non-`nil'.
+;;      Match token with `gnuplot-token-id' LITERAL or fail. If we
+;;      have reached the token before point, include LITERAL in the
+;;      completion list unless NO-COMPLETE is non-`nil'.
 ;;
 ;;    (token-type TYPE)
-;; 	Match a token with `gnuplot-token-type' TYPE, or fail.
+;;      Match a token with `gnuplot-token-type' TYPE, or fail.
 ;;
 ;;    (keyword REGEXP NAME)
-;; 	Match any token whose `gnuplot-token-id' matches REGEXP. Use
-;; 	NAME for the completion list.
+;;      Match any token whose `gnuplot-token-id' matches REGEXP. Use
+;;      NAME for the completion list.
 ;;
 ;;    (jump OFFSET FIXED)
-;; 	Jump to (set PC to) OFFSET if FIXED is non-nil, otherwise to
-;; 	PC + OFFSET
+;;      Jump to (set PC to) OFFSET if FIXED is non-nil, otherwise to
+;;      PC + OFFSET
 ;;
 ;;    (call OFFSET FIXED)
-;; 	Like "jump", but push a return address onto the stack for
-;; 	(return). (The compiler adds the name of the rule being called
-;; 	as a fourth element on the end of the list, but this is just a
-;; 	comment for debugging purposes).
+;;      Like "jump", but push a return address onto the stack for
+;;      (return). (The compiler adds the name of the rule being called
+;;      as a fourth element on the end of the list, but this is just a
+;;      comment for debugging purposes).
 ;;
 ;;    (return)
-;; 	Return to the PC address on top of the stack, or finish
-;; 	matching if stack is empty. (Usually this doesn't happen,
-;; 	because the machine stops as soon as it gets to the token at
-;; 	point).
+;;      Return to the PC address on top of the stack, or finish
+;;      matching if stack is empty. (Usually this doesn't happen,
+;;      because the machine stops as soon as it gets to the token at
+;;      point).
 ;;
 ;;    (choice OFFSET)
-;; 	Push a backtracking entry for location PC + OFFSET onto the
-;; 	backtracking stack. Backtracking entries save the contents of
-;; 	the call stack, position in the token list, the values of
-;; 	capture groups, and the record of loop progress (see below).
+;;      Push a backtracking entry for location PC + OFFSET onto the
+;;      backtracking stack. Backtracking entries save the contents of
+;;      the call stack, position in the token list, the values of
+;;      capture groups, and the record of loop progress (see below).
 ;;
 ;;    (check-progress)
 ;;      Break out of infinite loops, like (many (many ...)).  Checks
@@ -397,38 +397,38 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 ;;      new entry onto the list.
 ;;
 ;;    (fail)
-;; 	Pop the most recent backtracking entry and continue from
-;; 	there, or fail the whole match if out of backtrack
-;; 	points. Failing to match returns the remainder of the token
-;; 	list, although we don't currently use this for anything.
+;;      Pop the most recent backtracking entry and continue from
+;;      there, or fail the whole match if out of backtrack
+;;      points. Failing to match returns the remainder of the token
+;;      list, although we don't currently use this for anything.
 ;;
 ;;    (commit OFFSET)
-;; 	Discard one backtracking point and jump to PC + OFFSET. This
-;; 	is used to make the (either) form non-deterministic.
+;;      Discard one backtracking point and jump to PC + OFFSET. This
+;;      is used to make the (either) form non-deterministic.
 ;;
 ;;    (push TYPE VALUE)
-;; 	Push an entry for an eldoc or info string (specified by TYPE)
-;; 	onto the stack.
+;;      Push an entry for an eldoc or info string (specified by TYPE)
+;;      onto the stack.
 ;;
 ;;    (pop TYPE)
-;; 	Pop something off the stack; checks that it has the expected
-;; 	TYPE, for safety.
+;;      Pop something off the stack; checks that it has the expected
+;;      TYPE, for safety.
 ;;
 ;;    (save-start NAME)
-;; 	Open a capture group named NAME. Pushes an entry onto
-;; 	`gnuplot-captures' with current position in token list as the
-;; 	start of the group.
+;;      Open a capture group named NAME. Pushes an entry onto
+;;      `gnuplot-captures' with current position in token list as the
+;;      start of the group.
 ;;
 ;;    (save-end NAME)
-;; 	Close the capture group named NAME. Finds the topmost entry in
-;; 	`gnuplot-captures' with this name and sets its endpoint to the
-;; 	current position in token list. Error if no group with that
-;; 	name is found.
+;;      Close the capture group named NAME. Finds the topmost entry in
+;;      `gnuplot-captures' with this name and sets its endpoint to the
+;;      current position in token list. Error if no group with that
+;;      name is found.
 ;;
 ;;    (label NAME)
-;; 	This should never be reached and will cause an error. The
-;; 	compiler inserts it at the beginning of compiled rules only
-;; 	for debugging purposes.
+;;      This should never be reached and will cause an error. The
+;;      compiler inserts it at the beginning of compiled rules only
+;;      for debugging purposes.
 ;;
 
 
@@ -490,13 +490,13 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           ;; (either...): choose between patterns
           ((either)
            (cond
-            ((= (length pat) 2)		; trivial case
+            ((= (length pat) 2)         ; trivial case
              (gnuplot-compile-pattern (cadr pat)))
 
-            ((> (length pat) 3)		; could be more efficient...
+            ((> (length pat) 3)         ; could be more efficient...
              (gnuplot-compile-pattern (gnuplot-either-helper pat)))
 
-            (t				; two patterns
+            (t              ; two patterns
              (let* ((pat1 (cadr pat))
                     (pat2 (caddr pat))
                     (pat1-c (gnuplot-compile-pattern pat1))
@@ -514,7 +514,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
                   (pat1-c (gnuplot-compile-pattern pat1))
                   (pat1-l (length pat1-c)))
              `((choice ,(+ pat1-l 3))
-               (check-progress)		; bail out of infinite loops
+               (check-progress)         ; bail out of infinite loops
                ,@pat1-c
                (commit ,(- (+ pat1-l 2))))))
 
@@ -618,7 +618,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
   ;; each pattern individually, then "links" them into one vector,
   ;; converting symbolic (call ...) instructions into numeric offsets
   (defun gnuplot-compile-grammar (grammar start-symbol)
-    (let ((compiled-pats '())	      ; Alist of (name . instructions)
+    (let ((compiled-pats '())         ; Alist of (name . instructions)
           ;; Reserve space for a jump to the start symbol
           (code-length 1))
 
@@ -1236,7 +1236,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
          (set-dgrid3d-clause
           ["dgrid3d"
-           (maybe expression)		; fixme
+           (maybe expression)       ; fixme
            (maybe "," expression)
            (either
             "splines"
@@ -1445,7 +1445,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
              "gray" "color"
              ["gamma" number]
              ["rgbformulae" number "," number "," number]
-             "defined"			; not complete
+             "defined"          ; not complete
              ["functions" expression "," expression "," expression]
              ["file" string (many datafile-modifier)]
              "RGB" "HSV" "CMY" "YIQ" "XYZ"
@@ -1547,7 +1547,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
          (set-table-clause ["table" (maybe string)])
 
-         (set-terminal-clause		; not sure how to do this...
+         (set-terminal-clause       ; not sure how to do this...
           ["terminal" (maybe (either "push" "pop"))])
 
          (set-termoption-clause
@@ -1780,7 +1780,7 @@ nil, it parses up to the token at point and sets `gnuplot-eldoc'
 and `gnuplot-info-at-point' based on the contents of the stack
 there."
   (catch 'return
-    (let ((pc 0)			; Program counter
+    (let ((pc 0)            ; Program counter
           ;; Stack of return addresses (return PC), eldoc strings
           ;; (eldoc STRING) and info pages (info STRING)
           (stack '())
@@ -1797,7 +1797,7 @@ there."
 
       (with-gnuplot-trace-buffer (erase-buffer))
 
-      (when start-symbol		; HACK FIXME
+      (when start-symbol        ; HACK FIXME
         (let ((look-for `(label ,start-symbol)))
           (while (not (equal (aref instructions pc) look-for))
             (incf pc))
@@ -1972,7 +1972,7 @@ there."
 
             ;; Backtrack on failure
             (when fail
-              (if (not backtrack)	; Out of backtracking stack: failed match
+              (if (not backtrack)   ; Out of backtracking stack: failed match
                   (throw 'return nil)
                 (gnuplot-trace "\t*fail*\t%s\n" (length backtrack))
                 (gnuplot-debug (gnuplot-dump-backtrack backtrack))
