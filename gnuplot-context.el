@@ -3,11 +3,7 @@
 ;; Copyright (C) 2012-2013 Jon Oddie <jonxfield@gmail.com>
 
 ;; Author:     Jon Oddie <jonxfield@gmail.com>
-;; Maintainer: Jon Oddie <jonxfield@gmail.com>
-;; Created:    Wednesday, 08 February 2012
-;; Updated:    Friday, 07 February 2013
-;; Version:    0.7.0
-;; Keywords:   gnuplot, plotting
+;; URL:        https://github.com/emacsorphanage/gnuplot
 
 ;; This file is not part of GNU Emacs.
 
@@ -45,10 +41,10 @@
 ;;
 ;; Gnuplot's context sensitive mode is best controlled using Customize
 ;; (M-x customize-group gnuplot): simply enable the
-;; `gnuplot-context-sensitive-mode' setting. On recent Emacs (>= 23),
+;; `gnuplot-context-sensitive-mode' setting.  On recent Emacs (>= 23),
 ;; you may also want to turn on `gnuplot-tab-completion' so that the
 ;; TAB key does auto-completion on lines which are already
-;; indented. (This just sets the Emacs variable `tab-always-indent' to
+;; indented.  (This just sets the Emacs variable `tab-always-indent' to
 ;; `complete' in Gnuplot buffers).
 ;;
 ;; If you need to turn context sensitivity on or off from Lisp code
@@ -60,7 +56,7 @@
 ;; or not, you can always pop up a longer description of syntax using
 ;; `gnuplot-help-function' (C-c C-/ or C-c M-h).  ElDoc support also
 ;; requires an additional file of help strings, `gnuplot-eldoc.el',
-;; which should be included in recent Gnuplot releases. If it didn't
+;; which should be included in recent Gnuplot releases.  If it didn't
 ;; come with your Gnuplot installation, you'll need to grab a recent
 ;; source distribution of Gnuplot from http://gnuplot.info, and use
 ;; the `doc2texi.el' program in the docs/ directory to create it.  So
@@ -76,8 +72,8 @@
 ;;
 ;; Gnuplot's command language has a fair amount of syntactic
 ;; complexity, and the only way I could think of to support these
-;; features was to do a complete parse of the command line. So that's
-;; what this package does. Instead of building a parse tree, it
+;; features was to do a complete parse of the command line.  So that's
+;; what this package does.  Instead of building a parse tree, it
 ;; matches up until the token at point, and then either makes a list
 ;; of possible completions, or sets the variables `gnuplot-eldoc' and
 ;; `gnuplot-info-at-point' based on where it is in the grammar at that
@@ -95,7 +91,7 @@
 ;; work well enough, and it saves on the Emacs call stack.
 ;;
 ;; Compiling the grammar does require increasing `max-lisp-eval-depth'
-;; modestly. This shouldn't cause any problems on modern machines, and
+;; modestly.  This shouldn't cause any problems on modern machines, and
 ;; it only needs to be done once, at byte-compilation time.
 ;;
 ;; The parsing machine and compiler are partially based on the
@@ -113,26 +109,26 @@
 ;; 	Match any token
 ;;
 ;;    name, number, string, separator
-;; 	Match a token of the given type. "Separator" is semicolon, the
+;; 	Match a token of the given type.  "Separator" is semicolon, the
 ;; 	statement separator.
 ;;
 ;;    Any other symbol
-;; 	Match another named rule in the grammar. May be recursive.
+;; 	Match another named rule in the grammar.  May be recursive.
 ;;
 ;;    "STRING"
 ;; 	Match literally: a token with exactly the text "STRING".
 ;;
 ;;   (kw KEYWORD ALIASES ...)
-;;	Match abbreviated Gnuplot keywords. KEYWORD can be a string or
-;;	a cons (PREFIX . SUFFIX). In the latter case, this pattern
+;;	Match abbreviated Gnuplot keywords.  KEYWORD can be a string or
+;;	a cons (PREFIX . SUFFIX).  In the latter case, this pattern
 ;;	will match PREFIX plus any number of characters from the
 ;;	beginning of SUFFIX.  Any literal string from ALIASES will
-;;	also match. The token-id of the matching token is mutated to
+;;	also match.  The token-id of the matching token is mutated to
 ;;	the canonical value of KEYWORD.
 ;;	Example:
 ;;	 (kw ("linew" ."idth") "lw") matches "linew", "linewi",
-;;	... "linewidth" as well as "lw". Any of these tokens will
-;;	appear as "linewidth" in subsequent processing. (This is
+;;	... "linewidth" as well as "lw".  Any of these tokens will
+;;	appear as "linewidth" in subsequent processing.  (This is
 ;;	important for the "info-keyword" form, see below).
 ;;
 ;; The other pattern forms combine simpler patterns, much like regular
@@ -142,10 +138,10 @@
 ;;              { (:info "info page") }
 ;;              { (:no-info) }
 ;; 	     PATTERN PATTERN... )
-;; 	Match all the PATTERNs in sequence or fail. Sequences can also
+;; 	Match all the PATTERNs in sequence or fail.  Sequences can also
 ;; 	have optional ElDoc strings and info pages associated with
 ;; 	them; the innermost ElDoc or info page around point is the one
-;; 	shown to the user. Alternatively, either property may be a
+;; 	shown to the user.  Alternatively, either property may be a
 ;; 	symbol, which should be a function to be called to get the
 ;; 	real value.  Finally, if no ElDoc string is specified but the
 ;; 	variable `gnuplot-eldoc-hash' contains a value for the name of
@@ -157,13 +153,13 @@
 ;;
 ;;    (either PATTERN PATTERN...)
 ;; 	Match the first PATTERN to succeed, or fail if none
-;; 	matches. Like regexp `|'.
+;; 	matches.  Like regexp `|'.
 ;;
 ;;    (many PATTERN)
 ;;	Match PATTERN zero or more times, greedily; like regexp
-;;	`*'. Unlike a regular expression matcher, the parsing machine
+;;	`*'.  Unlike a regular expression matcher, the parsing machine
 ;;	will not backtrack and try to match fewer times if a later
-;;	part of the pattern fails. This applies equally to the other
+;;	part of the pattern fails.  This applies equally to the other
 ;;	non-deterministic forms "either" and "maybe".
 ;;
 ;;    (maybe PATTERN)
@@ -171,15 +167,15 @@
 ;;
 ;;    (capture NAME PATTERN)
 ;; 	Match PATTERN, capturing the tokens in a capture group named
-;; 	NAME. Capture groups are stored in `gnuplot-captures'
-;; 	and can be retrieved using `gnuplot-capture-group'. This is
+;; 	NAME.  Capture groups are stored in `gnuplot-captures'
+;; 	and can be retrieved using `gnuplot-capture-group'.  This is
 ;; 	used to store the plotting style, which we need in order to
 ;; 	give the correct ElDoc string for "using" clauses, and for
 ;; 	info keywords (see below)
 ;;
 ;;    (info-keyword PATTERN)
 ;; 	Match PATTERN, and use whatever the value of the first token
-;; 	it matches is to look up info pages for this pattern. Most
+;; 	it matches is to look up info pages for this pattern.  Most
 ;; 	Gnuplot info pages have the same name as the keyword they
 ;; 	document, so by using this we only have to put :info
 ;; 	properties on the few that don't, such as "set".
@@ -190,14 +186,14 @@
 ;;    (maybe (sequence "," expression))
 ;;
 ;;    (delimited-list PATTERN SEPARATOR)
-;; 	Match a list of PATTERNs separated by SEPARATOR. Sugar for:
+;; 	Match a list of PATTERNs separated by SEPARATOR.  Sugar for:
 ;; 	(sequence PATTERN (many (sequence SEPARATOR PATTERN)))
 ;;
 ;;   (assert LISP-FORM)
-;;	Evaluate LISP-FORM and fail if it returns NIL. We need this in
+;;	Evaluate LISP-FORM and fail if it returns NIL.  We need this in
 ;;	the patterns for "plot" and "splot" to check whether the
 ;;	command at point should be parsed in parametric mode or
-;;	not. See `gnuplot-guess-parametric-p'.
+;;	not.  See `gnuplot-guess-parametric-p'.
 ;;
 ;;
 ;; Bugs, TODOs, etc.
@@ -214,22 +210,22 @@
 ;; many lines.
 ;;
 ;; In ElDoc mode, we parse the whole line every time the user stops
-;; typing. This is wasteful; should cache things in text properties
+;; typing.  This is wasteful; should cache things in text properties
 ;; instead.
 ;;
 ;; The pattern matching engine uses backtracking, which can take
-;; exponential time. So far it seems "fast enough" in actual use.
+;; exponential time.  So far it seems "fast enough" in actual use.
 ;;
 ;; The patterns don't really distinguish between "plot" and "splot"
 ;; for things like plot styles, binary arguments, etc.
 ;;
 ;; Some other the patterns are probably not quite right, especially for
 ;; things like abbreviated keywords, and features that I don't use
-;; myself like "fit". Hopefully anyone bothered by this will submit
+;; myself like "fit".  Hopefully anyone bothered by this will submit
 ;; patches ;-)
 ;;
 ;; It would be possible to provide more helpful ElDoc strings for
-;; sub-parts of complicated options like "cntrparam". This is a time
+;; sub-parts of complicated options like "cntrparam".  This is a time
 ;; and maintenance issue rather than a technical one.
 
 ;;; Code:
@@ -284,10 +280,11 @@
               rules))))
 
 (defun gnuplot-tokenize (&optional completing-p)
-  "Tokenize the Gnuplot command at point. Returns a list of `gnuplot-token' objects.
+  "Tokenize the Gnuplot command at point.
+Return a list of `gnuplot-token' objects.
 
 If COMPLETING-P is non-nil, omits the token at point if it is a
-name; otherwise continues tokenizing up to the token at point. FIXME"
+name; otherwise continues tokenizing up to the token at point.  FIXME."
   (let ((tokens '())
         (stop-point (min (point)
                          (gnuplot-point-at-end-of-command))))
@@ -326,7 +323,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
                      :start from :end to)))
 
                  (t (error
-                     "gnuplot-tokenize: bad token beginning %s"
+                     "Gnuplot-tokenize: bad token beginning %s"
                      (buffer-substring-no-properties (point) stop-point))))))
 
           (push token tokens))))
@@ -572,7 +569,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
              `((assert ,form))))
 
           (t
-           (error "gnuplot-compile-pattern: bad pattern form %s" pat)))))))
+           (error "Gnuplot-compile-pattern: bad pattern form %s" pat)))))))
 
   ;; Helper function for destructuring (sequence ...) forms in patterns
   ;; Takes the cdr of the sequence form, returns a list (PATTERNS ELDOC
@@ -679,7 +676,7 @@ name; otherwise continues tokenizing up to the token at point. FIXME"
                      (setcdr inst `(,location))))
 
                   (t
-                   (error "gnuplot-compile-grammar: bad instruction %s" inst))))))))
+                   (error "Gnuplot-compile-grammar: bad instruction %s" inst))))))))
         object-code))))
 
 ;;; The grammar.
@@ -1751,14 +1748,14 @@ token before point.")
   "Relevant page of the Gnuplot info manual for the construction at point.
 
 Set by `gnuplot-match-pattern' using information from
-`gnuplot-compiled-grammar'. `gnuplot-match-pattern' pushes ElDoc
+`gnuplot-compiled-grammar'.  `gnuplot-match-pattern' pushes ElDoc
 and info strings onto the stack as it runs, and scans the stack
 for the topmost entry when it reaches the token at point.")
 
 (defvar gnuplot-eldoc nil
   "ElDoc documentation string for the Gnuplot construction at point.
 
-Set by `gnuplot-match-pattern'. See also `gnuplot-info-at-point'.")
+Set by `gnuplot-match-pattern'.  See also `gnuplot-info-at-point'.")
 
 (defvar gnuplot-captures nil
   "Alist of named capture groups for gnuplot-mode completion code.
@@ -1776,9 +1773,9 @@ token list just after the end of the capture group.")
   "Parse TOKENS, setting completions, info and ElDoc information.
 
 This function parses TOKENS by simulating a stack machine with
-unlimited backtracking. If COMPLETING-P is non-nil, it stops
+unlimited backtracking.  If COMPLETING-P is non-nil, it stops
 before the token at point and collects a list of the next tokens
-that it would accept in `gnuplot-completions'. If COMPLETING-P is
+that it would accept in `gnuplot-completions'.  If COMPLETING-P is
 nil, it parses up to the token at point and sets `gnuplot-eldoc'
 and `gnuplot-info-at-point' based on the contents of the stack
 there."
@@ -1914,7 +1911,7 @@ there."
               ((commit)
                (let ((location (cadr inst)))
                  (if (not backtrack)
-                     (error "no more backtrack points in commit"))
+                     (error "No more backtrack points in commit"))
                  (pop backtrack)
                  (setq jump location)))
 
@@ -1955,7 +1952,7 @@ there."
                (let* ((name (cadr inst))
                       (record (assoc name gnuplot-captures)))
                  (if (not record)
-                     (error "gnuplot-match-tokens: no open capture group named %s" name)
+                     (error "Gnuplot-match-tokens: no open capture group named %s" name)
                    (setf (caddr record) tokens)
                    (gnuplot-debug (gnuplot-dump-captures)))))
 
@@ -1967,7 +1964,7 @@ there."
                    (push (cons pc tokens) progress))))
 
               (t
-               (error "bad instruction: %s" inst)))
+               (error "Bad instruction: %s" inst)))
 
             ;; Increment PC or jump
             (setq pc (or jump (1+ pc))
@@ -1996,7 +1993,7 @@ there."
                   (gnuplot-debug (gnuplot-dump-progress progress)))))))))))
 
 (defun gnuplot-scan-stack (stack tokens)
-  "Scan STACK for the most recently pushed eldoc and info strings"
+  "Scan STACK for the most recently pushed eldoc and info strings."
   (gnuplot-trace "\t* scanning stack *\n")
   (gnuplot-debug (gnuplot-backtrace))
   (gnuplot-debug (gnuplot-dump-captures))

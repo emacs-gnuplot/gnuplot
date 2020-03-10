@@ -3,11 +3,7 @@
 ;; Copyright (C) 1998-2000 Bruce Ravel
 
 ;; Author:     Bruce Ravel <ravel@phys.washington.edu>
-;; Maintainer: Bruce Ravel <ravel@phys.washington.edu>
-;; Created:    19 December 1998
-;; Updated:    16 November 2000
-;; Version:    (same as gnuplot.el)
-;; Keywords:   gnuplot, plotting, interactive, GUI
+;; URL:        https://github.com/emacsorphanage/gnuplot
 
 ;; This file is not part of GNU Emacs.
 
@@ -112,7 +108,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
   :group 'gnuplot)
 
 (defcustom gnuplot-gui-popup-flag nil
-  "*Non-nil means to open arguments pop-ups automatically.
+  "Non-nil means to open arguments pop-ups automatically.
 This would be done after menu insertion of Gnuplot commands."
   :group 'gnuplot-gui
   :type 'boolean)
@@ -377,8 +373,7 @@ See the doc-string for `gnuplot-gui-all-types'.")
                      "dots" "points" "linespoints")
                     ("LINESTYLE"   'number " " "ls")
                     ("LINETYPE"    'number " " "lt")
-                    ("LINEWIDTH"   'number " " "lw")
-                    ))
+                    ("LINEWIDTH"   'number " " "lw")))
             (cons "boxwidth"
                   '(("WIDTH" 'number " ")))
             (cons "clabel"
@@ -621,8 +616,7 @@ See the doc-string for `gnuplot-gui-all-types'.")
             (cons "x2zeroaxis" gnuplot-gui-zeroaxis-list)
 
             (cons "zero"
-                  '(("THRESHOLD" 'number " ")))
-            ))
+                  '(("THRESHOLD" 'number " ")))))
 
 (defvar gnuplot-gui-command-types nil
   "Associated list of command descriptions.
@@ -702,8 +696,7 @@ parsing values already in the script buffer."
     ("LINE TYPE  " 'number " " "lt")
     ("LINE WIDTH " 'number " " "lw")
     ("POINT TYPE " 'number " " "pt")
-    ("POINT STYLE" 'number " " "ps")
-    ))
+    ("POINT STYLE" 'number " " "ps")))
 (defconst gnuplot-gui-splot-simple-list
   '(("DATA FILE"   'file   " ")
     ("TITLE"       'string " ")
@@ -856,8 +849,7 @@ This alist is formed at load time by appending together
                                     gnuplot-gui-set-types
                                     gnuplot-gui-command-types
                                     gnuplot-gui-plot-splot-fit
-                                    gnuplot-gui-test-type
-                                    ))
+                                    gnuplot-gui-test-type))
 
 
 (defun gnuplot-gui-swap-simple-complete ()
@@ -1203,8 +1195,7 @@ arguments."
               (setq temp-list (cdr temp-list)) ) )
            ;; ---------------------------- other or unknown
            (t
-            (setq temp-list nil))
-           ))
+            (setq temp-list nil))))
         (setq gnuplot-gui-alist
               (append gnuplot-gui-alist (list this-cons))))
       (setq alist (cdr alist))) ))
