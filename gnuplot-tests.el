@@ -68,102 +68,102 @@ string-literal in multiple different contexts, as determined by
   `(ert-deftest ,name ()
      ,string
      ,@(loop for context in gnuplot-string-test-contexts
-                collect
-                `(should (gnuplot-test-string-in-context ,string ,context)))))
+             collect
+             `(should (gnuplot-test-string-in-context ,string ,context)))))
 
 
 ;;;; Tests for double-quoted strings
 (gnuplot-test-string gnuplot-double-quoted-string
-  "\"double-quoted string\"")
+                     "\"double-quoted string\"")
 
 (gnuplot-test-string gnuplot-double-quoted-with-single-quotes
-  "\"double-quoted 'with single quotes' embedded\"")
+                     "\"double-quoted 'with single quotes' embedded\"")
 
 (gnuplot-test-string gnuplot-double-quoted-with-single-quotes-2
-  "\"'single quotes inside double quotes'\"")
-  
+                     "\"'single quotes inside double quotes'\"")
+
 (gnuplot-test-string gnuplot-double-quoted-escapes
-  "\"double-quoted \\\\ string \\\" with embedded \\\" escapes\"")
+                     "\"double-quoted \\\\ string \\\" with embedded \\\" escapes\"")
 
 (gnuplot-test-string gnuplot-double-quoted-escapes-2
-  "\"escaped quote before closing quote \\\"\"")
+                     "\"escaped quote before closing quote \\\"\"")
 
 (gnuplot-test-string gnuplot-double-quoted-escapes-3
-  "\"escaped backslash before closing quote \\\\\"")
+                     "\"escaped backslash before closing quote \\\\\"")
 
 (gnuplot-test-string gnuplot-double-quoted-escapes-4
-  "\"\\\" escaped quote after opening quote\"")
+                     "\"\\\" escaped quote after opening quote\"")
 
 (gnuplot-test-string gnuplot-double-quoted-escapes-5
-  "\"\\\\ escaped backslash after opening quote\"")
+                     "\"\\\\ escaped backslash after opening quote\"")
 
 (gnuplot-test-string gnuplot-double-quoted-escapes-6
-  "\"\\\\\\\" escaped backslashes + escaped quotes (1) \\\\\\\"\"")
+                     "\"\\\\\\\" escaped backslashes + escaped quotes (1) \\\\\\\"\"")
 
 (gnuplot-test-string gnuplot-double-quoted-empty
-  "\"\"")
+                     "\"\"")
 
 (gnuplot-test-string gnuplot-double-quoted-string-containing-escaped-quotes
-  "\"\\\"\\\"\"")
+                     "\"\\\"\\\"\"")
 
 (gnuplot-test-string gnuplot-newline-terminated-double-quoted-string
-  "\"newline-terminated
+                     "\"newline-terminated
 ")
-  
+
 (gnuplot-test-string gnuplot-double-quoted-with-embedded-newlines
-  "\"string \\
+                     "\"string \\
  with embedded \\
 newlines\"")
 
 (gnuplot-test-string gnuplot-newline-terminated-double-quoted-string-with-newline
-  ;; with newlines
-  "\"newline-terminated string \\
+                     ;; with newlines
+                     "\"newline-terminated string \\
  with newlines
 ")
 
 
 ;;;; Tests for single-quoted strings
 (gnuplot-test-string gnuplot-single-quoted-strings
-  "'single-quoted string'")
+                     "'single-quoted string'")
 
 (gnuplot-test-string gnuplot-single-quoted-empty
-  "''")
+                     "''")
 
 (gnuplot-test-string gnuplot-single-quoted-with-double-quotes
-  "'a single-quoted string \"containing a double-quoted string\"'")
+                     "'a single-quoted string \"containing a double-quoted string\"'")
 
 (gnuplot-test-string gnuplot-single-quoted-quotes
-  "'embedded '' quote '' characters'")
+                     "'embedded '' quote '' characters'")
 
 (gnuplot-test-string gnuplot-single-quoted-quotes-2
-  "'embedded '' quote '' characters'''")
+                     "'embedded '' quote '' characters'''")
 
 (gnuplot-test-string gnuplot-single-quoted-quotes-3
-  "' '''")
+                     "' '''")
 
 (gnuplot-test-string gnuplot-single-quoted-backslashes
-  "'embedded \\ backslashes \\'")
+                     "'embedded \\ backslashes \\'")
 
 (gnuplot-test-string gnuplot-single-quoted-backslashes-2
-  "'multiple \\ embedded \\\\ backslashes \\\\\\'")
+                     "'multiple \\ embedded \\\\ backslashes \\\\\\'")
 
 (gnuplot-test-string gnuplot-single-quoted-trailing-backslash
-  "'trailing backslash\\'")
+                     "'trailing backslash\\'")
 
 (gnuplot-test-string gnuplot-single-quoted-newline-terminated
-  "'newline terminated\n")
+                     "'newline terminated\n")
 
 (gnuplot-test-string gnuplot-single-quoted-newline-terminated-quotes
-  "'embedded '' escapes \\ ending at newline ''\n")
+                     "'embedded '' escapes \\ ending at newline ''\n")
 
 (gnuplot-test-string gnuplot-single-quoted-embedded-newlines
-  "'string \\\n with embedded \\\nnewlines'")
+                     "'string \\\n with embedded \\\nnewlines'")
 
 (gnuplot-test-string gnuplot-single-quoted-embedded-newlines-backslashes
-  "'string \\\\\n with \\\\\\\n multiple \\\\\\\\\n backslashes'")
+                     "'string \\\\\n with \\\\\\\n multiple \\\\\\\\\n backslashes'")
 
 (gnuplot-test-string gnuplot-single-quoted-newline-terminated-embedded-newline
-  "'newline-terminated string \\\n with newlines\n")
+                     "'newline-terminated string \\\n with newlines\n")
 
 
 ;;;; Comment syntax
@@ -204,11 +204,11 @@ comment
           (syntax-propertize (point-max)))
         (goto-char (1+ start))
         (flet ((in-comment-p (position)
-                    (nth 4 (syntax-ppss position))))
+                             (nth 4 (syntax-ppss position))))
           (and
            (not (in-comment-p start))
            (loop for position from (1+ start) upto end
-                    always (in-comment-p position))
+                 always (in-comment-p position))
            (or (= end (point-max))
                (not (in-comment-p (1+ end))))))))))
 
@@ -222,32 +222,38 @@ string-literal in multiple different contexts, as determined by
   `(ert-deftest ,name ()
      ,comment
      ,@(loop for context in gnuplot-comment-test-contexts
-                collect
-                `(should (gnuplot-test-comment-in-context ,comment ,context)))))
+             collect
+             `(should (gnuplot-test-comment-in-context ,comment ,context)))))
 
 (gnuplot-test-comment gnuplot-comment-simple
-  "# a simple one-line comment")
+                      "# a simple one-line comment")
 
 (gnuplot-test-comment gnuplot-comment-multiline
-  "# a comment\
+                      "# a comment\
 continued \
 over multiple lines")
 
 (gnuplot-test-comment gnuplot-comment-with-hashes
-  "# a comment # with more # hash # characters #")
+                      "# a comment # with more # hash # characters #")
 
 (gnuplot-test-comment gnuplot-comment-multiline-with-hashes
-  "# a comment \
+                      "# a comment \
 # continued # over \
 mutliple # lines #")
 
 (gnuplot-test-comment gnuplot-comment-with-single-quotes
-  "# a comment 'containing a single-quoted string'")
+                      "# a comment 'containing a single-quoted string'")
 
 (gnuplot-test-comment gnuplot-comment-with-single-quotes
-  "# a comment \"containing a double-quoted string\"")
+                      "# a comment \"containing a double-quoted string\"")
 
 (gnuplot-test-comment gnuplot-comment-multiline-with-quotes
-  "# a continued \
+                      "# a continued \
 'comment' \
 \"containing strings\"")
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
+
+;;; gnuplot-tests.el ends here
