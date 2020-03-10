@@ -3,11 +3,7 @@
 ;; Copyright (C) 1998-2000 Bruce Ravel
 
 ;; Author:     Bruce Ravel <ravel@phys.washington.edu>
-;; Maintainer: Bruce Ravel <ravel@phys.washington.edu>
-;; Created:    19 December 1998
-;; Updated:    16 November 2000
-;; Version:    (same as gnuplot.el)
-;; Keywords:   gnuplot, plotting, interactive, GUI
+;; URL:        https://github.com/emacsorphanage/gnuplot
 
 ;; This file is not part of GNU Emacs.
 
@@ -77,7 +73,7 @@
         (require 'wid-edit))
     (error nil)))
 (require 'cl)
-(eval-when-compile			; suppress some compiler warnings
+(eval-when-compile          ; suppress some compiler warnings
   (defvar gnuplot-xemacs-p nil)
   (defvar gnuplot-quote-character nil)
   (defvar gnuplot-info-display nil)
@@ -86,7 +82,7 @@
 ;; (eval-when-compile
 ;;   (require 'wid-edit))
 
-(eval-and-compile			; I need this!
+(eval-and-compile           ; I need this!
   (if (fboundp 'split-string)
       ()
     (defun split-string (string &optional pattern)
@@ -112,7 +108,7 @@ If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
   :group 'gnuplot)
 
 (defcustom gnuplot-gui-popup-flag nil
-  "*Non-nil means to open arguments pop-ups automatically.
+  "Non-nil means to open arguments pop-ups automatically.
 This would be done after menu insertion of Gnuplot commands."
   :group 'gnuplot-gui
   :type 'boolean)
@@ -330,7 +326,7 @@ See the doc-string for `gnuplot-gui-all-types'.")
                   '(("POINTSIZE"        'number " ")
                     ("LINEWIDTH"        'number " ")
                     ("INTERVAL "        'number " ")))
-            (cons "vgagl"		; for pm3d patch (also persist, raise in x11) <MT>
+            (cons "vgagl"       ; for pm3d patch (also persist, raise in x11) <MT>
                   '(("BACKGROUND"       'position  " " "background" 3)
                     ("INTERPOLATION"    'list " " "uniform" "interpolate")
                     ("DUMP"             'file " ")
@@ -377,8 +373,7 @@ See the doc-string for `gnuplot-gui-all-types'.")
                      "dots" "points" "linespoints")
                     ("LINESTYLE"   'number " " "ls")
                     ("LINETYPE"    'number " " "lt")
-                    ("LINEWIDTH"   'number " " "lw")
-                    ))
+                    ("LINEWIDTH"   'number " " "lw")))
             (cons "boxwidth"
                   '(("WIDTH" 'number " ")))
             (cons "clabel"
@@ -621,8 +616,7 @@ See the doc-string for `gnuplot-gui-all-types'.")
             (cons "x2zeroaxis" gnuplot-gui-zeroaxis-list)
 
             (cons "zero"
-                  '(("THRESHOLD" 'number " ")))
-            ))
+                  '(("THRESHOLD" 'number " ")))))
 
 (defvar gnuplot-gui-command-types nil
   "Associated list of command descriptions.
@@ -702,8 +696,7 @@ parsing values already in the script buffer."
     ("LINE TYPE  " 'number " " "lt")
     ("LINE WIDTH " 'number " " "lw")
     ("POINT TYPE " 'number " " "pt")
-    ("POINT STYLE" 'number " " "ps")
-    ))
+    ("POINT STYLE" 'number " " "ps")))
 (defconst gnuplot-gui-splot-simple-list
   '(("DATA FILE"   'file   " ")
     ("TITLE"       'string " ")
@@ -845,8 +838,8 @@ The value of REST depends upon TYPE:
 Here is an example entry for the png terminal type:
 
   (cons \"png\"
-	'((\"SIZE\"  'list \" \" \"small\" \"medium\" \"large\")
-	  (\"COLOR\" 'list \" \" \"monochrome\" \"gray\" \"color\")))
+    '((\"SIZE\"  'list \" \" \"small\" \"medium\" \"large\")
+      (\"COLOR\" 'list \" \" \"monochrome\" \"gray\" \"color\")))
 
 This alist is formed at load time by appending together
 `gnuplot-gui-terminal-types', `gnuplot-gui-set-types' and
@@ -856,8 +849,7 @@ This alist is formed at load time by appending together
                                     gnuplot-gui-set-types
                                     gnuplot-gui-command-types
                                     gnuplot-gui-plot-splot-fit
-                                    gnuplot-gui-test-type
-                                    ))
+                                    gnuplot-gui-test-type))
 
 
 (defun gnuplot-gui-swap-simple-complete ()
@@ -1038,10 +1030,10 @@ from the list and concatenates the strings that are part of a quoted
 argument, for example an axis label or a font name.  It also replaces
 bounding single quotes with double quotes, since double quotes are
 used in `gnuplot-gui-all-types'."
-  (let (fixed-list quote quoted)	; remove blanks
+  (let (fixed-list quote quoted)    ; remove blanks
     (setq list (remove* "\\s-+" list :test 'string-match)
           list (remove* ""      list :test 'string=))
-    (while list				; concatinate parts of quoted string
+    (while list             ; concatinate parts of quoted string
       (if (not (string-match "^\\([\]\[()'\"]\\)" (car list)))
           (setq fixed-list (append fixed-list (list (car list))))
         (setq quote (match-string 1 (car list))
@@ -1082,7 +1074,7 @@ arguments."
                                (cons tag (cons (car default) (cdr default))))
                               (t (cons tag default))))
              (temp-list arg-list) )
-        ;;(message "%S" temp-list)	; want to lop values off arg-list
+        ;;(message "%S" temp-list)  ; want to lop values off arg-list
                                         ; as they are found
         (if (symbolp (cadr values))
             (setq values (symbol-value (cadr values))))
@@ -1146,9 +1138,9 @@ arguments."
            ;; ---------------------------- range
            ((equal symbol 'range)
             (if (string-match (concat "\\[\\s-*" ; opening bracket
-                                      "\\([^:, \t]*\\)"	; first argument
+                                      "\\([^:, \t]*\\)" ; first argument
                                       "\\s-*[:,]\\s-*" ; separator
-                                      "\\([^\] \t]*\\)"	; second argument
+                                      "\\([^\] \t]*\\)" ; second argument
                                       "\\s-*\\]") ; closing bracket
                               (car temp-list))
                 (setq this-cons
@@ -1203,8 +1195,7 @@ arguments."
               (setq temp-list (cdr temp-list)) ) )
            ;; ---------------------------- other or unknown
            (t
-            (setq temp-list nil))
-           ))
+            (setq temp-list nil))))
         (setq gnuplot-gui-alist
               (append gnuplot-gui-alist (list this-cons))))
       (setq alist (cdr alist))) ))
@@ -1337,7 +1328,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
            (list    (gnuplot-gui-type-list   this)))
       (if (symbolp (cadr list))
           (setq list (symbol-value (cadr list))))
-      (widget-insert "\t")		; insert the appropriate widget
+      (widget-insert "\t")      ; insert the appropriate widget
       (cond
        ;;------------------------------ list, list* ------------
        ((member* (eval wtype) '(list list*) :test 'equal)
@@ -1725,7 +1716,7 @@ is non-nil if this is a 'range widget."
   "A link to an info file for the Gnuplot GUI."
   :action '(lambda (widget &optional event)
              (let ((gnuplot-info-display 'frame))
-               (if gnuplot-keywords-pending		; <HW>
+               (if gnuplot-keywords-pending     ; <HW>
                    (gnuplot-setup-info-look))
                (gnuplot-info-lookup-symbol (widget-value widget)
                                            'gnuplot-mode))))
