@@ -9,8 +9,8 @@
   (mapatoms
    (lambda (sym)
      (when (string-match
-	    "gnuplot"
-	    (symbol-name sym))
+            "gnuplot"
+            (symbol-name sym))
        (unintern sym obarray)))))
 
 (defun gnuplot-reload (&optional context)
@@ -21,7 +21,7 @@
   (require 'gnuplot)
   (when context
     (if (= context 16)
-	(require 'gnuplot-debug-context))
+        (require 'gnuplot-debug-context))
     (require 'gnuplot-context)))
 
 (defsubst gnuplot-recompile ()
@@ -31,13 +31,13 @@
       (delete-file "gnuplot-context.elc")
       (emacs-lisp-byte-compile)
       (load-file "gnuplot-context.elc"))))
-  
+
 (defun gnuplot-nodebug ()
   (interactive)
   (when (featurep 'gnuplot-debug-context)
-      (let ((savef (symbol-function 'gnuplot-debug-on)))
-	(unload-feature 'gnuplot-debug-context)
-	(fset 'gnuplot-debug-on savef)))
+    (let ((savef (symbol-function 'gnuplot-debug-on)))
+      (unload-feature 'gnuplot-debug-context)
+      (fset 'gnuplot-debug-on savef)))
   (gnuplot-recompile))
 
 (defun gnuplot-debug-on ()
@@ -61,11 +61,11 @@
       (with-gnuplot-trace-buffer
        (insert "\n-- * backtrace: * --\n")
        (dolist (x stack)
-	 (insert (format "%s\n"
-			 (if (eq (car x) 'return)
-			     x
-			   (list (car x) (cadr x)
-				 (gnuplot-simplify-tokens (caddr x)))))))
+         (insert (format "%s\n"
+                         (if (eq (car x) 'return)
+                             x
+                           (list (car x) (cadr x)
+                                 (gnuplot-simplify-tokens (caddr x)))))))
        (insert "-- end backtrace  --\n"))))
 
 (defun gnuplot-dump-backtrack (backtrack)
@@ -73,7 +73,7 @@
       (with-gnuplot-trace-buffer
        (insert "\n-- * backtrack records: * --\n")
        (dolist (x backtrack)
-	 (insert (format "%s\t%s\n" (caddr x) (gnuplot-simplify-tokens (cadr x)))))
+         (insert (format "%s\t%s\n" (caddr x) (gnuplot-simplify-tokens (cadr x)))))
        (insert "-- end backtrack records  --\n\n"))))
 
 (defun gnuplot-dump-progress (progress)
@@ -81,7 +81,7 @@
       (with-gnuplot-trace-buffer
        (insert "\n-- * progress records: * --\n")
        (dolist (x progress)
-	 (insert (format "%s\t%s\n" (car x) (gnuplot-simplify-tokens (cdr x)))))
+         (insert (format "%s\t%s\n" (car x) (gnuplot-simplify-tokens (cdr x)))))
        (insert "-- end progress records  --\n\n"))))
 
 (defun gnuplot-dump-code (&optional inst)
@@ -100,16 +100,22 @@
       (with-gnuplot-trace-buffer
        (insert "\n-- * capture groups: * --\n")
        (loop for c on gnuplot-captures
-	     do
-	     (let ((name (caar c))
-		   (gnuplot-captures c))
-	       (insert (format "%s\t%s\n"
-			       name
-			       (mapconcat 'gnuplot-token-id
-					  (gnuplot-capture-group name)
-					  " ")))))
+             do
+             (let ((name (caar c))
+                   (gnuplot-captures c))
+               (insert (format "%s\t%s\n"
+                               name
+                               (mapconcat 'gnuplot-token-id
+                                          (gnuplot-capture-group name)
+                                          " ")))))
        (insert "-- end capture groups  --\n\n"))))
 
 (provide 'gnuplot-debug-context)
 
 (gnuplot-debug-on)
+
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
+
+;;; gnuplot-debug-context.el ends here

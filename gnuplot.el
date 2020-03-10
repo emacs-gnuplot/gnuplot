@@ -46,7 +46,7 @@
 ;; This version of gnuplot-mode has been tested mostly on GNU Emacs 23
 ;; and 24, but should also work with older GNU Emacs versions back to
 ;; Emacs 21, and XEmacs 21.
-;; 
+;;
 ;; This mode offers several tools to help you compose your scripts,
 ;; including font-lock syntax colorization, a syntax table appropriate
 ;; to gnuplot, key bindings, pull-down menus, indentation, keyword
@@ -110,7 +110,7 @@
 ;; gnuplot-context.el (written by Jonathan, j.j.oddie@gmail.com)
 ;;   Context-sensitive completion, help lookup and eldoc
 ;;   strings for gnuplot buffers. Should be byte-compiled before
-;;   using. 
+;;   using.
 ;;
 ;; ---------------------------------------------------------------------
 ;;
@@ -300,7 +300,7 @@
 ;;  0.6.1 Sep 13 2011 <BR> Moved to github, updated contact info
 ;;  0.7.0 Oct 20 2012 <jjo> Contextual completion & help, inline plots,
 ;;        some other stuff
- 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Acknowledgements:
 ;;    David Batty       <DB> (numerous corrections)
@@ -382,10 +382,10 @@ real work."
     (defalias 'gnuplot-window-full-height-p 'window-full-height-p)
   ;; The below is taken from window.el in GNU Emacs
   (defun gnuplot-window-full-height-p (&optional window)
-      (unless window
-	(setq window (selected-window)))
-      (= (window-height window)
-	 (window-height (frame-root-window (window-frame window))))))
+    (unless window
+      (setq window (selected-window)))
+    (= (window-height window)
+       (window-height (frame-root-window (window-frame window))))))
 
 ;; Workaround obsolete `process-kill-without-query'
 (if (fboundp 'set-process-query-on-exit-flag)
@@ -396,13 +396,13 @@ real work."
 (if (fboundp 'syntax-ppss)
     (defalias 'gnuplot-syntax-ppss 'syntax-ppss)
   (defun gnuplot-syntax-ppss (&optional pos)
-      (save-excursion
-	(unless pos (setq pos (point)))
-	(let ((begin
-	       (save-excursion
-		 (goto-char pos)
-		 (gnuplot-point-at-beginning-of-continuation))))
-	  (parse-partial-sexp begin pos)))))
+    (save-excursion
+      (unless pos (setq pos (point)))
+      (let ((begin
+             (save-excursion
+               (goto-char pos)
+               (gnuplot-point-at-beginning-of-continuation))))
+        (parse-partial-sexp begin pos)))))
 
 
 ;;;;
@@ -423,7 +423,7 @@ real work."
   :group 'local
   :link '(emacs-library-link :tag "Lisp File" "gnuplot.el")
   :link '(url-link :tag "Homepage"
-		   "https://github.com/emacsorphanage/gnuplot/")
+                   "https://github.com/emacsorphanage/gnuplot/")
   :link '(custom-manual "(gnuplot)Top")
   :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el") )
 (defgroup gnuplot-insertions nil
@@ -558,8 +558,8 @@ The values are
    nil       `gnuplot-process' is in the current frame but not displayed"
   :group 'gnuplot
   :type '(radio (const :tag "Separate frame"  frame)
-		(const :tag "Separate window" window)
-		(const :tag "Not displayed"   nil)))
+                (const :tag "Separate window" window)
+                (const :tag "Not displayed"   nil)))
 (defcustom gnuplot-info-display 'window
   "*Determines how `gnuplot-info-lookup-symbol' displays the info file.
 The values are
@@ -568,8 +568,8 @@ The values are
    nil       display info file in the current window"
   :group 'gnuplot
   :type '(radio (const :tag "Separate frame"  frame)
-		(const :tag "Separate window" window)
-		(const :tag "This window"     nil)))
+                (const :tag "Separate window" window)
+                (const :tag "This window"     nil)))
 
 (defcustom gnuplot-echo-command-line-flag (not gnuplot-ntemacs-p)
   "*This sets the fall-back value of `comint-process-echos'.
@@ -612,8 +612,8 @@ filename insertion function never insert quotes for you, set this
 to the empty string."
   :group 'gnuplot
   :type '(radio (const :tag "double quote"  "\"")
-		(const :tag "single quote"  "\'")
-		(const :tag "none"          ""  )))
+                (const :tag "single quote"  "\'")
+                (const :tag "none"          ""  )))
 (defcustom gnuplot-basic-offset 4
   "Number of columns to indent lines inside a do- or if-else-block.
 
@@ -653,7 +653,7 @@ time that data is needed."
   :group 'gnuplot
   :type
   '(radio (const :tag "Parse info file when gnuplot-mode starts"    immediately)
-	  (const :tag "Parse info file the first time it is needed" deferred)))
+          (const :tag "Parse info file the first time it is needed" deferred)))
 
 (defun gnuplot-set-context-sensitive-completion (_variable value)
   "Customize :set function for `gnuplot-use-context-sensitive-completion'."
@@ -664,7 +664,7 @@ time that data is needed."
          (if value 1 0))))))
 
 (defcustom gnuplot-use-context-sensitive-completion t
-  "Non-nil if `gnuplot-context-sensitive-mode' should be enabled by default. 
+  "Non-nil if `gnuplot-context-sensitive-mode' should be enabled by default.
 
 In context-sensitive mode, gnuplot-mode parses the current
 command line to provide smarter completion and documentation
@@ -681,7 +681,7 @@ ElDoc support requires `gnuplot-context-sensitive-mode' to be
 on."
   :group 'gnuplot
   :type 'boolean)
-  
+
 (defcustom gnuplot-tab-completion nil
   "Non-nil if TAB should perform completion in gnuplot-mode buffers.
 
@@ -755,9 +755,9 @@ non-nil."
 (defvar gnuplot-mode-map
   (let ((map (make-sparse-keymap))
         (completion-function
-           (if (fboundp 'completion-at-point)
-               'completion-at-point
-             'gnuplot-xemacs-completion-at-point)))
+         (if (fboundp 'completion-at-point)
+             'completion-at-point
+           'gnuplot-xemacs-completion-at-point)))
     (define-key map "\C-c\C-b"    'gnuplot-send-buffer-to-gnuplot)
     (define-key map "\C-c\C-c"    'comment-region) ; <RF>
     (define-key map "\C-c\C-o"    'gnuplot-gui-set-options-and-insert)
@@ -792,10 +792,10 @@ non-nil."
 
 (defvar gnuplot-display-options-menu
   (flet ((make-image-setter (type)
-           `[,(concat (upcase type) " images")
-              (lambda () (interactive) (gnuplot-set-image-format ,type))
-              :style toggle
-              :selected (eq gnuplot-image-format ,type)]))
+                            `[,(concat (upcase type) " images")
+                              (lambda () (interactive) (gnuplot-set-image-format ,type))
+                              :style toggle
+                              :selected (eq gnuplot-image-format ,type)]))
     `("Display plot output"
       ["Externally" gnuplot-external-display-mode
        :style toggle
@@ -917,23 +917,23 @@ create a `gnuplot-mode' buffer."
 (defcustom gnuplot-insertions-adornments ; this is icky...
   (if gnuplot-three-eight-p
       '("adornments"
-	["arrow"       (gnuplot-insert "set arrow ")	      t]
-	["bar"	       (gnuplot-insert "set bar")	      t]
-	["border"      (gnuplot-insert "set border")	      t]
-	["boxwidth"    (gnuplot-insert "set boxwidth ")	      t]
-	["format"      (gnuplot-insert "set format ")	      t]
-	["grid"	       (gnuplot-insert "set grid")	      t]
-	["key"	       (gnuplot-insert "set key ")	      t]
-	["label"       (gnuplot-insert "set label ")	      t]
-	["pointsize"   (gnuplot-insert "set pointsize ")      t]
-	["samples"     (gnuplot-insert "set samples ")	      t]
-	["size"        (gnuplot-insert "set size ")	      t]
-	["style"       (gnuplot-insert "set style ")          t]
-	["tics"        (gnuplot-insert "set tics ")	      t]
-	["timefmt"     (gnuplot-insert "set timefmt ")        t]
-	["timestamp"   (gnuplot-insert "set timestamp ")      t]
-	["title"       (gnuplot-insert "set title ")	      t]
-	["zeroaxis"    (gnuplot-insert "set zeroaxis")        t] )
+        ["arrow"       (gnuplot-insert "set arrow ")	      t]
+        ["bar"	       (gnuplot-insert "set bar")	      t]
+        ["border"      (gnuplot-insert "set border")	      t]
+        ["boxwidth"    (gnuplot-insert "set boxwidth ")	      t]
+        ["format"      (gnuplot-insert "set format ")	      t]
+        ["grid"	       (gnuplot-insert "set grid")	      t]
+        ["key"	       (gnuplot-insert "set key ")	      t]
+        ["label"       (gnuplot-insert "set label ")	      t]
+        ["pointsize"   (gnuplot-insert "set pointsize ")      t]
+        ["samples"     (gnuplot-insert "set samples ")	      t]
+        ["size"        (gnuplot-insert "set size ")	      t]
+        ["style"       (gnuplot-insert "set style ")          t]
+        ["tics"        (gnuplot-insert "set tics ")	      t]
+        ["timefmt"     (gnuplot-insert "set timefmt ")        t]
+        ["timestamp"   (gnuplot-insert "set timestamp ")      t]
+        ["title"       (gnuplot-insert "set title ")	      t]
+        ["zeroaxis"    (gnuplot-insert "set zeroaxis")        t] )
     '("adornments"
       ["data style"     (gnuplot-insert "set data style ")     t]
       ["function style" (gnuplot-insert "set function style ") t]
@@ -958,12 +958,12 @@ See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-	:group 'gnuplot-insertions
-	:type '(list (string :tag "Title")
-		     (repeat :inline t
-			     (vector (string   :tag "Name")
-				     (function :tag "Callback")
-				     (boolean  :tag "Enabled" t)))))
+  :group 'gnuplot-insertions
+  :type '(list (string :tag "Title")
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 
 
@@ -988,10 +988,10 @@ Changing this will not effect a change in any currently existing
 create a `gnuplot-mode' buffer."
   :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
-	       (repeat :inline t
-		       (vector (string   :tag "Name")
-			       (function :tag "Callback")
-			       (boolean  :tag "Enabled" t)))))
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 
 (defcustom gnuplot-insertions-terminal
@@ -1019,10 +1019,10 @@ Changing this will not effect a change in any currently existing
 create a `gnuplot-mode' buffer."
   :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
-	       (repeat :inline t
-		       (vector (string   :tag "Name")
-			       (function :tag "Callback")
-			       (boolean  :tag "Enabled" t)))))
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 
 (defcustom gnuplot-insertions-x-axis
@@ -1042,10 +1042,10 @@ Changing this will not effect a change in any currently existing
 create a `gnuplot-mode' buffer."
   :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
-	       (repeat :inline t
-		       (vector (string   :tag "Name")
-			       (function :tag "Callback")
-			       (boolean  :tag "Enabled" t)))))
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 
 (defcustom gnuplot-insertions-x2-axis
@@ -1065,10 +1065,10 @@ Changing this will not effect a change in any currently existing
 create a `gnuplot-mode' buffer."
   :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
-	       (repeat :inline t
-		       (vector (string   :tag "Name")
-			       (function :tag "Callback")
-			       (boolean  :tag "Enabled" t)))))
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 
 (defcustom gnuplot-insertions-y-axis
@@ -1088,10 +1088,10 @@ Changing this will not effect a change in any currently existing
 create a `gnuplot-mode' buffer."
   :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
-	       (repeat :inline t
-		       (vector (string   :tag "Name")
-			       (function :tag "Callback")
-			       (boolean  :tag "Enabled" t)))))
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 (defcustom gnuplot-insertions-y2-axis
   '("y2-axis"
@@ -1110,10 +1110,10 @@ Changing this will not effect a change in any currently existing
 create a `gnuplot-mode' buffer."
   :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
-	       (repeat :inline t
-		       (vector (string   :tag "Name")
-			       (function :tag "Callback")
-			       (boolean  :tag "Enabled" t)))))
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 
 
@@ -1133,10 +1133,10 @@ Changing this will not effect a change in any currently existing
 create a `gnuplot-mode' buffer."
   :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
-	       (repeat :inline t
-		       (vector (string   :tag "Name")
-			       (function :tag "Callback")
-			       (boolean  :tag "Enabled" t)))))
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 
 (defcustom gnuplot-insertions-parametric-plots
@@ -1154,10 +1154,10 @@ Changing this will not effect a change in any currently existing
 create a `gnuplot-mode' buffer."
   :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
-	       (repeat :inline t
-		       (vector (string   :tag "Name")
-			       (function :tag "Callback")
-			       (boolean  :tag "Enabled" t)))))
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 
 (defcustom gnuplot-insertions-polar-plots
@@ -1172,10 +1172,10 @@ Changing this will not effect a change in any currently existing
 create a `gnuplot-mode' buffer."
   :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
-	       (repeat :inline t
-		       (vector (string   :tag "Name")
-			       (function :tag "Callback")
-			       (boolean  :tag "Enabled" t)))))
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 
 (defcustom gnuplot-insertions-surface-plots
@@ -1195,10 +1195,10 @@ Changing this will not effect a change in any currently existing
 create a `gnuplot-mode' buffer."
   :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
-	       (repeat :inline t
-		       (vector (string   :tag "Name")
-			       (function :tag "Callback")
-			       (boolean  :tag "Enabled" t)))))
+               (repeat :inline t
+                       (vector (string   :tag "Name")
+                               (function :tag "Callback")
+                               (boolean  :tag "Enabled" t)))))
 
 
 
@@ -1208,12 +1208,12 @@ This part contains the toggle buttons for displaying info or
 opening an argument-setting popup.")
 (setq gnuplot-insertions-bottom
       '("---"
-	["Display of info with insertion" gnuplot-toggle-info-display
-	 :style toggle :selected gnuplot-insertions-show-help-flag]
-	["Display GUI popup with insertion" gnuplot-gui-toggle-popup
-	 :active (fboundp 'gnuplot-gui-toggle-popup)
-	 :style toggle :selected (and (fboundp 'gnuplot-gui-toggle-popup)
-				      gnuplot-gui-popup-flag)] ))
+        ["Display of info with insertion" gnuplot-toggle-info-display
+         :style toggle :selected gnuplot-insertions-show-help-flag]
+        ["Display GUI popup with insertion" gnuplot-gui-toggle-popup
+         :active (fboundp 'gnuplot-gui-toggle-popup)
+         :style toggle :selected (and (fboundp 'gnuplot-gui-toggle-popup)
+                                      gnuplot-gui-popup-flag)] ))
 
 
 ;; Regarding a comment by <DB>:
@@ -1241,33 +1241,33 @@ opening an argument-setting popup.")
   "Initial setup of gnuplot and insertions menus."
   (if gnuplot-insertions-menu-flag	; set up insertions menu
       (progn
-	(if gnuplot-xemacs-p
-	    (setq gnuplot-insertions-top
-		  '("insert set expression" "--:doubleLine"))
-	  (setq gnuplot-insertions-top
-		'("insert set expression" "---")))
-	(setq gnuplot-insertions-menu
-	      (append (list "Insertions")
-		      gnuplot-insertions-top
-		      (list gnuplot-insertions-adornments)
-		      (list gnuplot-insertions-plot-options)
-		      (list gnuplot-insertions-terminal)
-		      (list gnuplot-insertions-x-axis)
-		      (list gnuplot-insertions-y-axis)
-		      (list gnuplot-insertions-z-axis)
-		      (list gnuplot-insertions-x2-axis)
-		      (list gnuplot-insertions-y2-axis)
-		      (list gnuplot-insertions-parametric-plots)
-		      (list gnuplot-insertions-polar-plots)
-		      (list gnuplot-insertions-surface-plots)
-		      gnuplot-insertions-bottom))
-       (easy-menu-define gnuplot-mode-insertions-menu gnuplot-mode-map
-			  "Insertions menu used in Gnuplot-mode"
-			  gnuplot-insertions-menu)
-	(easy-menu-add gnuplot-mode-insertions-menu gnuplot-mode-map)))
+        (if gnuplot-xemacs-p
+            (setq gnuplot-insertions-top
+                  '("insert set expression" "--:doubleLine"))
+          (setq gnuplot-insertions-top
+                '("insert set expression" "---")))
+        (setq gnuplot-insertions-menu
+              (append (list "Insertions")
+                      gnuplot-insertions-top
+                      (list gnuplot-insertions-adornments)
+                      (list gnuplot-insertions-plot-options)
+                      (list gnuplot-insertions-terminal)
+                      (list gnuplot-insertions-x-axis)
+                      (list gnuplot-insertions-y-axis)
+                      (list gnuplot-insertions-z-axis)
+                      (list gnuplot-insertions-x2-axis)
+                      (list gnuplot-insertions-y2-axis)
+                      (list gnuplot-insertions-parametric-plots)
+                      (list gnuplot-insertions-polar-plots)
+                      (list gnuplot-insertions-surface-plots)
+                      gnuplot-insertions-bottom))
+        (easy-menu-define gnuplot-mode-insertions-menu gnuplot-mode-map
+          "Insertions menu used in Gnuplot-mode"
+          gnuplot-insertions-menu)
+        (easy-menu-add gnuplot-mode-insertions-menu gnuplot-mode-map)))
   (easy-menu-define			; set up gnuplot menu
-   gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
-   gnuplot-menu)
+    gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
+    gnuplot-menu)
   (easy-menu-add gnuplot-mode-menu gnuplot-mode-map) )
 
 ;; There is no `mark-active' variable in XEmacs.  Hassle!  This is not
@@ -1306,11 +1306,11 @@ the next time you use `gnuplot-mode' and emacs.
 This is only used if a toolbar can be displayed, thus this is used in
 XEmacs and ignored in FSF Emacs."
   :type '(choice (const default-toolbar)
-		 (const top-toolbar)
-		 (const bottom-toolbar)
-		 (const left-toolbar)
-		 (const right-toolbar)
-		 (const :tag "No toolbar" nil))
+                 (const top-toolbar)
+                 (const bottom-toolbar)
+                 (const left-toolbar)
+                 (const right-toolbar)
+                 (const :tag "No toolbar" nil))
   :group 'gnuplot-toolbar)
 
 (defvar gnuplot-toolbar-location "")
@@ -1320,9 +1320,9 @@ XEmacs and ignored in FSF Emacs."
 TOOLBAR contains the toolbar specification.
 This is basically swiped from VM."
   (let ((width 46) (height 46)
-	(buffer (current-buffer))
-	(frame (selected-frame))
-	(tag-set '(win)))
+        (buffer (current-buffer))
+        (frame (selected-frame))
+        (tag-set '(win)))
     (cond
      ((eq (symbol-value gnuplot-toolbar-use-toolbar) right-toolbar)
       (setq gnuplot-toolbar-location       "right")
@@ -1395,7 +1395,7 @@ static char *line[] = {
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"};")
-  "XPM format image used for the \"plot line\" button"))
+    "XPM format image used for the \"plot line\" button"))
 
 (defvar gnuplot-region-xpm
   (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
@@ -1451,7 +1451,7 @@ static char *region[] = {
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"};")
-  "XPM format image used for the \"plot region\" button"))
+    "XPM format image used for the \"plot region\" button"))
 
 (defvar gnuplot-buffer-xpm
   (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
@@ -1507,7 +1507,7 @@ static char *buffer[] = {
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"};")
-  "XPM format image used for the \"plot buffer\" button"))
+    "XPM format image used for the \"plot buffer\" button"))
 
 (defvar gnuplot-doc-xpm
   (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
@@ -1564,7 +1564,7 @@ static char *book_index[] = {
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"};")
-  "XPM format image used for the \"document\" button"))
+    "XPM format image used for the \"document\" button"))
 
 (defvar gnuplot-help-xpm
   (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
@@ -1618,7 +1618,7 @@ static char *help_btn[] = {
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
 \"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"};")
-  "XPM format image used for the \"help\" button"))
+    "XPM format image used for the \"help\" button"))
 
 (defvar gnuplot-toolbar
   '([gnuplot-line-xpm
@@ -1649,11 +1649,11 @@ static char *help_btn[] = {
 (defun gnuplot-make-toolbar-function ()
   (if (and gnuplot-xemacs-p gnuplot-all-buttons-defined)
       (progn
-	;;(remove-specifier gnuplot-toolbar-use-toolbar (current-buffer))
-	(gnuplot-toolbar-setup-toolbar gnuplot-toolbar)
-	(add-spec-to-specifier (symbol-value gnuplot-toolbar-use-toolbar)
-			       gnuplot-toolbar
-			       (current-buffer) ))))
+        ;;(remove-specifier gnuplot-toolbar-use-toolbar (current-buffer))
+        (gnuplot-toolbar-setup-toolbar gnuplot-toolbar)
+        (add-spec-to-specifier (symbol-value gnuplot-toolbar-use-toolbar)
+                               gnuplot-toolbar
+                               (current-buffer) ))))
 
 ;;(defalias 'gnuplot-make-toolbar 'gnuplot-make-toolbar-function)
 
@@ -1685,11 +1685,11 @@ static char *help_btn[] = {
     ;; `syntax-propertize', fall back to using the built-in parser and
     ;; making ", ', and # string or comment delimiters as normal.
     (if (not (boundp 'syntax-propertize-function))
-	(progn
-	  (modify-syntax-entry ?\' "\"" table)
-	  (modify-syntax-entry ?# "<" table)
-	  (modify-syntax-entry ?\n ">" table)
-	  (modify-syntax-entry ?\\ "\\" table))
+        (progn
+          (modify-syntax-entry ?\' "\"" table)
+          (modify-syntax-entry ?# "<" table)
+          (modify-syntax-entry ?\n ">" table)
+          (modify-syntax-entry ?\\ "\\" table))
 
       ;; When syntax-propertize is available, ", ', and # should be
       ;; punctuation so that the built-in parser doesn't interfere
@@ -1737,7 +1737,7 @@ These are highlighted using `font-lock-function-name-face'.")
   "List of GNUPLOT keywords associated with plotting, as strings.
 
 These are highlighted using `font-lock-type-face'.
-This list does not include plotting styles -- for that, see 
+This list does not include plotting styles -- for that, see
 `gnuplot-keywords-plotting-styles'")
 
 (defvar gnuplot-keywords-plotting-styles
@@ -1782,48 +1782,48 @@ These are highlighted using `font-lock-constant-face'.")
 
 (when (featurep 'font-lock)		; <KL>
   (setq gnuplot-font-lock-keywords
-	(list
-	 ;; stuff in brackets, sugg. by <LB>
-	 '("\\[\\([^]]+\\)\\]" 1 font-lock-constant-face)
+        (list
+         ;; stuff in brackets, sugg. by <LB>
+         '("\\[\\([^]]+\\)\\]" 1 font-lock-constant-face)
 
-	 ;; variable/function definitions
-	 '("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
-	   1 font-lock-variable-name-face)
+         ;; variable/function definitions
+         '("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
+           1 font-lock-variable-name-face)
 
-	 ;; built-in function names
-	 (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
-	       font-lock-function-name-face)
+         ;; built-in function names
+         (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
+               font-lock-function-name-face)
 
-	 ;; reserved words associated with plotting <AL>
-	 (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
-	       font-lock-type-face)
-	 (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
-	       font-lock-function-name-face)
+         ;; reserved words associated with plotting <AL>
+         (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
+               font-lock-type-face)
+         (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
+               font-lock-function-name-face)
 
-	 ;; (s)plot -- also thing (s)plotted
-	 '("\\<s?plot\\>" . font-lock-keyword-face)
-	 ;; '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
-	 ;;   1 font-lock-variable-name-face)
+         ;; (s)plot -- also thing (s)plotted
+         '("\\<s?plot\\>" . font-lock-keyword-face)
+         ;; '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
+         ;;   1 font-lock-variable-name-face)
 
-	 ;; other common commands
-	 (cons (gnuplot-make-regexp gnuplot-keywords-misc)
-	       font-lock-constant-face)
-	 (cons "!.*$" font-lock-constant-face))) ; what is this for? jjo
-      
-  (setq gnuplot-font-lock-defaults 
-	'(gnuplot-font-lock-keywords
-	  nil				; Use syntactic fontification
-	  t				; Use case folding
-	  nil				; No extra syntax
-	  ;; calls `gnuplot-beginning-of-continuation'
-	  ;; to find a safe place to begin syntactic highlighting
-	  beginning-of-defun))
-  
+         ;; other common commands
+         (cons (gnuplot-make-regexp gnuplot-keywords-misc)
+               font-lock-constant-face)
+         (cons "!.*$" font-lock-constant-face))) ; what is this for? jjo
+
+  (setq gnuplot-font-lock-defaults
+        '(gnuplot-font-lock-keywords
+          nil				; Use syntactic fontification
+          t				; Use case folding
+          nil				; No extra syntax
+          ;; calls `gnuplot-beginning-of-continuation'
+          ;; to find a safe place to begin syntactic highlighting
+          beginning-of-defun))
+
   ;; Set up font-lock for Xemacs
   ;; For GNU Emacs, this is done in `gnuplot-mode'
   (if gnuplot-xemacs-p
       (put 'gnuplot-mode 'font-lock-defaults
-	   gnuplot-font-lock-defaults)))
+           gnuplot-font-lock-defaults)))
 
 ;; Some corner cases in Gnuplot's comment and string syntax are
 ;; difficult to handle accurately using Emacs's built-in syntax tables
@@ -1831,15 +1831,15 @@ These are highlighted using `font-lock-constant-face'.")
 ;;
 ;; - strings can continue over several lines, but only by using a
 ;;   backslash to escape the newline
-;; 
+;;
 ;; - double-quoted strings can contain escaped quotes, \", and escaped
 ;;   backslashes, \\; but in single-quoted strings the quote is
 ;;   escaped by doubling it, '', and backslash is only special at
 ;;   end-of-line
-;; 
+;;
 ;; - either type of string can end at newline without needing a
 ;; - closing delimiter
-;; 
+;;
 ;; - comments continue over continuation lines
 ;;
 ;; The following syntax-propertize rules should accurately mark string
@@ -1849,32 +1849,32 @@ These are highlighted using `font-lock-constant-face'.")
 ;; normal syntax-table parser, which is accurate enough for most
 ;; normal cases. (See the definition of `gnuplot-mode-syntax-table'.)
 (defalias 'gnuplot-syntax-propertize
-    (when (fboundp 'syntax-propertize-rules)
-      (syntax-propertize-rules
-       ;; Double quoted strings
-       ((rx
-         (group "\"")
-         (* (or (seq "\\" anything)
-                (not (any "\"" "\n"))))
-         (group (or "\"" "\n" buffer-end)))
-        (1 "|") (2 "|"))
+  (when (fboundp 'syntax-propertize-rules)
+    (syntax-propertize-rules
+     ;; Double quoted strings
+     ((rx
+       (group "\"")
+       (* (or (seq "\\" anything)
+              (not (any "\"" "\n"))))
+       (group (or "\"" "\n" buffer-end)))
+      (1 "|") (2 "|"))
 
-       ;; Single quoted strings
-       ((rx
-         (group "'")
-         (* (or (seq "\\" "\n")
-                "''"
-                (not (any "'" "\n"))))
-         (group (or "'" "\n" buffer-end)))
-        (1 "|") (2 "|"))
+     ;; Single quoted strings
+     ((rx
+       (group "'")
+       (* (or (seq "\\" "\n")
+              "''"
+              (not (any "'" "\n"))))
+       (group (or "'" "\n" buffer-end)))
+      (1 "|") (2 "|"))
 
-       ;; Comments
-       ((rx
-         (group "#")
-         (* (or (seq "\\" "\n")
-                any))
-         (or (group "\n") buffer-end))
-        (1 "!") (2 "!")))))
+     ;; Comments
+     ((rx
+       (group "#")
+       (* (or (seq "\\" "\n")
+              any))
+       (or (group "\n") buffer-end))
+      (1 "!") (2 "!")))))
 
 (defun gnuplot-syntax-propertize-extend-region (start end)
   "Expand the region to syntax-propertize for strings and comments.
@@ -1924,7 +1924,7 @@ This is a simple wrapper for `syntax-ppss'."
   (save-excursion
     (let ((parse-state (gnuplot-syntax-ppss where)))
       (or (nth 3 parse-state)
-	  (nth 4 parse-state)))))
+          (nth 4 parse-state)))))
 
 ;; these two lines get rid of an annoying compile time error
 ;; message.  that function gets non-trivially defalias-ed in
@@ -1940,9 +1940,9 @@ This is a simple wrapper for `syntax-ppss'."
   (let ((list ()) (line "") (index 0))
     (while (< index (length string))
       (if (char-equal (elt string index) ?\n)
-	  (setq list (append list (list line))
-		line "")
-	(setq line (concat line (char-to-string (elt string index)))))
+          (setq list (append list (list line))
+                line "")
+        (setq line (concat line (char-to-string (elt string index)))))
       (setq index (1+ index)) )
     list))
 
@@ -1965,13 +1965,13 @@ called by this function after all of STRING is sent to gnuplot."
   ;; Create a gnuplot frame if needed
   (if (equal gnuplot-display-process 'frame)
       (or (and gnuplot-process-frame
-	       (frame-live-p gnuplot-process-frame))
-	  (let ((frame (selected-frame)))
-	    (setq gnuplot-process-frame (make-frame))
-	    (select-frame gnuplot-process-frame)
-	    (switch-to-buffer gnuplot-buffer)
-	    (delete-other-windows)
-	    (select-frame frame))))
+               (frame-live-p gnuplot-process-frame))
+          (let ((frame (selected-frame)))
+            (setq gnuplot-process-frame (make-frame))
+            (select-frame gnuplot-process-frame)
+            (switch-to-buffer gnuplot-buffer)
+            (delete-other-windows)
+            (select-frame frame))))
 
   (let ((list (gnuplot-split-string string)))
     (with-current-buffer (get-buffer gnuplot-buffer)
@@ -1980,18 +1980,18 @@ called by this function after all of STRING is sent to gnuplot."
       (set-marker (process-mark gnuplot-process) (point-marker))
       (sleep-for (* 20 gnuplot-delay))
       (while list
-	(insert (car list))
-	(comint-send-input)
-	(sleep-for gnuplot-delay)
-	(setq list (cdr list))
-	(goto-char (point-max))))
+        (insert (car list))
+        (comint-send-input)
+        (sleep-for gnuplot-delay)
+        (setq list (cdr list))
+        (goto-char (point-max))))
 
     (cond ((equal gnuplot-display-process 'window)
-	   (gnuplot-display-and-recenter-gnuplot-buffer))
-	  ((equal gnuplot-display-process 'frame)
-	   ;;(raise-frame gnuplot-process-frame)
-	   (with-selected-frame gnuplot-process-frame
-	     (gnuplot-display-and-recenter-gnuplot-buffer))))
+           (gnuplot-display-and-recenter-gnuplot-buffer))
+          ((equal gnuplot-display-process 'frame)
+           ;;(raise-frame gnuplot-process-frame)
+           (with-selected-frame gnuplot-process-frame
+             (gnuplot-display-and-recenter-gnuplot-buffer))))
 
     (setq gnuplot-recently-sent text)
     (run-hooks 'gnuplot-after-plot-hook)))
@@ -2014,13 +2014,13 @@ useful for function in `gnuplot-after-plot-hook'."
   (interactive "r")
   (let (string (txt (or text 'region)))
     (cond ((equal major-mode 'gnuplot-mode)
-	   (setq string (buffer-substring-no-properties begin end))
- 	   (if (string= (substring string -1) "\n") ()
- 	     (setq string (concat string "\n")))
-	   (gnuplot-send-string-to-gnuplot string txt))
-	  (t
-	   (message (concat "You can only send regions from "
-			    "gnuplot-mode buffers to gnuplot."))))))
+           (setq string (buffer-substring-no-properties begin end))
+           (if (string= (substring string -1) "\n") ()
+             (setq string (concat string "\n")))
+           (gnuplot-send-string-to-gnuplot string txt))
+          (t
+           (message (concat "You can only send regions from "
+                            "gnuplot-mode buffers to gnuplot."))))))
 
 (defun gnuplot-send-line-to-gnuplot ()
   "Sends the current line to the gnuplot program.
@@ -2028,26 +2028,26 @@ Respects continuation lines.
 This sets `gnuplot-recently-sent' to 'line."
   (interactive)
   (cond ((equal major-mode 'gnuplot-mode)
-	 (let (start end)
-	   (save-excursion 
-	     ;; go to start of continued command, or beginning of line
-	     ;; if this is not a continuation of a previous line <JJO>
-	     (gnuplot-beginning-of-continuation)
-	     (setq start (point))
-	     (end-of-line)
-	     (while (save-excursion
-		      (backward-char)
-		      (looking-at "\\\\"))	; go to end of last continuation line
-	       (end-of-line 2))
-	     (beginning-of-line 2)
-	     (setq end (point)))
-	   (if (not (string-match "\\`\\s-*\\'"
-				  (buffer-substring-no-properties start end)))
-	       (gnuplot-send-region-to-gnuplot start end 'line))
-	   end))
-	(t
-	 (message "You can only send lines in gnuplot-mode buffers to gnuplot.")
-	 nil)))
+         (let (start end)
+           (save-excursion
+             ;; go to start of continued command, or beginning of line
+             ;; if this is not a continuation of a previous line <JJO>
+             (gnuplot-beginning-of-continuation)
+             (setq start (point))
+             (end-of-line)
+             (while (save-excursion
+                      (backward-char)
+                      (looking-at "\\\\"))	; go to end of last continuation line
+               (end-of-line 2))
+             (beginning-of-line 2)
+             (setq end (point)))
+           (if (not (string-match "\\`\\s-*\\'"
+                                  (buffer-substring-no-properties start end)))
+               (gnuplot-send-region-to-gnuplot start end 'line))
+           end))
+        (t
+         (message "You can only send lines in gnuplot-mode buffers to gnuplot.")
+         nil)))
 
 ;; I chose a very easy to type but slightly non-mnemonic key-binding
 ;; for this (C-c C-v).  It seems like the kind of thing one would want
@@ -2079,8 +2079,8 @@ Blank lines and commented lines are not included in the NUM count."
   (while (> num 0)
     (and (not (eobp)) (forward-line 1))
     (while (and (not (eobp))
-		(or (looking-at "^\\s-*$")
-		    (looking-at "^\\s-*#")))
+                (or (looking-at "^\\s-*$")
+                    (looking-at "^\\s-*#")))
       (forward-line 1))
     (setq num (1- num))))
 
@@ -2114,14 +2114,14 @@ this by copying the script line by line."
     (let (string list (buffer (current-buffer)))
       (set-buffer gnuplot-comint-recent-buffer)
       (setq string (buffer-substring-no-properties (point-min) (point-max))
-	    string (concat string "\n")
-	    list   (gnuplot-split-string string))
+            string (concat string "\n")
+            list   (gnuplot-split-string string))
       (set-buffer buffer)
       (while list
-	(insert (car list))
-	(comint-send-input)
-	(sleep-for gnuplot-delay)
-	(setq list (cdr list)))
+        (insert (car list))
+        (comint-send-input)
+        (sleep-for gnuplot-delay)
+        (setq list (cdr list)))
       (comint-send-input))))
 
 (defun gnuplot-save-and-plot-from-comint ()
@@ -2136,8 +2136,8 @@ file visited by the script buffer."
       (message "Script buffer has been deleted.")
     (let (fname)
       (with-current-buffer gnuplot-comint-recent-buffer
-	(save-buffer)
-	(setq fname (buffer-file-name)))
+        (save-buffer)
+        (setq fname (buffer-file-name)))
       (goto-char (point-max))
       (insert (format "load '%s'" fname))
       (comint-send-input))))
@@ -2154,13 +2154,13 @@ This keeps that buffer from growing excessively in size.  Normally,
 this function is attached to `gnuplot-after-plot-hook'"
   (if (> gnuplot-buffer-max-size 0)
       (with-current-buffer gnuplot-buffer
-	(let ((nlines (count-lines (point-min) (point-max)))
-	      (kill-whole-line t))
-	  (while (> nlines gnuplot-buffer-max-size)
-	    (goto-char (point-min))
-	    (kill-line)
-	    (setq nlines (1- nlines)))
-	  (goto-char (point-max)) ))))
+        (let ((nlines (count-lines (point-min) (point-max)))
+              (kill-whole-line t))
+          (while (> nlines gnuplot-buffer-max-size)
+            (goto-char (point-min))
+            (kill-line)
+            (setq nlines (1- nlines)))
+          (goto-char (point-max)) ))))
 (add-hook 'gnuplot-after-plot-hook 'gnuplot-trim-gnuplot-buffer nil nil)
 
 
@@ -2221,16 +2221,16 @@ buffer."
 
   ;; XEmacs needs the call to make-local-hook
   (when (and (featurep 'xemacs)
-	     (fboundp 'make-local-hook))
+             (fboundp 'make-local-hook))
     (make-local-hook 'kill-buffer-hook))
   (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
 
   (add-hook 'comint-output-filter-functions
-	    'comint-postoutput-scroll-to-bottom
-	    nil t)
+            'comint-postoutput-scroll-to-bottom
+            nil t)
   (add-hook 'comint-output-filter-functions
-	    'gnuplot-protect-prompt-fn
-	    nil t)
+            'gnuplot-protect-prompt-fn
+            nil t)
 
   ;; Set up completion, using completion-at-point in recent Emacs,
   ;; comint-dynamic-complete in older Emacs
@@ -2241,8 +2241,8 @@ buffer."
 
   ;; Set up menu (see below)
   (easy-menu-define
-   gnuplot-comint-mode-menu gnuplot-comint-mode-map "Menu used in gnuplot-comint-mode"
-   gnuplot-comint-menu)
+    gnuplot-comint-mode-menu gnuplot-comint-mode-map "Menu used in gnuplot-comint-mode"
+    gnuplot-comint-menu)
   (easy-menu-add gnuplot-comint-mode-menu gnuplot-comint-mode-map))
 
 ;; Key bindings for gnuplot-comint-mode
@@ -2301,30 +2301,30 @@ If the version number cannot be determined by this method, it
 defaults to 3.7."
   (unless gnuplot-program-version
     (message "gnuplot-mode %s -- determining gnuplot version ......"
-	     gnuplot-version)
+             gnuplot-version)
     (with-temp-buffer
       (insert "show version")
       (call-process-region (point-min) (point-max)
-			   gnuplot-program t (current-buffer))
+                           gnuplot-program t (current-buffer))
       (goto-char (point-min))
       (if (and (re-search-forward "[Vv]ersion\\s-+" (point-max) t)
-	       (looking-at "\\([0-9]\\)\\.\\([0-9]+\\)"))
-	  (progn
-	    (setq gnuplot-program-version (match-string 0)
-		  gnuplot-program-major-version (string-to-number
-						 (match-string 1))
-		  gnuplot-program-minor-version (string-to-number
-						 (match-string 2))
-		  gnuplot-three-eight-p
-		  (>= (string-to-number gnuplot-program-version) 3.8)))
+               (looking-at "\\([0-9]\\)\\.\\([0-9]+\\)"))
+          (progn
+            (setq gnuplot-program-version (match-string 0)
+                  gnuplot-program-major-version (string-to-number
+                                                 (match-string 1))
+                  gnuplot-program-minor-version (string-to-number
+                                                 (match-string 2))
+                  gnuplot-three-eight-p
+                  (>= (string-to-number gnuplot-program-version) 3.8)))
 
-	;; Guess v3.7 if something went wrong
-	(message "Warning: could not determine gnuplot version, guessing 3.7")
-	(setq gnuplot-program-version "3.7"
-	      gnuplot-program-major-version 3
-	      gnuplot-program-minor-version 7
-	      gnuplot-three-eight-p nil)))
-    
+        ;; Guess v3.7 if something went wrong
+        (message "Warning: could not determine gnuplot version, guessing 3.7")
+        (setq gnuplot-program-version "3.7"
+              gnuplot-program-major-version 3
+              gnuplot-program-minor-version 7
+              gnuplot-three-eight-p nil)))
+
     ;; Setup stuff that depends on version number
     (gnuplot-setup-menu-and-toolbar)))
 
@@ -2334,13 +2334,13 @@ defaults to 3.7."
   ;; set up the toolbar (possibly dependent on version number)
   (if (and gnuplot-xemacs-p gnuplot-toolbar-display-flag)
       (condition-case ()		; deal with the toolbar
-	  (and (require 'toolbar)
-	       (require 'xpm)
-	       (gnuplot-make-toolbar-function))
-	(error nil)))
+          (and (require 'toolbar)
+               (require 'xpm)
+               (gnuplot-make-toolbar-function))
+        (error nil)))
   (message "gnuplot-mode %s (gnuplot %s) -- report bugs as issues at %s"
-	   gnuplot-version gnuplot-program-version
-	   gnuplot-maintainer-url))
+           gnuplot-version gnuplot-program-version
+           gnuplot-maintainer-url))
 
 (defvar gnuplot-prompt-regexp
   (regexp-opt '("gnuplot> " "multiplot> "))
@@ -2362,12 +2362,12 @@ STRING is the text as originally inserted in the comint buffer."
             (put-text-property b e 'intangible t)
             (put-text-property b e 'face 'gnuplot-prompt-face)
             ;;(put-text-property b e 'read-only t)
-	    )) )))
+            )) )))
 
 (defun gnuplot-close-down ()
   "Tidy up when deleting the gnuplot buffer."
   (if (and gnuplot-process
-	   (eq (process-status gnuplot-process) 'run)) ; <SE>
+           (eq (process-status gnuplot-process) 'run)) ; <SE>
       (kill-process gnuplot-process))
   (setq gnuplot-process nil
         gnuplot-buffer nil))
@@ -2384,13 +2384,13 @@ This is very similar to `comint-delchar-or-maybe-eof'."
   "Kill the gnuplot process and its display buffers."
   (interactive)
   (if (and gnuplot-process
-	   (eq (process-status gnuplot-process) 'run))  ;; <SE>
+           (eq (process-status gnuplot-process) 'run))  ;; <SE>
       (kill-process gnuplot-process))
   (if (and gnuplot-buffer (get-buffer gnuplot-buffer))
       (progn
-	(if (one-window-p) ()
-	  (delete-window (get-buffer-window gnuplot-buffer)))
-	(kill-buffer gnuplot-buffer)))
+        (if (one-window-p) ()
+          (delete-window (get-buffer-window gnuplot-buffer)))
+        (kill-buffer gnuplot-buffer)))
   (setq gnuplot-process nil
         gnuplot-buffer nil))
 
@@ -2404,16 +2404,16 @@ gnuplot process buffer will be displayed in a window."
   (unless (and gnuplot-buffer (get-buffer gnuplot-buffer))
     (gnuplot-make-gnuplot-buffer))
   (cond ((equal gnuplot-display-process 'window)
-	 (switch-to-buffer-other-window gnuplot-buffer))
-	((equal gnuplot-display-process 'frame)
-	 (or (and gnuplot-process-frame
-		  (frame-live-p gnuplot-process-frame))
-	     (setq gnuplot-process-frame (make-frame)))
-	 (raise-frame gnuplot-process-frame)
-	 (select-frame gnuplot-process-frame)
-	 (switch-to-buffer gnuplot-buffer))
-	(t
-	 (switch-to-buffer gnuplot-buffer))))
+         (switch-to-buffer-other-window gnuplot-buffer))
+        ((equal gnuplot-display-process 'frame)
+         (or (and gnuplot-process-frame
+                  (frame-live-p gnuplot-process-frame))
+             (setq gnuplot-process-frame (make-frame)))
+         (raise-frame gnuplot-process-frame)
+         (select-frame gnuplot-process-frame)
+         (switch-to-buffer gnuplot-buffer))
+        (t
+         (switch-to-buffer gnuplot-buffer))))
 
 
 ;;; Support for displaying plotted images within Emacs
@@ -2493,12 +2493,12 @@ updates Gnuplot with the appropriate 'set output' command."
               (ecase gnuplot-inline-image-mode
                 (nil nil)
                 (inline
-                 (ignore-errors
-                   (let ((image (create-image filename)))
-                     (beginning-of-line)
-                     (insert-image image)
-                     (insert "\n")
-                     (gnuplot-inline-image-set-output))))
+                  (ignore-errors
+                    (let ((image (create-image filename)))
+                      (beginning-of-line)
+                      (insert-image image)
+                      (insert "\n")
+                      (gnuplot-inline-image-set-output))))
                 (dedicated
                  (with-current-buffer
                      (get-buffer-create gnuplot-image-buffer-name)
@@ -2511,12 +2511,12 @@ updates Gnuplot with the appropriate 'set output' command."
 
 ;;; Send commands to GNUPLOT silently & without generating an extra prompt
 (defvar gnuplot-hidden-output-buffer " *gnuplot output*")
-  
+
 (defun gnuplot-send-hiding-output (string)
   "Send STRING to the running Gnuplot process invisibly."
   (with-current-buffer gnuplot-buffer
     (add-hook 'comint-preoutput-filter-functions
-	      'gnuplot-discard-output nil t))
+              'gnuplot-discard-output nil t))
   (with-current-buffer (get-buffer-create gnuplot-hidden-output-buffer)
     (erase-buffer))
   (comint-send-string (get-buffer-process gnuplot-buffer) string))
@@ -2530,8 +2530,8 @@ updates Gnuplot with the appropriate 'set output' command."
     (insert string)
     (when (looking-back gnuplot-prompt-regexp)
       (with-current-buffer gnuplot-buffer
-	(remove-hook 'comint-preoutput-filter-functions
-		     'gnuplot-discard-output t))))
+        (remove-hook 'comint-preoutput-filter-functions
+                     'gnuplot-discard-output t))))
   "")
 
 
@@ -2545,9 +2545,9 @@ Uses completion and the value of `gnuplot-quote-character'.
 Bound to \\[gnuplot-insert-filename]"
   (interactive)
   (insert gnuplot-quote-character
-	  (file-relative-name (read-file-name "Filename > " "")
-			      default-directory)
-	  gnuplot-quote-character) )
+          (file-relative-name (read-file-name "Filename > " "")
+                              default-directory)
+          gnuplot-quote-character) )
 
 
 ;; Adjust indentation for the line containing point
@@ -2558,18 +2558,18 @@ Add additional indentation for continuation lines."
   (interactive)
   (let (indent)
     (if (gnuplot-in-string (point-at-bol))
-	;; Continued strings begin at left margin
-	(setq indent 0)
-      (save-excursion 
-	(if (gnuplot-continuation-line-p)
-	    ;; This is a continuation line. Indent to the same level as
-	    ;; the second word on the line beginning this command (i.e.,
-	    ;; the first non-whitespace character after whitespace)
-	    (progn
-	      (gnuplot-beginning-of-continuation)
-	      (back-to-indentation) 
-	      (re-search-forward "\\S-+\\s-+" (point-at-eol) 'end-at-limit)
-	      (setq indent (- (point) (point-at-bol))))
+        ;; Continued strings begin at left margin
+        (setq indent 0)
+      (save-excursion
+        (if (gnuplot-continuation-line-p)
+            ;; This is a continuation line. Indent to the same level as
+            ;; the second word on the line beginning this command (i.e.,
+            ;; the first non-whitespace character after whitespace)
+            (progn
+              (gnuplot-beginning-of-continuation)
+              (back-to-indentation)
+              (re-search-forward "\\S-+\\s-+" (point-at-eol) 'end-at-limit)
+              (setq indent (- (point) (point-at-bol))))
 
           ;; Not a continuation line; indent according to block
           ;; nesting depth
@@ -2586,7 +2586,7 @@ Add additional indentation for continuation lines."
                (setq indent 0)))))))
 
     ;; Set indentation
-    (save-excursion 
+    (save-excursion
       (indent-line-to indent))
 
     ;; Move point after indentation when at beginning of line
@@ -2612,10 +2612,10 @@ Add additional indentation for continuation lines."
   "Return t if the line containing point is a continuation of the previous line."
   (save-excursion
     (condition-case ()
-	(progn
-	  (end-of-line 0)
-	  (backward-char)
-	  (looking-at "\\\\"))
+        (progn
+          (end-of-line 0)
+          (backward-char)
+          (looking-at "\\\\"))
       (error nil))))
 
 ;; Move point to start of continuation block
@@ -2636,9 +2636,9 @@ If there are no continuation lines, move point to end-of-line."
   (unless (bobp)
     (catch 'eob
       (while (save-excursion (backward-char)
-			     (looking-at "\\\\"))
-	(end-of-line 2)
-	(if (eobp) (throw 'eob nil))))))
+                             (looking-at "\\\\"))
+        (end-of-line 2)
+        (if (eobp) (throw 'eob nil))))))
 
 ;; Save-excursion wrappers for the above to return point at beginning
 ;; or end of continuation
@@ -2664,27 +2664,27 @@ If there are no continuation lines, returns point-at-eol."
 ;; movement purposes
 (defun gnuplot-beginning-of-defun (&optional arg)
   (if (not arg) (setq arg 1))
-  (if (> arg 0) 			
+  (if (> arg 0)
       (catch 'bob		; go to beginning of ARGth prev. defun
-	(dotimes (n arg)
-	  (when (= (point)
-		   (gnuplot-point-at-beginning-of-continuation))
-	    (forward-line -1)
-	    (if (bobp) (throw 'bob t))
-	    (while (looking-at "^\\s-*$")
-	      (forward-line -1)
-	      (if (bobp) (throw 'bob t))))
-	  (gnuplot-beginning-of-continuation))
-	t)
+        (dotimes (n arg)
+          (when (= (point)
+                   (gnuplot-point-at-beginning-of-continuation))
+            (forward-line -1)
+            (if (bobp) (throw 'bob t))
+            (while (looking-at "^\\s-*$")
+              (forward-line -1)
+              (if (bobp) (throw 'bob t))))
+          (gnuplot-beginning-of-continuation))
+        t)
 
     (catch 'eob		  ; find beginning of (-ARG)th following defun
       (dotimes (n (- arg))
-	(gnuplot-end-of-continuation)
-	(forward-line)
-	(if (eobp) (throw 'eob t))
-	(while (looking-at "^\\s-*$")
-	  (forward-line)
-	  (if (eobp) (throw 'eob t)))))))
+        (gnuplot-end-of-continuation)
+        (forward-line)
+        (if (eobp) (throw 'eob t))
+        (while (looking-at "^\\s-*$")
+          (forward-line)
+          (if (eobp) (throw 'eob t)))))))
 
 ;; Movement to start or end of command, including multiple commands
 ;; separated by semicolons
@@ -2692,9 +2692,9 @@ If there are no continuation lines, returns point-at-eol."
   "Move point to beginning of command containing point."
   (let ((limit (gnuplot-point-at-beginning-of-continuation)))
     (while
-	(and
-	 (search-backward ";" limit 'lim)
-	 (gnuplot-in-string-or-comment)))
+        (and
+         (search-backward ";" limit 'lim)
+         (gnuplot-in-string-or-comment)))
     (skip-chars-forward ";")
     (skip-syntax-forward "-")))
 
@@ -2702,9 +2702,9 @@ If there are no continuation lines, returns point-at-eol."
   "Move point to end of command containing point."
   (let ((limit (gnuplot-point-at-end-of-continuation)))
     (while
-	(and
-	 (search-forward ";" limit 'lim)
-	 (gnuplot-in-string-or-comment)))
+        (and
+         (search-forward ";" limit 'lim)
+         (gnuplot-in-string-or-comment)))
     (skip-chars-backward ";")
     (skip-syntax-backward "-")))
 
@@ -2724,29 +2724,29 @@ Negatable options are defined in `gnuplot-keywords-negatable-options'."
   (interactive)
   (gnuplot-fetch-version-number)
   (let ((begin (gnuplot-point-at-beginning-of-command))
-	(end   (gnuplot-point-at-end-of-command))
-	(regex gnuplot-negatable-options-regexp))
+        (end   (gnuplot-point-at-end-of-command))
+        (regex gnuplot-negatable-options-regexp))
     (save-excursion
       (goto-char begin)
       (skip-syntax-forward "-" end)
       (if (looking-at "\\(un\\)?set\\s-+")
-	  (cond ((> (string-to-number gnuplot-program-version) 3.7)
-		 (cond ((looking-at "unset")
-			(delete-char 2))
-		       ((looking-at (concat "set\\s-+\\(" regex "\\)"))
-			(insert "un"))
-		       (t
-			(message "There is not a negatable set option on this line"))))
-		(t
-		 (goto-char (match-end 0))
-		 (if (> (point) end) (goto-char end))
-		 (cond ((looking-at "no")
-			(delete-char 2))
-		       ((looking-at regex)
-			(insert "no"))
-		       (t
-			(message "There is not a negatable set option on this line")))))
-	(message "There is not a set option on this line")) )))
+          (cond ((> (string-to-number gnuplot-program-version) 3.7)
+                 (cond ((looking-at "unset")
+                        (delete-char 2))
+                       ((looking-at (concat "set\\s-+\\(" regex "\\)"))
+                        (insert "un"))
+                       (t
+                        (message "There is not a negatable set option on this line"))))
+                (t
+                 (goto-char (match-end 0))
+                 (if (> (point) end) (goto-char end))
+                 (cond ((looking-at "no")
+                        (delete-char 2))
+                       ((looking-at regex)
+                        (insert "no"))
+                       (t
+                        (message "There is not a negatable set option on this line")))))
+        (message "There is not a set option on this line")) )))
 
 ;; (defun gnuplot-set-binding ()
 ;;   "Interactively select a key sequence for binding to a plot function.
@@ -2795,61 +2795,61 @@ See the comments in `gnuplot-info-hook'."
   (interactive)
   (setq gnuplot-keywords-pending nil)
   (if (featurep 'info-look)
-      (progn 
-	(gnuplot-fetch-version-number)
+      (progn
+        (gnuplot-fetch-version-number)
 
-	;; In the absence of evidence to the contrary, I'm guessing
-	;; the info file layout changed with gnuplot version 4 <jjo>
-	 (let ((doc-spec
-	       (if (>= (string-to-number gnuplot-program-version) 4.0)
-		   ;; New info-file layout - works with gnuplot 4.4
-		   '(("(gnuplot)Command_Index"   nil "[_a-zA-Z0-9]+")
-		     ("(gnuplot)Options_Index"   nil "[_a-zA-Z0-9]+")
-		     ("(gnuplot)Function_Index"  nil "[_a-zA-Z0-9]+")
-		     ("(gnuplot)Terminal_Index"  nil "[_a-zA-Z0-9]+"))
+        ;; In the absence of evidence to the contrary, I'm guessing
+        ;; the info file layout changed with gnuplot version 4 <jjo>
+        (let ((doc-spec
+               (if (>= (string-to-number gnuplot-program-version) 4.0)
+                   ;; New info-file layout - works with gnuplot 4.4
+                   '(("(gnuplot)Command_Index"   nil "[_a-zA-Z0-9]+")
+                     ("(gnuplot)Options_Index"   nil "[_a-zA-Z0-9]+")
+                     ("(gnuplot)Function_Index"  nil "[_a-zA-Z0-9]+")
+                     ("(gnuplot)Terminal_Index"  nil "[_a-zA-Z0-9]+"))
 
-		 ;; Old info-file layout
-		 '(("(gnuplot)Top"           nil "[_a-zA-Z0-9]+")
-		   ("(gnuplot)Commands"      nil "[_a-zA-Z0-9]+")
-		   ("(gnuplot)Functions"     nil "[_a-zA-Z0-9]+")
-		   ("(gnuplot)plot"          nil "[_a-zA-Z0-9]+")
-		   ("(gnuplot)set-show"      nil "[_a-zA-Z0-9]+")
-		   ("(gnuplot)data-file"     nil "[_a-zA-Z0-9]+")
-		   ("(gnuplot)smooth"        nil "[_a-zA-Z0-9]+")
-		   ("(gnuplot)style"         nil "[_a-zA-Z0-9]+")
-		   ("(gnuplot)terminal"      nil "[_a-zA-Z0-9]+")))))
-	  (cond ((boundp 'info-lookup-symbol-alist) ; older info-lookup version
-		 (setq info-lookup-symbol-alist
-		       (append
-			info-lookup-symbol-alist
-			`((gnuplot-mode
-			   "[a-zA-Z][_a-zA-Z0-9]*" nil
-			   ,doc-spec "[_a-zA-Z0-9]+" )))))
-		(t			; newer version
-		 (info-lookup-add-help
-		  :mode 'gnuplot-mode :topic 'symbol
-		  :regexp "[a-zA-Z][_a-zA-Z0-9]*"
-		  :doc-spec doc-spec)
-		 ;; allow help lookup from the comint buffer as well <jjo>
-		 (info-lookup-add-help
-		  :mode 'gnuplot-comint-mode :topic 'symbol
-		  :regexp "[a-zA-Z][_a-zA-Z0-9]*"
-		  :doc-spec doc-spec))))
+                 ;; Old info-file layout
+                 '(("(gnuplot)Top"           nil "[_a-zA-Z0-9]+")
+                   ("(gnuplot)Commands"      nil "[_a-zA-Z0-9]+")
+                   ("(gnuplot)Functions"     nil "[_a-zA-Z0-9]+")
+                   ("(gnuplot)plot"          nil "[_a-zA-Z0-9]+")
+                   ("(gnuplot)set-show"      nil "[_a-zA-Z0-9]+")
+                   ("(gnuplot)data-file"     nil "[_a-zA-Z0-9]+")
+                   ("(gnuplot)smooth"        nil "[_a-zA-Z0-9]+")
+                   ("(gnuplot)style"         nil "[_a-zA-Z0-9]+")
+                   ("(gnuplot)terminal"      nil "[_a-zA-Z0-9]+")))))
+          (cond ((boundp 'info-lookup-symbol-alist) ; older info-lookup version
+                 (setq info-lookup-symbol-alist
+                       (append
+                        info-lookup-symbol-alist
+                        `((gnuplot-mode
+                           "[a-zA-Z][_a-zA-Z0-9]*" nil
+                           ,doc-spec "[_a-zA-Z0-9]+" )))))
+                (t			; newer version
+                 (info-lookup-add-help
+                  :mode 'gnuplot-mode :topic 'symbol
+                  :regexp "[a-zA-Z][_a-zA-Z0-9]*"
+                  :doc-spec doc-spec)
+                 ;; allow help lookup from the comint buffer as well <jjo>
+                 (info-lookup-add-help
+                  :mode 'gnuplot-comint-mode :topic 'symbol
+                  :regexp "[a-zA-Z][_a-zA-Z0-9]*"
+                  :doc-spec doc-spec))))
 
-	;; this hook is my best way of working with info-look and
-	;; allowing multiple versions of the gnuplot-info file.
-	;; yes, this is a hassle.
-	(run-hooks 'gnuplot-info-hook)
-	(let ((there (bufferp (get-buffer "*info*"))))
-	  (info-lookup-setup-mode 'symbol 'gnuplot-mode)
-	  (or there (and (get-buffer "*info*") (kill-buffer "*info*")))
-	  ;; why are these buffers here?  I think that the general
-	  ;; user will not want them lying around
-	  (and (get-buffer "info dir")    (kill-buffer "info dir"))
-	  (and (get-buffer "info dir<2>") (kill-buffer "info dir<2>")))
-	(setq gnuplot-keywords (gnuplot-set-keywords-list))
-	(setq gnuplot-keywords-alist	; needed for all-completions
-	      (mapcar 'list gnuplot-keywords)))
+        ;; this hook is my best way of working with info-look and
+        ;; allowing multiple versions of the gnuplot-info file.
+        ;; yes, this is a hassle.
+        (run-hooks 'gnuplot-info-hook)
+        (let ((there (bufferp (get-buffer "*info*"))))
+          (info-lookup-setup-mode 'symbol 'gnuplot-mode)
+          (or there (and (get-buffer "*info*") (kill-buffer "*info*")))
+          ;; why are these buffers here?  I think that the general
+          ;; user will not want them lying around
+          (and (get-buffer "info dir")    (kill-buffer "info dir"))
+          (and (get-buffer "info dir<2>") (kill-buffer "info dir<2>")))
+        (setq gnuplot-keywords (gnuplot-set-keywords-list))
+        (setq gnuplot-keywords-alist	; needed for all-completions
+              (mapcar 'list gnuplot-keywords)))
 
     ;; or do something sensible if info-look is not installed
     (defun info-lookup-interactive-arguments (symbol)
@@ -2862,14 +2862,14 @@ See the comments in `gnuplot-info-hook'."
   "Set `gnuplot-keywords' from `info-lookup-cache'.
 Return a list of keywords."
   (let* ((list (cdr (assoc 'symbol info-lookup-cache)))
-	 (list (cdr (cdr (assoc 'gnuplot-mode list))))
-	 (list (car list))
-	 (store ()) item)
+         (list (cdr (cdr (assoc 'gnuplot-mode list))))
+         (list (car list))
+         (store ()) item)
     (while list
       (setq item (car (car list))
-	    item (format "%s" item) ; keep this line for the sake of
-	    store (append (list item) store) ; info-look.el w/o my patch
-	    list  (cdr list)))
+            item (format "%s" item) ; keep this line for the sake of
+            store (append (list item) store) ; info-look.el w/o my patch
+            list  (cdr list)))
     (delete "nil" store)
     store ))
 
@@ -2969,7 +2969,7 @@ distribution. See gnuplot-context.el for details."
         (when gnuplot-tab-completion
           (set (make-local-variable 'tab-always-indent) 'complete))
 
-	(message "Gnuplot context-sensitive help & completion enabled."))
+        (message "Gnuplot context-sensitive help & completion enabled."))
 
     ;; Turn off
     (setq gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look)
@@ -2983,21 +2983,21 @@ distribution. See gnuplot-context.el for details."
 
 Uses the cache of keywords generated by info-lookup. See
 `gnuplot-setup-info-look'. If not nil, the return value is in the form
-\(BEGIN END COMPLETIONS) where BEGIN and END are buffer 
+\(BEGIN END COMPLETIONS) where BEGIN and END are buffer
 positions and COMPLETIONS is a list."
- 
+
   (if gnuplot-keywords-pending		; <HW>
       (gnuplot-setup-info-look))
   (let* ((end (point))
-	 (beg (unwind-protect (save-excursion (backward-sexp 1) (point))))
-	 (patt (buffer-substring beg end))
-	 (pattern (if (string-match "\\([^ \t]*\\)\\s-+$" patt)
-		      (match-string 1 patt) patt))
-	 (completions (all-completions pattern gnuplot-keywords-alist)))
+         (beg (unwind-protect (save-excursion (backward-sexp 1) (point))))
+         (patt (buffer-substring beg end))
+         (pattern (if (string-match "\\([^ \t]*\\)\\s-+$" patt)
+                      (match-string 1 patt) patt))
+         (completions (all-completions pattern gnuplot-keywords-alist)))
     (if completions
-	(list beg end completions)
+        (list beg end completions)
       (message "No gnuplot keywords complete '%s'" pattern)
-      nil))) 
+      nil)))
 
 (defun gnuplot-comint-complete ()
   "Complete the keyword preceding point in the gnuplot comint buffer.
@@ -3005,13 +3005,13 @@ positions and COMPLETIONS is a list."
 This is only used in Emacs versions before 24.1."
   (let ((completions (gnuplot-completion-at-point)))
     (if completions
-	(let* ((beg (nth 0 completions))
-	       (end (nth 1 completions))
-	       (candidates (nth 2 completions))
-	       (completion-base-position (list beg end)))
-	  (comint-dynamic-simple-complete
-	   (buffer-substring-no-properties beg end)
-	   candidates))
+        (let* ((beg (nth 0 completions))
+               (end (nth 1 completions))
+               (candidates (nth 2 completions))
+               (completion-base-position (list beg end)))
+          (comint-dynamic-simple-complete
+           (buffer-substring-no-properties beg end)
+           candidates))
       nil)))
 
 
@@ -3023,13 +3023,13 @@ Takes SYMBOL and MODE as arguments exactly as
 according to the value of `gnuplot-info-display'."
   (interactive
    (cond (gnuplot-keywords
-	  (info-lookup-interactive-arguments 'symbol))
-	 (gnuplot-keywords-pending	; <HW>
-	  (gnuplot-setup-info-look)
-	  (info-lookup-interactive-arguments 'symbol))
-	 (t
-	  (list nil (message
-       "Help is not available.  The gnuplot info file could not be found.")))))
+          (info-lookup-interactive-arguments 'symbol))
+         (gnuplot-keywords-pending	; <HW>
+          (gnuplot-setup-info-look)
+          (info-lookup-interactive-arguments 'symbol))
+         (t
+          (list nil (message
+                     "Help is not available.  The gnuplot info file could not be found.")))))
 
   (when (and (featurep 'info-look) gnuplot-keywords)
     (unless symbol (setq symbol "Commands"))
@@ -3049,7 +3049,7 @@ called."
   (case gnuplot-info-display
     (window
      (switch-to-buffer-other-window "*info*")
-     ;; Adjust window height only if the frame is split 
+     ;; Adjust window height only if the frame is split
      ;; horizontally, so as not to mess up the minibuffer <jjo>
      ;; we can't use shrink-window-if-larger-than-buffer here
      ;; because it doesn't work with Info mode's narrowing
@@ -3079,33 +3079,33 @@ help shown is for STRING unless STRING begins with the word \"set\" or
 shown."
   (interactive)
   (cond ((and (not gnuplot-three-eight-p)
-	      (string-match "\\(emf\\|p\\(alette\\|m3d\\)\\|vgagl\\)" string))
-	 (message "%S is an option introduced in gnuplot 3.8 (You are using %s)"
-		  string gnuplot-program-version) )
-	(t
-	 (insert string)
-	 (let ((topic string) term)
-	   (if (string-match
-		"\\(set\\|show\\)[ \t]+\\([^ \t]+\\)\\(\\s-+\\([^ \t]+\\)\\)?"
-		string)
-	       (progn
-		 (setq topic (downcase (match-string 2 string))
-		       term            (match-string 4 string))
-		 (if (string= topic "terminal") (setq topic (downcase term)))))
-	   (cond ((and (fboundp 'gnuplot-gui-set-options-and-insert)
-		       gnuplot-gui-popup-flag)
-		  (gnuplot-gui-set-options-and-insert))
-		 (gnuplot-insertions-show-help-flag
-		  (if gnuplot-keywords-pending		; <HW>
-		      (gnuplot-setup-info-look))
-		  (gnuplot-info-lookup-symbol topic)) ) )) ) )
+              (string-match "\\(emf\\|p\\(alette\\|m3d\\)\\|vgagl\\)" string))
+         (message "%S is an option introduced in gnuplot 3.8 (You are using %s)"
+                  string gnuplot-program-version) )
+        (t
+         (insert string)
+         (let ((topic string) term)
+           (if (string-match
+                "\\(set\\|show\\)[ \t]+\\([^ \t]+\\)\\(\\s-+\\([^ \t]+\\)\\)?"
+                string)
+               (progn
+                 (setq topic (downcase (match-string 2 string))
+                       term            (match-string 4 string))
+                 (if (string= topic "terminal") (setq topic (downcase term)))))
+           (cond ((and (fboundp 'gnuplot-gui-set-options-and-insert)
+                       gnuplot-gui-popup-flag)
+                  (gnuplot-gui-set-options-and-insert))
+                 (gnuplot-insertions-show-help-flag
+                  (if gnuplot-keywords-pending		; <HW>
+                      (gnuplot-setup-info-look))
+                  (gnuplot-info-lookup-symbol topic)) ) )) ) )
 
 (defun gnuplot-toggle-info-display ()
   (interactive)
   (setq gnuplot-insertions-show-help-flag (not gnuplot-insertions-show-help-flag))
   (message (if gnuplot-insertions-show-help-flag
-	       "Help will be displayed after insertions."
-	     "Help no longer displayed after insertions.")))
+               "Help will be displayed after insertions."
+             "Help no longer displayed after insertions.")))
 
 
 ;;; --- autoloaded functions: gnuplot-mode and gnuplot-make-buffer
@@ -3167,7 +3167,7 @@ a list:
   (kill-all-local-variables)
   (use-local-map gnuplot-mode-map)
   (setq major-mode 'gnuplot-mode
-	mode-name "Gnuplot")
+        mode-name "Gnuplot")
   (set (make-local-variable 'comment-start) "# ")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'comment-column) 32)
@@ -3187,7 +3187,7 @@ a list:
 
   (if gnuplot-xemacs-p			; deal with font-lock
       (when (fboundp 'turn-on-font-lock)
-	(turn-on-font-lock))
+        (turn-on-font-lock))
     (progn
       ;; Add syntax-propertizing functions to search for strings and comments
       (set (make-local-variable 'syntax-propertize-function)
@@ -3195,17 +3195,17 @@ a list:
       (add-hook 'syntax-propertize-extend-region-functions
                 #'gnuplot-syntax-propertize-extend-region nil t)
 
-      ;; Set up font-lock 
+      ;; Set up font-lock
       (setq font-lock-defaults gnuplot-font-lock-defaults)
       (set (make-local-variable 'font-lock-multiline) t)
       (set (make-local-variable 'parse-sexp-lookup-properties) t)))
 
   (if (fboundp 'widget-create)		; gnuplot-gui
       (condition-case ()
-  	  (require 'gnuplot-gui)
-  	(error nil)))
+          (require 'gnuplot-gui)
+        (error nil)))
   (setq gnuplot-first-call nil		; a few more details ...
-	gnuplot-comint-recent-buffer (current-buffer)
+        gnuplot-comint-recent-buffer (current-buffer)
         comint-process-echoes        gnuplot-echo-command-line-flag)
   (run-hooks 'gnuplot-mode-hook)
   ;; the first time we need to figure out which gnuplot we are running
@@ -3256,7 +3256,8 @@ following in your .emacs file:
 (provide 'gnuplot)
 (run-hooks 'gnuplot-load-hook)
 
-;;;============================================================================
-;;;
+;; Local Variables:
+;; indent-tabs-mode: nil
+;; End:
 
 ;;; gnuplot.el ends here
