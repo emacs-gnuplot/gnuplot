@@ -999,7 +999,7 @@ create a `gnuplot-mode' buffer."
     ["tpic"       (gnuplot-insert "set terminal tpic")       t]
     ["vgagl"      (gnuplot-insert "set terminal vgagl")      t]         ; for pm3d patch
     ["vttek"      (gnuplot-insert "set terminal vttek")      t]
-    ["x11"        (gnuplot-insert "set terminal x11")        t] §)
+    ["x11"        (gnuplot-insert "set terminal x11")        t])
   "Terminal submenu in the insertions menu.
 See the document string for `gnuplot-insertions-menu'
 Changing this will not effect a change in any currently existing
