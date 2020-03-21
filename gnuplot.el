@@ -2565,7 +2565,7 @@ Add additional indentation for continuation lines."
               (gnuplot-beginning-of-continuation)
               (back-to-indentation)
               (re-search-forward "\\S-+\\s-+" (point-at-eol) 'end-at-limit)
-              (setq indent (- (point) (point-at-bol))))
+              (setq indent (current-column)))
 
           ;; Not a continuation line; indent according to block
           ;; nesting depth
@@ -2586,8 +2586,8 @@ Add additional indentation for continuation lines."
       (indent-line-to indent))
 
     ;; Move point after indentation when at beginning of line
-    (let ((point-at-indent (+ (point-at-bol) indent)))
-      (when (< (point) point-at-indent) (goto-char point-at-indent)))))
+    (when (< (current-column) indent)
+      (move-to-column indent))))
 
 (defun gnuplot-electric-insert (BRACE)
   "Adjust indentation on inserting a close BRACE.
@@ -2988,7 +2988,9 @@ positions and COMPLETIONS is a list."
   (if gnuplot-keywords-pending          ; <HW>
       (gnuplot-setup-info-look))
   (let* ((end (point))
-         (beg (unwind-protect (save-excursion (backward-sexp 1) (point))))
+         (beg (condition-case _err
+                  (save-excursion (backward-sexp 1) (point))
+                (point)))
          (patt (buffer-substring beg end))
          (pattern (if (string-match "\\([^ \t]*\\)\\s-+$" patt)
                       (match-string 1 patt) patt))
