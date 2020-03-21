@@ -41,6 +41,33 @@
 *** Installing from cloned repository or .tar.gz
     See the file INSTALL.org for details.
 
+** Documentation
+*** Configuration Example
+
+First of all, make sure that =gnuplot.el= is in your load-path (this is automatic if using a package helper like use-package). To do so manually, us something like
+
+#+begin_src emacs-lisp
+(add-to-list 'load-path "/path/to/gnuplot")
+#+end_src
+
+A basic gnuplot configuration can be found below.
+
+#+begin_src emacs-lisp
+;; these lines enable the use of gnuplot mode
+(autoload 'gnuplot-mode "gnuplot" "gnuplot major mode" t)
+(autoload 'gnuplot-make-buffer "gnuplot" "open a buffer in gnuplot mode" t)
+
+;; this line automatically causes all files with the .gp extension to be loaded into gnuplot mode
+(setq auto-mode-alist (append '(("\\.gp$" . gnuplot-mode)) auto-mode-alist))
+
+;; This line binds the function-9 key so that it opens a buffer into gnuplot mode
+(global-set-key [(f9)] 'gnuplot-make-buffer)
+#+end_src
+
+*** Reference Card
+
+ A reference card for gnuplot-mode can be compiled using the =gpelcard.tex= file included in this package.
+
 ** New features for gnuplot-mode 0.7
    Version 0.7 of gnuplot-mode is designed for use with gnuplot
    version 4.4 and up. It will also mostly work fine with older
