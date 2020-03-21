@@ -2990,7 +2990,7 @@ positions and COMPLETIONS is a list."
   (let* ((end (point))
          (beg (condition-case _err
                   (save-excursion (backward-sexp 1) (point))
-                (point)))
+                (error (point))))
          (patt (buffer-substring beg end))
          (pattern (if (string-match "\\([^ \t]*\\)\\s-+$" patt)
                       (match-string 1 patt) patt))
