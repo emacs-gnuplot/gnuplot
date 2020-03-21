@@ -55,9 +55,7 @@
    ~dvips gpelcard.dvi~, or ~pdflatex gpelcard.tex~.
 
 * Post-installation setup
-   1. Insert the contents of the ~dotemacs.el~ file into your
-      ~.emacs~ or into the system's emacs start-up file to enable
-      gnuplot mode.
+   1. Enable gnuplot mode from your emacs configuration (see README.org).
 
    2. The function ~gnuplot-info-lookup-symbol~ looks at the Gnuplot
       info file that comes with this package or that can be made from

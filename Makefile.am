@@ -2,7 +2,7 @@
 AUTOMAKE_OPTIONS = foreign
 
 dist_lisp_LISP = gnuplot.el gnuplot-gui.el gnuplot-context.el
-EXTRA_DIST = dotemacs.el gpelcard.dvi gpelcard.pdf gpelcard.ps gpelcard.tex
+EXTRA_DIST = gpelcard.dvi gpelcard.pdf gpelcard.ps gpelcard.tex
 
 CLEANFILES = gpelcard.pdf gpelcard.ps gpelcard.dvi gpelcard.log gpelcard.aux
 DISTCLEANFILES =
