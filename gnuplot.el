@@ -36,7 +36,7 @@
 ;;
 ;; This version of gnuplot-mode has been tested mostly on GNU Emacs 23
 ;; and 24, but should also work with older GNU Emacs versions back to
-;; Emacs 21.
+;; Emacs 21, and XEmacs 21.
 ;;
 ;; This mode offers several tools to help you compose your scripts,
 ;; including font-lock syntax colorization, a syntax table appropriate
