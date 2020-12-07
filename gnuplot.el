@@ -3207,8 +3207,8 @@ a list:
           (require 'gnuplot-gui)
         (error nil)))
   (setq gnuplot-first-call nil          ; a few more details ...
-        gnuplot-comint-recent-buffer (current-buffer)
-        comint-process-echoes        gnuplot-echo-command-line-flag)
+        gnuplot-comint-recent-buffer (current-buffer))
+  (setq-local comint-process-echoes gnuplot-echo-command-line-flag)
   (run-hooks 'gnuplot-mode-hook)
   ;; the first time we need to figure out which gnuplot we are running
   (if gnuplot-program-version
