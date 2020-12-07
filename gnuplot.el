@@ -7,10 +7,10 @@
 ;;         Phil Type
 ;; Maintainer: Bruce Ravel <bruceravel1@gmail.com>
 ;; Created:    June 28 1998
-;; Version:    0.7.0
+;; Version:    0.8.0
 ;; Keywords:   data gnuplot plotting
 ;; URL:        https://github.com/emacsorphanage/gnuplot
-;; Package-Requires: ((emacs "24.1"))
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -34,9 +34,9 @@
 ;; Gnuplot versions (4.4 and up), but should also work fine with older
 ;; versions.
 ;;
-;; This version of gnuplot-mode has been tested mostly on GNU Emacs 23
-;; and 24, but should also work with older GNU Emacs versions back to
-;; Emacs 21, and XEmacs 21.
+;; This version of gnuplot-mode has been tested mostly on GNU Emacs
+;; 25.
+;;
 ;;
 ;; This mode offers several tools to help you compose your scripts,
 ;; including font-lock syntax colorization, a syntax table appropriate
@@ -149,10 +149,10 @@
 ;;                    (expand-file-name "/path/to/file")))
 ;;       where "/path/to/file" is the location of gnuplot.info
 ;;
-;; This mode has been tested extensively with GNU Emacs 23 and 24, and
-;; in a limited manner with GNU Emacs 22 and XEmacs 21.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;; TODO Move history and installation instructions in their designated files.
 
 ;;; History:
 
@@ -291,6 +291,7 @@
 ;;  0.6.1 Sep 13 2011 <BR> Moved to github, updated contact info
 ;;  0.7.0 Oct 20 2012 <jjo> Contextual completion & help, inline plots,
 ;;        some other stuff
+;;  0.8.0 Dec 07 2020 <MFT> Remove XEmacs support, including the toolbar
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Acknowledgements:
@@ -312,7 +313,8 @@
 ;;    Michael M. Tung   <MT> (prompted me to add pm3d support)
 ;;    Holger Wenzel     <HW> (suggested using `gnuplot-keywords-when')
 ;;    Wolfgang Zocher   <WZ> (pointed out problem with gnuplot-mode + speedbar)
-;;    Jon Oddie        <jjo> (indentation, inline images, context mode)
+;;    Jon Oddie         <jjo> (indentation, inline images, context mode)
+;;    Maxime F. Treca   <MFT> (package update, XEmacs deprecation)
 ;;
 ;;  and especially to Lars Hecking <LH> for including gnuplot-mode
 ;;  with the gnuplot 3.7-beta distribution and for providing me with
@@ -337,6 +339,7 @@
 
 (require 'comint)
 (require 'easymenu)
+;; TODO Fix deprecation
 (eval-when-compile (require 'cl))
 
 (declare-function 'eldoc-add-command "eldoc")
@@ -355,55 +358,17 @@
       (require 'info-look)
     (error nil)))
 
-;; Workaround missing `completion-at-point' in (X)Emacs < 22
-(if (not (fboundp 'completion-at-point))
-    (defun gnuplot-xemacs-completion-at-point ()
-      "Perform completion on keyword preceding point.
-
-This binds `comint-dynamic-complete-functions' to
-`gnuplot-comint-complete' and uses `comint-dynamic-complete' to do the
-real work."
-      (interactive)
-      (let ((comint-dynamic-complete-functions
-             '(gnuplot-comint-complete)))
-        (completion-at-point))))
-
-;; Work around missing `window-full-height-p'
-(if (fboundp 'window-full-height-p)
-    (defalias 'gnuplot-window-full-height-p 'window-full-height-p)
-  ;; The below is taken from window.el in GNU Emacs
-  (defun gnuplot-window-full-height-p (&optional window)
-    (unless window
-      (setq window (selected-window)))
-    (= (window-height window)
-       (window-height (frame-root-window (window-frame window))))))
-
-;; Workaround obsolete `process-kill-without-query'
-(if (fboundp 'set-process-query-on-exit-flag)
-    (defalias 'gnuplot-set-process-query-on-exit-flag 'set-process-query-on-exit-flag)
-  (defalias 'gnuplot-set-process-query-on-exit-flag 'process-kill-without-query))
-
-;; Workaround for missing syntax-ppss in XEmacs
-(if (fboundp 'syntax-ppss)
-    (defalias 'gnuplot-syntax-ppss 'syntax-ppss)
-  (defun gnuplot-syntax-ppss (&optional pos)
-    (save-excursion
-      (unless pos (setq pos (point)))
-      (let ((begin
-             (save-excursion
-               (goto-char pos)
-               (gnuplot-point-at-beginning-of-continuation))))
-        (parse-partial-sexp begin pos)))))
-
 
 ;;;;
-(defconst gnuplot-xemacs-p (string-match "XEmacs" (emacs-version)))
+
 (defconst gnuplot-ntemacs-p (string-match "msvc" (emacs-version)))
 (defvar   gnuplot-three-eight-p "")
 
 (defconst gnuplot-maintainer "Jon Oddie")
+
 (defconst gnuplot-maintainer-url
   "https://github.com/emacsorphanage/gnuplot/")
+
 (defconst gnuplot-version "0.7-beta")
 
 (defgroup gnuplot nil
@@ -742,11 +707,7 @@ non-nil."
 ;;; --- key bindings and menus
 
 (defvar gnuplot-mode-map
-  (let ((map (make-sparse-keymap))
-        (completion-function
-         (if (fboundp 'completion-at-point)
-             'completion-at-point
-           'gnuplot-xemacs-completion-at-point)))
+  (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-b"    'gnuplot-send-buffer-to-gnuplot)
     (define-key map "\C-c\C-c"    'comment-region) ; <RF>
     (define-key map "\C-c\C-o"    'gnuplot-gui-set-options-and-insert)
@@ -768,17 +729,15 @@ non-nil."
     (define-key map "\C-m"        'newline-and-indent)
     (define-key map "\C-c\M-i"    'gnuplot-inline-image-mode)
     (define-key map (kbd "}")     'gnuplot-electric-insert)
-    (define-key map "\M-\r" completion-function)
-    (define-key map "\M-\t" completion-function)
-
-    (if gnuplot-xemacs-p
-        (define-key map '(shift button2) 'gnuplot-gui-mouse-set)
-      (define-key map [S-mouse-2] 'gnuplot-gui-mouse-set))
+    (define-key map "\M-\r"       'completion-at-point)
+    (define-key map "\M-\t"       'completion-at-point)
+    (define-key map [S-mouse-2]   'gnuplot-gui-mouse-set)
 
     map))
 
 (defvar gnuplot-mode-menu nil)
 
+;; TODO Fix deprecation
 (defvar gnuplot-display-options-menu
   (flet ((make-image-setter (type)
                             `[,(concat (upcase type) " images")
@@ -1229,11 +1188,8 @@ opening an argument-setting popup.")
   "Initial setup of gnuplot and insertions menus."
   (if gnuplot-insertions-menu-flag      ; set up insertions menu
       (progn
-        (if gnuplot-xemacs-p
-            (setq gnuplot-insertions-top
-                  '("insert set expression" "--:doubleLine"))
-          (setq gnuplot-insertions-top
-                '("insert set expression" "---")))
+        (setq gnuplot-insertions-top
+              '("insert set expression" "---"))
         (setq gnuplot-insertions-menu
               (append (list "Insertions")
                       gnuplot-insertions-top
@@ -1262,390 +1218,13 @@ opening an argument-setting popup.")
 ;; only replicates mark-active, but it only returns true if the region
 ;; is of non-zero width.
 ;; Error checking suggested by <DB>
+
+;; TODO Unneeded in GNU Emacs
 (defun gnuplot-mark-active ()
   "Return non-nil if the mark is active and it is not equal to point."
   (condition-case nil
       (and (mark) (/= (mark) (point)))
     (error nil)))
-
-
-;;; --- XEmacs toolbar
-
-(defgroup gnuplot-toolbar nil
-  "Toolbar used by XEmacs."
-  :prefix "gnuplot-toolbar-"
-  :group 'gnuplot)
-
-(defcustom gnuplot-toolbar-display-flag gnuplot-xemacs-p
-  "Non-nil means to display display a toolbar in XEmacs."
-  :group 'gnuplot-toolbar
-  :type 'boolean)
-
-(defcustom gnuplot-toolbar-use-toolbar (if (featurep 'toolbar) 'left-toolbar nil)
-  "If nil, do not use a toolbar.
-If it is non-nil, it must be a toolbar.  The five legal values are
-`default-toolbar', `top-toolbar', `bottom-toolbar', `right-toolbar',
-and `left-toolbar', although choosing `default-toolbar' or
-`top-toolbar' may be a bad idea since either will make the GNUPLOT
-toolbar replace the standard toolbar.  Changing this will not change
-the toolbar in a currently existing buffer, but it will take effect
-the next time you use `gnuplot-mode' and Emacs.
-
-This is only used if a toolbar can be displayed, thus this is used in
-XEmacs and ignored in FSF Emacs."
-  :type '(choice (const default-toolbar)
-                 (const top-toolbar)
-                 (const bottom-toolbar)
-                 (const left-toolbar)
-                 (const right-toolbar)
-                 (const :tag "No toolbar" nil))
-  :group 'gnuplot-toolbar)
-
-(defvar gnuplot-toolbar-location "")
-
-(defun gnuplot-toolbar-setup-toolbar (toolbar)
-  "Setup function for the `gnuplot-mode' toolbar.
-TOOLBAR contains the toolbar specification.
-This is basically swiped from VM."
-  (let ((width 46) (height 46)
-        (buffer (current-buffer))
-        (frame (selected-frame))
-        (tag-set '(win)))
-    (cond
-     ((eq (symbol-value gnuplot-toolbar-use-toolbar) right-toolbar)
-      (setq gnuplot-toolbar-location       "right")
-      (set-specifier right-toolbar         toolbar buffer)
-      (set-specifier right-toolbar-width   width frame  tag-set))
-     ((eq (symbol-value gnuplot-toolbar-use-toolbar) left-toolbar)
-      (setq gnuplot-toolbar-location       "left")
-      (set-specifier left-toolbar          toolbar buffer)
-      (set-specifier left-toolbar-width    width frame  tag-set))
-     ((eq (symbol-value gnuplot-toolbar-use-toolbar) bottom-toolbar)
-      (setq gnuplot-toolbar-location       "bottom")
-      (set-specifier bottom-toolbar        toolbar buffer)
-      (set-specifier bottom-toolbar-height height frame tag-set))
-     ((eq (symbol-value gnuplot-toolbar-use-toolbar) top-toolbar)
-      (setq gnuplot-toolbar-location       "top")
-      (set-specifier top-toolbar           toolbar buffer)
-      (set-specifier top-toolbar-height    height frame tag-set)))))
-
-(defvar gnuplot-line-xpm
-  (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
-      (toolbar-make-button-list
-       "/* XPM */
-static char *line[] = {
-/* width height num_colors chars_per_pixel */
-\"    40    40        5           1\",
-/* colors */
-\". c #000000\",
-\"a c #bebebe s backgroundToolBarColor\",
-\"b c #2f4f4f\",
-\"c c #ff6347\",
-\"d c #0000ff\",
-/* pixels */
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaa..a..aaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaa..aaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaa..a..a....aaa...aaaaaaaaaaaa\",
-\"aaaaaaaaaaaa..a..a..a..a..a..aaaaaaaaaaa\",
-\"aaaaaaaaaaaa..a..a.aa..a.....aaaaaaaaaaa\",
-\"aaaaaaaaaaa..a..a..a..a..aaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaa..a..a..a..a..a..aaaaaaaaaaaa\",
-\"aaaaaaaaaaa..a..a..a..aa...aaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaa..aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaadaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaadaaaaaaaaa\",
-\"aaaaaaa..aaaaaaaaaaaaaaaaaaaadaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaadaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaacaaaadaadaaaaaaaaaaaa\",
-\"aaaaaaaa.caaadaaaccaccadaddaaaaaccaaaaaa\",
-\"aaaaaaa..accdaddcaaaaaccaaaaaaccaaaaaaaa\",
-\"aaaaaaaa.aadcaccdaaaadaaccaaccaaaaaaaaaa\",
-\"aaaaaaaa.adaacaaaddadaaaaaccaaaaaaaaaaaa\",
-\"aaaaaaaa.daaaaaaaaadaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaa..aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaa............................aaaaaa\",
-\"aaaaaaaa.aaaa.aaaa.aaaa.aaaa.aaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"};")
-    "XPM format image used for the \"plot line\" button"))
-
-(defvar gnuplot-region-xpm
-  (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
-      (toolbar-make-button-list
-       "/* XPM */
-static char *region[] = {
-/* width height num_colors chars_per_pixel */
-\"    40    40        5           1\",
-/* colors */
-\". c #000000\",
-\"a c #bebebe s backgroundToolBarColor\",
-\"b c #2f4f4f\",
-\"c c #ff6347\",
-\"d c #0000ff\",
-/* pixels */
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaa..aaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaa.a..a...aaa....a..aa...aa....aaaaa\",
-\"aaaaaa...a..a..a..a..a..a..a..a..a..aaaa\",
-\"aaaaaa..aa.....a.aa..a....aa..a.aa..aaaa\",
-\"aaaaa..a...aaaa..aa.a..a..aa....a..aaaaa\",
-\"aaaaa..a...a..a..a..a..a..a..a..a..aaaaa\",
-\"aaaa..aaaa...aaa....a..aa...aa..a..aaaaa\",
-\"aaaaaaaaaaaaaaaaa..aaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaa...aaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaadaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaadaaaaaaaaa\",
-\"aaaaaaa..aaaaaaaaaaaaaaaaaaaadaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaadaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaacaaaadaadaaaaaaaaaaaa\",
-\"aaaaaaaa.caaadaaaccaccadaddaaaaaccaaaaaa\",
-\"aaaaaaa..accdaddcaaaaaccaaaaaaccaaaaaaaa\",
-\"aaaaaaaa.aadcaccdaaaadaaccaaccaaaaaaaaaa\",
-\"aaaaaaaa.adaacaaaddadaaaaaccaaaaaaaaaaaa\",
-\"aaaaaaaa.daaaaaaaaadaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaa..aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaa............................aaaaaa\",
-\"aaaaaaaa.aaaa.aaaa.aaaa.aaaa.aaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"};")
-    "XPM format image used for the \"plot region\" button"))
-
-(defvar gnuplot-buffer-xpm
-  (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
-      (toolbar-make-button-list
-       "/* XPM */
-static char *buffer[] = {
-/* width height num_colors chars_per_pixel */
-\"    40    40        5           1\",
-/* colors */
-\". c #000000\",
-\"a c #bebebe s backgroundToolBarColor\",
-\"b c #2f4f4f\",
-\"c c #ff6347\",
-\"d c #0000ff\",
-/* pixels */
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa..aaaaaaaaaa......aaaaaaaaaaaaaa\",
-\"aaaaaaaa..aaaaaaaaa..a..aaaaaaaaaaaaaaaa\",
-\"aaaaaaa....aa..a.........a...aa.a.aaaaaa\",
-\"aaaaaaa..a..a..a..a..a..a..a..a...aaaaaa\",
-\"aaaaaaa.aa....aa..a..a..a.....a..aaaaaaa\",
-\"aaaaaa...a.a..a..a..a..a..aaaa..aaaaaaaa\",
-\"aaaaaa.....a..a..a..a..a..a..a..aaaaaaaa\",
-\"aaaaaa....aaa..a.a..a..aa...aa..aaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaadaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaadaaaaaaaaa\",
-\"aaaaaaa..aaaaaaaaaaaaaaaaaaaadaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaadaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaacaaaadaadaaaaaaaaaaaa\",
-\"aaaaaaaa.caaadaaaccaccadaddaaaaaccaaaaaa\",
-\"aaaaaaa..accdaddcaaaaaccaaaaaaccaaaaaaaa\",
-\"aaaaaaaa.aadcaccdaaaadaaccaaccaaaaaaaaaa\",
-\"aaaaaaaa.adaacaaaddadaaaaaccaaaaaaaaaaaa\",
-\"aaaaaaaa.daaaaaaaaadaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaa..aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaa............................aaaaaa\",
-\"aaaaaaaa.aaaa.aaaa.aaaa.aaaa.aaaaaaaaaaa\",
-\"aaaaaaaa.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"};")
-    "XPM format image used for the \"plot buffer\" button"))
-
-(defvar gnuplot-doc-xpm
-  (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
-      (toolbar-make-button-list
-       "/* XPM */
-static char *book_index[] = {
-/* width height num_colors chars_per_pixel */
-\"    40    40        6            1\",
-/* colors */
-\". c #000000\",
-\"a c #bebebe s backgroundToolBarColor\",
-\"b c #2f4f4f\",
-\"c c #ff0000\",
-\"d c #ffffff\",
-\"e c #708090\",
-/* pixels */
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaa.........bbeaaaebb..........aaaaaa\",
-\"aaaaaa.ddddddddaaebebeaaddddddddd.aaaaaa\",
-\"aaaa...dab.bddeebadbdaeebedeeeeed...aaaa\",
-\"aaaa.c.dbaddddebeedbdeebeedebebed.c.aaaa\",
-\"aaaa.c.d.de.edeebeabdbbeeddebbbed.c.aaaa\",
-\"aaaa.c.dbad.ddebeadbdeeebeddeeeed.c.aaaa\",
-\"aaaa.c.dab..ddeeeedbdebeeedebebed.c.aaaa\",
-\"aaaa.c.dddddddeebeabdebebedeebedd.c.aaaa\",
-\"aaaa.c.debebedebeedbdbebeedbeeeeb.c.aaaa\",
-\"aaaa.c.debeeedeeeaabdaaddddebedbb.c.aaaa\",
-\"aaaa.c.deebeddbebedbdbaa.adeeedeb.c.aaaa\",
-\"aaaa.c.ddeebedeeebaba.dd.dddeeedd.c.aaaa\",
-\"aaaa.c.debeebdbeeedbd....ddeebeed.c.aaaa\",
-\"aaaa.c.deebeedeebadbd.dd.ddeeeedd.c.aaaa\",
-\"aaaa.c.dbbebddeeeeabd.aa.adebebbd.c.aaaa\",
-\"aaaa.c.deeeeedeebeabaedddddeeeedd.c.aaaa\",
-\"aaaa.c.dbebbbdebeadbdaeeeedebeeed.c.aaaa\",
-\"aaaa.c.deeebddeeebdbdeebeedeebeed.c.aaaa\",
-\"aaaa.c.debeeedebeeabdebebedebeebd.c.aaaa\",
-\"aaaa.c.deebbedeeeedbdeeeeddeeeeed.c.aaaa\",
-\"aaaa.c.dddddddddaadbdaddddddddddd.c.aaaa\",
-\"aaaa.c..........beabaeb...........c.aaaa\",
-\"aaaa.c.bbbbbbbbbb.bbbbbbbbbbbbbbb.c.aaaa\",
-\"aaaa.c.bbbbbbbbbb..e.bbbbbbbbbbbb.c.aaaa\",
-\"aaaa.c.bbbbbbbbbb.b.bbbbbbbbbbbbb.c.aaaa\",
-\"aaaa.c............e.e.............c.aaaa\",
-\"aaaa.cccccccccccc.a.a.ccccccccccccc.aaaa\",
-\"aaaa................................aaaa\",
-\"aaaaaaaaaaaaaaaaaa...aaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"};")
-    "XPM format image used for the \"document\" button"))
-
-(defvar gnuplot-help-xpm
-  (if (and (featurep 'xpm) (fboundp 'toolbar-make-button-list))
-      (toolbar-make-button-list
-       "/* XPM */
-static char *help_btn[] = {
-/* width height num_colors chars_per_pixel */
-\"    40    40        3            1\",
-/* colors */
-\"a c #bebebe s backgroundToolBarColor\",
-\"b c #000000\",
-\"c c #ff0000\",
-/* pixels */
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabbbbbbbbaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaabbbccccccccbbbaaaaaaaaaaaaa\",
-\"aaaaaaaaaaabbccccccccccccccbbaaaaaaaaaaa\",
-\"aaaaaaaaaabccccccccccccccccccbaaaaaaaaaa\",
-\"aaaaaaaaabccccccccccccccccccccbaaaaaaaaa\",
-\"aaaaaaaabcccccccbbbbbbbbcccccccbaaaaaaaa\",
-\"aaaaaaaabccccbbbaaaaaaaabbbccccbaaaaaaaa\",
-\"aaaaaaabccccbaaaaaaaaaaaaaabccccbaaaaaaa\",
-\"aaaaaaabcccbaaaaaaaaaaaaaaaabcccbaaaaaaa\",
-\"aaaaaaabcccbaaaaaaaaaaaaaaaabcccbaaaaaaa\",
-\"aaaaaaabcccbaaaaaaaaaaaaaaaabcccbaaaaaaa\",
-\"aaaaaaabbbbbaaaaaaaaaaaaaaabccccbaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaabbbccccbaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabbbbbbbbcccccccbaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabcccccccccccccbaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabccccccccccccbaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabccccccccccbbaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabccccbbbbbbaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabccccbaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabccccbaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabbbbbbaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabbbbbbaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabccccbaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabccccbaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabccccbaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaabbbbbbaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",
-\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\"};")
-    "XPM format image used for the \"help\" button"))
-
-(defvar gnuplot-toolbar
-  '([gnuplot-line-xpm
-     gnuplot-line-fn     t     "Plot the line under point"]
-    [gnuplot-region-xpm
-     gnuplot-region-fn   t     "Plot the selected region"]
-    [gnuplot-buffer-xpm
-     gnuplot-buffer-fn   t     "Plot the entire buffer"]
-    [:style 3d :size 8]
-    [gnuplot-help-xpm
-     gnuplot-help-fn     t     "Look at the gnuplot process buffer"]
-    [gnuplot-doc-xpm
-     gnuplot-doc-fn      t     "Look at the gnuplot document"])
-  "The gnuplot toolbar.")
-
-(fset 'gnuplot-line-fn   'gnuplot-send-line-and-forward)
-(fset 'gnuplot-region-fn 'gnuplot-send-region-to-gnuplot)
-(fset 'gnuplot-buffer-fn 'gnuplot-send-buffer-to-gnuplot)
-(fset 'gnuplot-help-fn   'gnuplot-show-gnuplot-buffer)
-(fset 'gnuplot-doc-fn    'gnuplot-info-lookup-symbol)
-
-(defvar gnuplot-all-buttons-defined
-  (and (listp gnuplot-line-xpm)   (listp gnuplot-region-xpm)
-       (listp gnuplot-buffer-xpm) (listp gnuplot-doc-xpm)
-       (listp gnuplot-help-xpm)))
-
-
-(defun gnuplot-make-toolbar-function ()
-  "Make toolbar."
-  (if (and gnuplot-xemacs-p gnuplot-all-buttons-defined)
-      (progn
-        ;;(remove-specifier gnuplot-toolbar-use-toolbar (current-buffer))
-        (gnuplot-toolbar-setup-toolbar gnuplot-toolbar)
-        (add-spec-to-specifier (symbol-value gnuplot-toolbar-use-toolbar)
-                               gnuplot-toolbar
-                               (current-buffer)))))
-
-;;(defalias 'gnuplot-make-toolbar 'gnuplot-make-toolbar-function)
-
 
 
 ;;; --- syntax colorization, syntax table
@@ -1765,7 +1344,6 @@ These are highlighted using `font-lock-constant-face'.")
   (gnuplot-make-regexp gnuplot-keywords-negatable-options))
 
 ;; Set up colorization for gnuplot.
-;; This handles font-lock for emacs and xemacs.
 (defvar gnuplot-font-lock-keywords nil)
 (defvar gnuplot-font-lock-syntactic-keywords nil)
 (defvar gnuplot-font-lock-defaults nil)
@@ -1807,13 +1385,7 @@ These are highlighted using `font-lock-constant-face'.")
           nil                           ; No extra syntax
           ;; calls `gnuplot-beginning-of-continuation'
           ;; to find a safe place to begin syntactic highlighting
-          beginning-of-defun))
-
-  ;; Set up font-lock for Xemacs
-  ;; For GNU Emacs, this is done in `gnuplot-mode'
-  (if gnuplot-xemacs-p
-      (put 'gnuplot-mode 'font-lock-defaults
-           gnuplot-font-lock-defaults)))
+          beginning-of-defun)))
 
 ;; Some corner cases in Gnuplot's comment and string syntax are
 ;; difficult to handle accurately using Emacs's built-in syntax tables
@@ -1893,7 +1465,7 @@ in gnuplot-mode buffers."
 If WHERE is omitted, defaults to text at point.
 This is a simple wrapper for `syntax-ppss'."
   (save-excursion
-    (let ((parse-state (gnuplot-syntax-ppss where)))
+    (let ((parse-state (syntax-ppss where)))
       (nth 3 parse-state))))
 
 (defun gnuplot-in-comment (&optional where)
@@ -1902,7 +1474,7 @@ This is a simple wrapper for `syntax-ppss'."
 If WHERE is omitted, defaults to text at point.
 This is a simple wrapper for `syntax-ppss'."
   (save-excursion
-    (let ((parse-state (gnuplot-syntax-ppss where)))
+    (let ((parse-state (syntax-ppss where)))
       (nth 4 parse-state))))
 
 (defun gnuplot-in-string-or-comment (&optional where)
@@ -1912,15 +1484,9 @@ If WHERE is omitted, defaults to text at point.
 This is a simple wrapper for `syntax-ppss'."
 
   (save-excursion
-    (let ((parse-state (gnuplot-syntax-ppss where)))
+    (let ((parse-state (syntax-ppss where)))
       (or (nth 3 parse-state)
           (nth 4 parse-state)))))
-
-;; these two lines get rid of an annoying compile time error
-;; message.  that function gets non-trivially defalias-ed in
-;; gnuplot-toolbar.el
-;; (defun gnuplot-make-toolbar-dummy ())
-;; (defalias 'gnuplot-make-toolbar 'gnuplot-make-toolbar-dummy)
 
 
 ;;; --- functions for sending commands to gnuplot
@@ -2201,18 +1767,12 @@ buffer."
 
   (set-syntax-table gnuplot-mode-syntax-table)
 
-  (if gnuplot-xemacs-p                  ; deal with font-lock
-      (if (fboundp 'turn-on-font-lock) (turn-on-font-lock))
-    (progn
-      (setq font-lock-defaults gnuplot-font-lock-defaults)
-      (set (make-local-variable 'parse-sexp-lookup-properties) t)
-      (set (make-local-variable 'syntax-propertize-function)
-           #'gnuplot-syntax-propertize)))
+  (progn
+    (setq font-lock-defaults gnuplot-font-lock-defaults)
+    (set (make-local-variable 'parse-sexp-lookup-properties) t)
+    (set (make-local-variable 'syntax-propertize-function)
+         #'gnuplot-syntax-propertize))
 
-  ;; XEmacs needs the call to make-local-hook
-  (when (and (featurep 'xemacs)
-             (fboundp 'make-local-hook))
-    (make-local-hook 'kill-buffer-hook))
   (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
 
   (add-hook 'comint-output-filter-functions
@@ -2222,12 +1782,9 @@ buffer."
             'gnuplot-protect-prompt-fn
             nil t)
 
-  ;; Set up completion, using completion-at-point in recent Emacs,
-  ;; comint-dynamic-complete in older Emacs
-  (if (and (>= emacs-major-version 24)
-           (>= emacs-minor-version 1))
-      (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point nil t)
-    (add-hook 'comint-dynamic-complete-functions 'gnuplot-comint-complete nil t))
+  ;; Set up completion, using completion-at-point
+  (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point nil t)
+
 
   ;; Set up menu (see below)
   (easy-menu-define
@@ -2239,13 +1796,8 @@ buffer."
 (define-key gnuplot-comint-mode-map "\M-\C-p"   'gnuplot-plot-from-comint)
 (define-key gnuplot-comint-mode-map "\M-\C-f"   'gnuplot-save-and-plot-from-comint)
 (define-key gnuplot-comint-mode-map "\C-d"      'gnuplot-delchar-or-maybe-eof)
-(let ((completion-function
-       (if (and (>= emacs-major-version 24)
-                (>= emacs-minor-version 1))
-           'completion-at-point
-         'comint-dynamic-complete)))
-  (define-key gnuplot-comint-mode-map "\M-\r"   completion-function)
-  (define-key gnuplot-comint-mode-map "\M-\t"   completion-function))
+(define-key gnuplot-comint-mode-map "\M-\r"     'completion-at-point)
+(define-key gnuplot-comint-mode-map "\M-\t"     'completion-at-point)
 (define-key gnuplot-comint-mode-map "\C-c\C-d"  'gnuplot-info-lookup-symbol)
 (define-key gnuplot-comint-mode-map "\C-c\C-w"  'gnuplot-show-version)
 (define-key gnuplot-comint-mode-map "\C-c\C-i"  'gnuplot-insert-filename)
@@ -2267,7 +1819,7 @@ buffer."
     (message "Starting gnuplot plotting program...")
     (setq gnuplot-buffer (make-comint gnuplot-process-name gnuplot-program)
           gnuplot-process (get-buffer-process gnuplot-buffer))
-    (gnuplot-set-process-query-on-exit-flag gnuplot-process nil)
+    (set-process-query-on-exit-flag gnuplot-process nil)
     (with-current-buffer gnuplot-buffer
       (gnuplot-comint-mode)
       (when gnuplot-inline-image-mode
@@ -2322,16 +1874,11 @@ defaults to 3.7."
   "Setup stuff that depends on version number."
   ;; set up the menubar (possibly dependent on version number)
   (gnuplot-setup-menubar)
-  ;; set up the toolbar (possibly dependent on version number)
-  (if (and gnuplot-xemacs-p gnuplot-toolbar-display-flag)
-      (condition-case ()                ; deal with the toolbar
-          (and (require 'toolbar)
-               (require 'xpm)
-               (gnuplot-make-toolbar-function))
-        (error nil)))
-  (message "gnuplot-mode %s (gnuplot %s) -- report bugs as issues at %s"
-           gnuplot-version gnuplot-program-version
-           gnuplot-maintainer-url))
+  ;; We silence the startup message for now
+  ;; (message "gnuplot-mode %s (gnuplot %s) -- report bugs as issues at %s"
+  ;;          gnuplot-version gnuplot-program-version
+  ;;          gnuplot-maintainer-url)
+  )
 
 (defvar gnuplot-prompt-regexp
   (regexp-opt '("gnuplot> " "multiplot> "))
@@ -2416,8 +1963,7 @@ gnuplot process buffer will be displayed in a window."
 
 (defun gnuplot-display-images-p ()
   "Inline images require GNU Emacs."
-  (and (not (featurep 'xemacs))
-       (fboundp 'display-images-p)
+  (and (fboundp 'display-images-p)
        (display-images-p)))
 
 (defun gnuplot-external-display-mode ()
@@ -2939,6 +2485,7 @@ distribution. See gnuplot-context.el for details."
   (if gnuplot-context-sensitive-mode
       ;; Turn on
       (progn
+        ;; TODO Require by default ?
         (load-library "gnuplot-context")
         (load-library "eldoc")
         (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)
@@ -3000,21 +2547,6 @@ positions and COMPLETIONS is a list."
       (message "No gnuplot keywords complete '%s'" pattern)
       nil)))
 
-(defun gnuplot-comint-complete ()
-  "Complete the keyword preceding point in the gnuplot comint buffer.
-
-This is only used in Emacs versions before 24.1."
-  (let ((completions (gnuplot-completion-at-point)))
-    (if completions
-        (let* ((beg (nth 0 completions))
-               (end (nth 1 completions))
-               (candidates (nth 2 completions))
-               (completion-base-position (list beg end)))
-          (comint-dynamic-simple-complete
-           (buffer-substring-no-properties beg end)
-           candidates))
-      nil)))
-
 
 (defun gnuplot-info-lookup-symbol (symbol &optional mode)
   "Wrapper for `info-lookup-symbol'.
@@ -3055,7 +2587,7 @@ called."
      ;; we can't use shrink-window-if-larger-than-buffer here
      ;; because it doesn't work with Info mode's narrowing
      (with-selected-window (get-buffer-window "*info*")
-       (unless (gnuplot-window-full-height-p)
+       (unless (window-full-height-p)
          (enlarge-window
           (min (- (count-lines (point-min) (point-max)) (window-height) -1)
                (- (/ (frame-height) 2) (window-height)))))))
@@ -3066,7 +2598,6 @@ called."
        (setq gnuplot-info-frame (make-frame)))
      (select-frame gnuplot-info-frame)
      (raise-frame gnuplot-info-frame)
-     (if gnuplot-xemacs-p (setq toolbar-info-frame gnuplot-info-frame))
      (switch-to-buffer "*info*"))
 
     (t
@@ -3179,28 +2710,12 @@ a list:
   (set (make-local-variable 'beginning-of-defun-function) 'gnuplot-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) 'gnuplot-end-of-continuation)
 
-  (unless (featurep 'xemacs)
-    (add-hook 'completion-at-point-functions 'gnuplot-completion-at-point nil t))
+  (add-hook 'completion-at-point-functions 'gnuplot-completion-at-point nil t)
 
   (set-syntax-table gnuplot-mode-syntax-table)
 
   (when (eq gnuplot-keywords-when 'immediately) ; <HW>
     (gnuplot-setup-info-look)) ;; <SE>
-
-  (if gnuplot-xemacs-p                  ; deal with font-lock
-      (when (fboundp 'turn-on-font-lock)
-        (turn-on-font-lock))
-    (progn
-      ;; Add syntax-propertizing functions to search for strings and comments
-      (set (make-local-variable 'syntax-propertize-function)
-           #'gnuplot-syntax-propertize)
-      (add-hook 'syntax-propertize-extend-region-functions
-                #'gnuplot-syntax-propertize-extend-region nil t)
-
-      ;; Set up font-lock
-      (setq font-lock-defaults gnuplot-font-lock-defaults)
-      (set (make-local-variable 'font-lock-multiline) t)
-      (set (make-local-variable 'parse-sexp-lookup-properties) t)))
 
   (if (fboundp 'widget-create)          ; gnuplot-gui
       (condition-case ()
@@ -3232,6 +2747,7 @@ following in your .emacs file:
   (gnuplot-mode))
 
 ;;;###autoload
+;;; TODO Rename to gnuplot-run-gnuplot
 (defun run-gnuplot ()
   "Run an inferior Gnuplot process."
   (interactive)

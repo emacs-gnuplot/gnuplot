@@ -233,9 +233,7 @@ gnuplot-mode.
   \textsc{gnuplot} info file be available and that the info-look
   package be installed.  The info file can be made from the
   documentation supplied with the \textsc{gnuplot} distribution and
-  the info-look package is a standard part of Emacs 20.  Users of
-  XEmacs or Emacs 19 should download \file{info-look.el} from the
-  gnuplot-mode homepage.
+  the info-look package is a standard part of Emacs 20.
 \item[Using pm3d] \hfill \\
   All features of the pm3d patch to \textsc{gnuplot} should be
   available when using gnuplot-mode.  One particularly useful feature
@@ -394,33 +392,6 @@ commands appear in the \texttt{Insertions} menu.
 \variable{gnuplot-insertions-surface-plots}{\Star}{Contents of the
   \texttt{surface plots} sub-menu.}
 
-
-
-\begin{center}
-  \begin{Boxedminipage}{0.75\linewidth}
-    \begin{center}
-      {\large Toolbar variables}
-    \end{center}
-  \end{Boxedminipage}
-\end{center}
-
-\noindent These variables control the use and location of the
-toolbar in XEmacs.  The toolbar has buttons equivalent to the key
-sequences \texttt{C-c C-l}, \texttt{C-c C-r}, \texttt{C-c C-b},
-\texttt{C-c C-e}, and \texttt{C-c C-h}.
-
-\vspace{2ex}
-
-%
-\variable{gnuplot-display-toolbar-flag}{nil}{Non-nil means to display
-  a toolbar if using XEmacs.}
-%
-\variable{gnuplot-use-toolbar}{left-toolbar}{Location of XEmacs
-  toolbar.  Valid values are \texttt{left-toolbar},
-  \texttt{right-toolbar}, \texttt{top-toolbar}, \texttt{bottom-toolbar},
-  \texttt{default-toolbar} and nil.}
-%
-
 \begin{center}
   \begin{Boxedminipage}{0.75\linewidth}
     \begin{center}
@@ -449,9 +420,6 @@ used.}
 \variable{gnuplot-gui-plot-splot-fit-style}{'simple}{\texttt{'simple}
   or \texttt{'complete} -- describes the extent of the list of
   properties of for plot, splot, and fit in the GUI.}
-%
-\variable{gnuplot-gui-frame-plist}{\Star}{Property list of parameters
-  controlling the argument setting frame.  Used by XEmacs.}
 %
 \variable{gnuplot-gui-frame-parameters}{\Star}{List of parameters
   controlling the argument setting frame.  Used by Emacs.}

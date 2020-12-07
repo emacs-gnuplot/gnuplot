@@ -17,8 +17,7 @@
       instead: see [[Installing without configure or make]] below.
 
       You can specify the Emacs executable to use for byte-compiling
-      by using the ~EMACS~ environment variable: for example
-      ~./configure EMACS=xemacs~ to use XEmacs.  On Mac OS X, if your
+      by using the ~EMACS~ environment variable. On Mac OS X, if your
       Emacs application is located at ~/Applications/Emacs.app~, you
       should do ~./configure
       EMACS=/Applications/Emacs.app/Contents/MacOS/Emacs~

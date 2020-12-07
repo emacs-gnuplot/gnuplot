@@ -2061,9 +2061,7 @@ there."
 ;; Completions
 (defun gnuplot-completions ()
   (gnuplot-parse-at-point t)
-  (if (featurep 'xemacs)                ; Need an alist
-      (mapcar (lambda (s) (cons s nil)) gnuplot-completions)
-    gnuplot-completions))
+  gnuplot-completions)
 
 (defun gnuplot-context-completion-at-point ()
   "Return completions of keyword preceding point, using context."
