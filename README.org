@@ -73,9 +73,8 @@ A basic gnuplot configuration can be found below.
    version 4.4 and up. It will also mostly work fine with older
    versions. If it doesn't work with newer versions, report a bug.
 
-   This version has mostly been tested under GNU Emacs 23 and 24.
-   It should also work on GNU Emacs 22 and XEmacs 21. It may work
-   with earlier versions, but it has not been tested.
+   This version has mostly been tested under GNU Emacs 25.
+   It should also work on GNU Emacs 24.3 and above.
 
 *** New syntax for gnuplot version 4
     This version of gnuplot-mode supports the new curly-brace-block
