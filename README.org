@@ -68,6 +68,37 @@ A basic gnuplot configuration can be found below.
 
  A reference card for gnuplot-mode can be compiled using the =gpelcard.tex= file included in this package.
 
+*** Usage on Windows
+
+Multiple users have reported issues when trying to work with
+=gnuplot.el= on Windows. Most notably, the gnuplot process hangs after
+sending a first line of input (this is a common Emacs issue on
+Windows, see [[https://www.gnu.org/software/emacs/manual/html_mono/efaq-w32.html#Sub_002dprocesses][here]]).
+
+A partial workaround was to use =pgnuplot.exe= as the
+=gnuplot-program=. However, =pgnuplot.exe= is not included with
+gnuplot since version 5.0.
+
+You currently have two solutions:
+
+1. Experiment using the =gnuplot-program= and =gnuplot-program-args=
+   variables. For instance, setting
+
+   #+begin_src emacs-lisp
+(setq gnuplot-program "/path/to/cmdproxy.exe")
+(setq gnuplot-program-args "/C /path/to/gnuplot.exe")
+   #+end_src
+
+   has been reported to work (see [[https://github.com/emacsorphanage/gnuplot/pull/33/files][here]] for a reference).
+
+2. Use the simpler [[https://github.com/mkmcc/gnuplot-mode][gnuplot-mode]] package that sends the entire buffer
+   to gnuplot. Since no =comint= is involved, it should function
+   correctly, but you lose most features of the =gnuplot.el= package.
+   We would like to implement a send-buffer without comint as well
+   eventually.
+
+More information on =gnuplot.el= and WIndows can be found on these threads: [[https://github.com/emacsorphanage/gnuplot/issues/15][1]], [[https://github.com/emacsorphanage/gnuplot/pull/33][2]]
+
 ** New features for gnuplot-mode 0.7
    Version 0.7 of gnuplot-mode is designed for use with gnuplot
    version 4.4 and up. It will also mostly work fine with older
@@ -148,25 +179,3 @@ A basic gnuplot configuration can be found below.
 
       Gnuplot-mode is already on http://melpa.milkbox.net, but it would
       be good to get it into the other repositories too.
-
-   2. Using gnuplot-mode on windows is problematic.  John Handy says:
-
-      You probably get nagged quite a bit about this. Some have been running into
-      issues with gnuplot-mode and Windows and I'm wondering if you have any
-      comments. I use it just fine on Linux, but it seems that Windows users are
-      not able to send data to gnuplot successfully.
-
-      Org-mode also uses gnuplot-mode and this org-plot and org-mode babel+gnuplot
-      are not working correctly on Windows.
-
-      Any thoughts? I'm hoping to include any results in the Org-mode wiki for
-      gnuplot use:
-      [[http://orgmode.org/worg/org-contrib/babel/languages/ob-doc-gnuplot.php]]
-
-      If you're interested, here are some of the threads I'm referring to:
-      [[http://newsgroups.derkeiler.com/Archive/Comp/comp.emacs/2007-07/msg00159.html]]
-      [[http://www.mail-archive.com/emacs-orgmode@gnu.org/msg14544.html  ]]
-      [[http://groups.google.com/group/gnu.emacs.help/browse_thread/thread/53489131c79f62b3]]
-
-      If you'd like to see my summary of the issues to the org-mode mailing list,
-      it's here: [[http://thread.gmane.org/gmane.emacs.orgmode/30235]]
