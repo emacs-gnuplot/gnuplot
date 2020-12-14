@@ -475,6 +475,12 @@ useful for functions included in `gnuplot-after-plot-hook'.")
   "The name of the gnuplot executable."
   :group 'gnuplot
   :type 'string)
+
+(defcustom gnuplot-program-args nil
+  "Whitespace-separated flags to pass to the gnuplot executable."
+  :group 'gnuplot
+  :type 'string)
+
 (defvar gnuplot-program-version nil
   "Version number of gnuplot.
 This is using `gnuplot-fetch-version-number'.")
@@ -1817,8 +1823,11 @@ buffer."
   (unless (and gnuplot-process (eq (process-status gnuplot-process) 'run)
                gnuplot-buffer (buffer-live-p gnuplot-buffer))
     (message "Starting gnuplot plotting program...")
-    (setq gnuplot-buffer (make-comint gnuplot-process-name gnuplot-program)
-          gnuplot-process (get-buffer-process gnuplot-buffer))
+    (let ((gnuplot-cmd (list 'make-comint gnuplot-process-name gnuplot-program)))
+      (when gnuplot-program-args
+        (setq gnuplot-cmd (append gnuplot-cmd '(nil) (split-string gnuplot-program-args))))
+      (setq gnuplot-buffer  (eval gnuplot-cmd)
+            gnuplot-process (get-buffer-process gnuplot-buffer)))
     (set-process-query-on-exit-flag gnuplot-process nil)
     (with-current-buffer gnuplot-buffer
       (gnuplot-comint-mode)
