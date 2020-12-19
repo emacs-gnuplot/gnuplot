@@ -1633,11 +1633,10 @@ buffer."
 
   (set-syntax-table gnuplot-mode-syntax-table)
 
-  (progn
-    (setq font-lock-defaults gnuplot-font-lock-defaults)
-    (set (make-local-variable 'parse-sexp-lookup-properties) t)
-    (set (make-local-variable 'syntax-propertize-function)
-         #'gnuplot-syntax-propertize))
+  (setq font-lock-defaults gnuplot-font-lock-defaults)
+  (set (make-local-variable 'parse-sexp-lookup-properties) t)
+  (set (make-local-variable 'syntax-propertize-function)
+         #'gnuplot-syntax-propertize)
 
   (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
 
@@ -2585,6 +2584,17 @@ a list:
 
   (when (eq gnuplot-keywords-when 'immediately) ; <HW>
     (gnuplot-setup-info-look)) ;; <SE>
+
+  ;; Add syntax-propertizing functions to search for strings and comments
+  (set (make-local-variable 'syntax-propertize-function)
+       #'gnuplot-syntax-propertize)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'gnuplot-syntax-propertize-extend-region nil t)
+
+  ;; Set up font-lock
+  (setq font-lock-defaults gnuplot-font-lock-defaults)
+  (set (make-local-variable 'font-lock-multiline) t)
+  (set (make-local-variable 'parse-sexp-lookup-properties) t)
 
   (if (fboundp 'widget-create)          ; gnuplot-gui
       (condition-case ()
