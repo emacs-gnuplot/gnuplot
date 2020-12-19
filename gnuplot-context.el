@@ -233,7 +233,7 @@
 
 ;; Library dependencies
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
 
   ;; Prevent compiler warnings about undefined functions
   (require 'gnuplot))
@@ -1808,7 +1808,7 @@ there."
             gnuplot-info-at-point nil
             gnuplot-captures nil)
 
-      (flet ((advance
+      (cl-flet ((advance
               ()
               (pop tokens)
               (if (and (null tokens) (not completing-p))

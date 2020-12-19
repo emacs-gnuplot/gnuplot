@@ -5,7 +5,7 @@
 
 (require 'gnuplot)
 (require 'ert)
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 ;; Hide an annoying interactive message during batch testing
 (when (require 'nadvice nil t)
@@ -67,7 +67,7 @@ string-literal in multiple different contexts, as determined by
   (declare (indent 1))
   `(ert-deftest ,name ()
      ,string
-     ,@(loop for context in gnuplot-string-test-contexts
+     ,@(cl-loop for context in gnuplot-string-test-contexts
              collect
              `(should (gnuplot-test-string-in-context ,string ,context)))))
 
@@ -203,11 +203,11 @@ comment
         (when (fboundp 'syntax-propertize)
           (syntax-propertize (point-max)))
         (goto-char (1+ start))
-        (flet ((in-comment-p (position)
+        (cl-flet ((in-comment-p (position)
                              (nth 4 (syntax-ppss position))))
           (and
            (not (in-comment-p start))
-           (loop for position from (1+ start) upto end
+           (cl-loop for position from (1+ start) upto end
                  always (in-comment-p position))
            (or (= end (point-max))
                (not (in-comment-p (1+ end))))))))))
@@ -221,7 +221,7 @@ string-literal in multiple different contexts, as determined by
   (declare (indent 1))
   `(ert-deftest ,name ()
      ,comment
-     ,@(loop for context in gnuplot-comment-test-contexts
+     ,@(cl-loop for context in gnuplot-comment-test-contexts
              collect
              `(should (gnuplot-test-comment-in-context ,comment ,context)))))
 

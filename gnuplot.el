@@ -199,8 +199,7 @@
 
 (require 'comint)
 (require 'easymenu)
-;; TODO Fix deprecation
-(eval-when-compile (require 'cl))
+(eval-when-compile (require 'cl-lib))
 
 (declare-function 'eldoc-add-command "eldoc")
 
@@ -603,9 +602,8 @@ non-nil."
 
 (defvar gnuplot-mode-menu nil)
 
-;; TODO Fix deprecation
 (defvar gnuplot-display-options-menu
-  (flet ((make-image-setter (type)
+  (cl-flet ((make-image-setter (type)
                             `[,(concat (upcase type) " images")
                               (lambda () (interactive) (gnuplot-set-image-format ,type))
                               :style toggle

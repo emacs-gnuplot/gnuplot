@@ -7,7 +7,7 @@
 (require 'ert)
 
 (eval-when-compile
-  (require 'cl)
+  (require 'cl-lib)
   (if (not (fboundp 'ert-deftest))
       (defalias 'ert-deftest 'deftest))
 
