@@ -447,7 +447,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
      ;; Symbols match token types or calls to other patterns
      ((symbolp pat)
-      (case pat
+      (cl-case pat
         ((any) `((any)))
         ((name number string separator) `((token-type ,pat)))
         (t `((call ,pat)))))
@@ -460,11 +460,11 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
      ;; Other forms combine simpler patterns
      (t
       (let ((type (car pat)))
-        (case type
+        (cl-case type
           ;; (sequence...): concatenate patterns, with optional eldoc
           ;; and info strings
           ((sequence)
-           (destructuring-bind
+           (cl-destructuring-bind
                (subpats eldoc info)
                (gnuplot-filter-arg-list (cdr pat))
              (let ((eldoc-push '()) (eldoc-pop '())
@@ -542,7 +542,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
           ;; keywords
           ((kw)
-           (destructuring-bind (regex name)
+           (cl-destructuring-bind (regex name)
                (gnuplot-keyword-helper (cdr pat))
              `((keyword ,regex ,name))))
 
@@ -579,7 +579,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           (eldoc nil) (info nil))
       (dolist (item args)
         (let ((type (car-safe item)))
-          (case type
+          (cl-case type
             ((:eldoc) (setq eldoc (cadr item)))
             ((:no-info) (setq info :no-info)) ; inhibit stack scanning
             ((:info) (setq info (cadr item)))
@@ -641,7 +641,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           (let ((name (car chunk))
                 (code (cdr chunk)))
             (setf (aref object-code i) `(label ,name))
-            (incf i)
+            (cl-incf i)
             (puthash name i name->offset)
             (while code
               (setf (aref object-code i) (car code)
@@ -654,7 +654,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
         (let ((pattern-name nil))
           (dotimes (i (length object-code))
             (let ((inst (aref object-code i)))
-              (case (car inst)
+              (cl-case (car inst)
                 ((label)
                  (setq pattern-name (cadr inst)))
 
@@ -1800,8 +1800,8 @@ there."
       (when start-symbol        ; HACK FIXME
         (let ((look-for `(label ,start-symbol)))
           (while (not (equal (aref instructions pc) look-for))
-            (incf pc))
-          (incf pc)))
+            (cl-incf pc))
+          (cl-incf pc)))
 
       (setq gnuplot-completions nil
             gnuplot-eldoc nil
@@ -1823,7 +1823,7 @@ there."
                  (end-of-tokens (null tokens)))
             (gnuplot-trace "%s\t%s\t%s\n" pc inst (and token (gnuplot-token-id token)))
 
-            (case opcode
+            (cl-case opcode
               ;; (literal LITERAL NO-COMPLETE)
               ((literal)
                (let ((expect (cadr inst))
@@ -1981,7 +1981,7 @@ there."
                 (when (and end-of-tokens (not completing-p))
                   (gnuplot-scan-stack stack tokens))
 
-                (destructuring-bind
+                (cl-destructuring-bind
                     (bt-stack bt-tokens bt-pc bt-captures bt-progress)
                     (pop backtrack)
                   (setq stack bt-stack
@@ -2006,7 +2006,7 @@ there."
              (position (caddr item))) ; must progress by at least one token
         (if (and (memq type '(info eldoc no-scan))
                  (not (eq position tokens)))
-            (case type
+            (cl-case type
               ((no-scan)
                (throw 'no-scan nil))
 

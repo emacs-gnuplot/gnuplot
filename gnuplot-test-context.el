@@ -380,7 +380,7 @@
           (insert-file-contents fname)
           (gnuplot-mode)
           (message "Testing on file %s of %s: %s..."
-                   (incf n) n-files fname)
+                   (cl-incf n) n-files fname)
           (condition-case err
               (gnuplot-test-parse-buffer (current-buffer) fname)
             (error
@@ -419,9 +419,9 @@
                    (gnuplot-match-pattern
                     gnuplot-compiled-grammar
                     tokens nil)))
-              (incf gnuplot-test-count)
+              (cl-incf gnuplot-test-count)
               (if (equal result '(nil))
-                  (incf gnuplot-test-success-count)
+                  (cl-incf gnuplot-test-success-count)
                 (let ((cmd
                        (buffer-substring
                         (gnuplot-point-at-beginning-of-command)

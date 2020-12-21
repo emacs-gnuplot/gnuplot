@@ -42,7 +42,7 @@ represented by a format-string with a single %s placeholder.
 
 Returns non-nil if STRING is correctly recognised as a single
 string by `scan-sexps'."
-  (destructuring-bind (prologue epilogue)
+  (cl-destructuring-bind (prologue epilogue)
       (split-string context "%s")
     (with-temp-buffer
       (gnuplot-mode)
@@ -189,7 +189,7 @@ comment
 
 (defun gnuplot-test-comment-in-context (comment context)
   "Non-nil if COMMENT is correctly recognised within CONTEXT in gnuplot-mode."
-  (destructuring-bind (prologue epilogue)
+  (cl-destructuring-bind (prologue epilogue)
       (split-string context "%s")
     (with-temp-buffer
       (gnuplot-mode)
