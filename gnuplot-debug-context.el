@@ -99,7 +99,7 @@
   (if gnuplot-captures
       (with-gnuplot-trace-buffer
        (insert "\n-- * capture groups: * --\n")
-       (loop for c on gnuplot-captures
+       (cl-loop for c on gnuplot-captures
              do
              (let ((name (caar c))
                    (gnuplot-captures c))
