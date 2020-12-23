@@ -3,9 +3,8 @@
 ;;; Currently these attempt to cover the correct identification of
 ;;; string and comment syntax.
 
-(require 'gnuplot)
 (require 'ert)
-(eval-when-compile (require 'cl-lib))
+(require 'cl-lib)
 
 ;; Hide an annoying interactive message during batch testing
 (when (require 'nadvice nil t)

@@ -1777,7 +1777,7 @@ updates Gnuplot with the appropriate 'set output' command."
             (when (and size (> size 0))
               (gnuplot-send-hiding-output "set output\n") ; Flush output file
               (sit-for 0.1)             ; Hack: wait for Gnuplot IO to finish
-              (ecase gnuplot-inline-image-mode
+              (cl-ecase gnuplot-inline-image-mode
                 (nil nil)
                 (inline
                   (ignore-errors
@@ -2324,7 +2324,7 @@ the height of the frame.
 
 The *info* buffer should already exist when this function is
 called."
-  (case gnuplot-info-display
+  (cl-case gnuplot-info-display
     (window
      (switch-to-buffer-other-window "*info*")
      ;; Adjust window height only if the frame is split

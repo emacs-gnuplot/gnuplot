@@ -32,7 +32,7 @@
 (defun gnuplot-simplify-tokens (tokens)
   (mapcar
    (lambda (token)
-     (case (gnuplot-token-type token)
+     (cl-case (gnuplot-token-type token)
        (number
         (string-to-number (gnuplot-token-id token)))
 

@@ -1,38 +1,21 @@
-# -*- mode: makefile -*-
-
 EMACS ?= emacs
 
-## You will probably not need to change anything below this line
+LOAD = -l gnuplot \
+	-l gnuplot-context \
+	-l gnuplot-debug-context \
+	-l gnuplot-gui \
+	-l gnuplot-tests \
+	-l gnuplot-test-context
 
-BYTE = $(EMACS) -batch -q -no-site-file -l dot.el -f batch-byte-compile
+.PHONY: all default clean
 
-.PHONY: all default clean pdf ps
+default: compile
 
-default: gnuplot.elc gnuplot-gui.elc gnuplot-context.elc
+test:
+	$(EMACS) -batch -L . $(LOAD) -f ert-run-tests-batch-and-exit
 
-pdf: gpelcard.pdf
-
-ps: gpelcard.ps
-
-all: gnuplot.elc gnuplot-gui.elc gnuplot-context.elc gpelcard.pdf gpelcard.ps
-
-%.elc: %.el
-	$(BYTE) "$<"
-
-test: gnuplot.elc gnuplot-context.elc gnuplot-tests.elc gnuplot-test-context.elc
-	$(EMACS) --batch -L .				\
-	  --load=gnuplot-tests				\
-	  --load=gnuplot-test-context			\
-	  --eval='(ert-run-tests-batch "^gnuplot-")'
-
-gpelcard.ps: gpelcard.dvi
-	dvips -o gpelcard.ps gpelcard.dvi
-
-gpelcard.pdf: gpelcard.tex
-	pdflatex gpelcard.tex
-
-gpelcard.dvi: gpelcard.tex
-	 latex gpelcard.tex
+compile:
+	$(EMACS) -batch -L . -f batch-byte-compile *.el
 
 clean:
-	rm -f *.elc gpelcard.dvi gpelcard.log gpelcard.aux
+	rm -f *.elc
