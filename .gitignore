@@ -9,11 +9,6 @@
 */#*#
 /hacks.el
 .#*
-/Makefile
-/config.cache
-/config.status
 /info-look.el
-/autom4te.cache/*
-/configure.scan
 /gpelcard.ps
 gnuplot-mode-*.tar.gz

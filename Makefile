@@ -1,6 +1,5 @@
 # -*- mode: makefile -*-
 
-## Set this variable to "xemacs" if you use XEmacs
 EMACS ?= emacs
 
 ## You will probably not need to change anything below this line

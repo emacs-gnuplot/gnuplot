@@ -38,15 +38,8 @@ Alternatively, you can directly place the following in your init file so that
 ** From source
 
 After fetching the package's source from [[https://github.com/emacsorphanage/gnuplot][the homepage]], byte-compile
-the package's files using either
-
-: ./configure && make
-
-or
-
-: make -f Makefile.dst
-
-and move the compiled =.elc= files to your chosen target directory.
+the package's files using the =make= command and move the compiled
+=.elc= files to your chosen target directory.
 
 * Configuration
 ** Load Path
