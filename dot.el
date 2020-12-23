@@ -3,3 +3,6 @@
 (setq load-path             (append (list ".") load-path)
       byte-compile-verbose  nil
       byte-compile-warnings nil)
+
+(load "gnuplot")
+(load "gnuplot-context")

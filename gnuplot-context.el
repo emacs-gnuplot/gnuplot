@@ -250,11 +250,11 @@
 
 ;;;; The tokenizer.
 
-(defstruct gnuplot-token
-  start         ; Buffer start position
+(cl-defstruct gnuplot-token
+  start     ; Buffer start position
   end       ; Buffer end position
   id        ; Text
-  type)         ; a symbol: name, number, string, operator, separator
+  type)     ; a symbol: name, number, string, operator, separator
 
 (defvar gnuplot-operator-regexp
   (eval-when-compile
