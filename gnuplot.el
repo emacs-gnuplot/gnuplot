@@ -2031,7 +2031,6 @@ distribution. See gnuplot-context.el for details."
   (if gnuplot-context-sensitive-mode
       ;; Turn on
       (progn
-        ;; TODO Require by default ?
         (load-library "gnuplot-context")
         (load-library "eldoc")
         (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)

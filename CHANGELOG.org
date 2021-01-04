@@ -1,15 +1,20 @@
 #+TITLE: Changelog for =gnuplot.el=
 
-* Upcoming Changes
+* Version 8.0 (Jan 3rd 2021)
 
-List of changes for the upcoming =gnuplot.el= 0.8.0 version ranging
-from March 2014 to December 2020.
+List of changes for =gnuplot.el= version 0.8.0 ranging from March 2014
+to January 2021.
 
-** Major Changes
+- Changed project license to GPLv3.
 
-- Change project license to GPLv3.
+- Greatly simplify the compilation process.
+
+- Fix deprecated calls to the =cl= library.
 
 - Deprecated XEmacs support. Bump minimal GNU Emacs version to 24.3.
+
+- Add a =gnuplot-program-args= variable for passing additional
+  arguments to the gnuplot program binary.
 
 - The =gnuplot-inline-image-mode= can now take three values: =nil=,
 =inline=, =dedicated=.
@@ -24,8 +29,6 @@ from March 2014 to December 2020.
 
 - Add the =gnuplot-program-args= customization option to pass
   additional arguments to the gnuplot process.
-
-** Minor Changes
 
 - Use =syntax-proprietize-rules= in gnuplot buffers.
 

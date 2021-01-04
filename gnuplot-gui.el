@@ -29,10 +29,6 @@
 ;; arguments appropriate the the item that was near point.  The goal
 ;; is to provide point-and-click functionality to gnuplot-mode.
 ;;
-;; gnuplot-gui is designed for gnuplot 3.7, but since much of 3.7 is
-;; backward compatible to 3.5, it will work well for that version
-;; also.
-;;
 ;; gnuplot-gui.el was developed using GNU Emacs 25 and should be
 ;; compatible with GNU Emacs 24.3 and above.
 ;;
