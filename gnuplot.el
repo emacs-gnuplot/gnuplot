@@ -1357,13 +1357,12 @@ This keeps that buffer from growing excessively in size.  Normally,
 this function is attached to `gnuplot-after-plot-hook'"
   (if (> gnuplot-buffer-max-size 0)
       (with-current-buffer gnuplot-buffer
-        (let ((nlines (count-lines (point-min) (point-max)))
-              (kill-whole-line t))
-          (while (> nlines gnuplot-buffer-max-size)
+        (let (gnuplot-lines (count-lines (point-min) (point-max)))
+          (dotimes (tmp (- gnuplot-lines gnuplot-buffer-max-size))
             (goto-char (point-min))
-            (kill-line)
-            (setq nlines (1- nlines)))
+            (delete-region (line-beginning-position) (1+ (line-end-position))))
           (goto-char (point-max))))))
+
 (add-hook 'gnuplot-after-plot-hook 'gnuplot-trim-gnuplot-buffer nil nil)
 
 
