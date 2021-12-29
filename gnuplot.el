@@ -1896,9 +1896,7 @@ Negatable options are defined in `gnuplot-keywords-negatable-options'."
 (defun gnuplot-customize ()
   "Customize `gnuplot-mode'."
   (interactive)
-  (if (fboundp 'customize-group)
-      (customize-group "gnuplot")
-    (message "The Custom library is not installed.")))
+  (customize-group "gnuplot"))
 
 
 
