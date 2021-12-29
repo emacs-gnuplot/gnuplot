@@ -1,4 +1,4 @@
-;;; gnuplot-context.el -- context-sensitive help and completion for gnuplot
+;;; gnuplot-context.el -- context-sensitive help and completion for gnuplot -*- lexical-binding: t -*-
 
 ;; Copyright (C) 2012-2013 Jon Oddie <jonxfield@gmail.com>
 
@@ -1721,9 +1721,9 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 ;; them. For normal use, they compile to no-ops.
 (eval-when-compile
   (when (not (featurep 'gnuplot-debug-context))
-    (defmacro with-gnuplot-trace-buffer (&rest args) "No-op." '(progn nil))
-    (defmacro gnuplot-trace (&rest args) "No-op." '(progn nil))
-    (defmacro gnuplot-debug (&rest args) "No-op." '(progn nil))))
+    (defmacro with-gnuplot-trace-buffer (&rest _) "No-op." '(progn nil))
+    (defmacro gnuplot-trace (&rest _) "No-op." '(progn nil))
+    (defmacro gnuplot-debug (&rest _) "No-op." '(progn nil))))
 
 
 
@@ -1984,7 +1984,7 @@ there."
 (defun gnuplot-scan-stack (stack tokens)
   "Scan STACK for the most recently pushed eldoc and info strings."
   (gnuplot-trace "\t* scanning stack *\n")
-  (gnuplot-debug (gnuplot-backtrace))
+  (gnuplot-debug (gnuplot-backtrace stack))
   (gnuplot-debug (gnuplot-dump-captures))
 
   (catch 'no-scan

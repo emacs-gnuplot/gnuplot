@@ -1,6 +1,4 @@
-;;
-;; automated tests for gnuplot-mode context matching
-;;
+;; automated tests for gnuplot-mode context matching  -*- lexical-binding: t -*-
 
 (require 'gnuplot-context)
 

@@ -1,4 +1,4 @@
-;;; gnuplot.el --- Major-mode and interactive frontend for gnuplot
+;;; gnuplot.el --- Major-mode and interactive frontend for gnuplot -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998, 2011 Phil Type and Bruce Ravel, 1999-2012 Bruce Ravel
 
@@ -335,7 +335,7 @@ suggestions."
   :group 'gnuplot
   :type 'boolean
   :initialize 'custom-set-default
-  :set (lambda (sym value)
+  :set (lambda (_sym value)
          (dolist (buffer (buffer-list))
            (with-current-buffer buffer
              (when (derived-mode-p 'gnuplot-mode 'gnuplot-comint-mode)
@@ -358,7 +358,7 @@ symbol `complete' in gnuplot-mode buffers."
   :group 'gnuplot
   :type 'boolean)
 
-(defun gnuplot-set-display-mode (variable value &rest args)
+(defun gnuplot-set-display-mode (variable value &rest _args)
   "Customize :set function for `gnuplot-inline-image-mode'.
 Set VARIABLE to VALUE.  ARGS is optional args."
   (if (and (eq variable 'gnuplot-inline-image-mode)
@@ -1345,7 +1345,7 @@ this function is attached to `gnuplot-after-plot-hook'"
   (if (> gnuplot-buffer-max-size 0)
       (with-current-buffer gnuplot-buffer
         (let ((gnuplot-lines (count-lines (point-min) (point-max))))
-          (dotimes (tmp (- gnuplot-lines gnuplot-buffer-max-size))
+          (dotimes (_n (- gnuplot-lines gnuplot-buffer-max-size))
             (goto-char (point-min))
             (delete-region (line-beginning-position) (1+ (line-end-position))))
           (goto-char (point-max))))))
@@ -1457,7 +1457,7 @@ buffer."
   (regexp-opt '("gnuplot> " "multiplot> "))
   "Regexp for recognizing the GNUPLOT prompt.")
 
-(defun gnuplot-protect-prompt-fn (string)
+(defun gnuplot-protect-prompt-fn (_string)
   "Prevent the Gnuplot prompt from being deleted or overwritten.
 STRING is the text as originally inserted in the comint buffer."
   (save-excursion
@@ -1580,7 +1580,7 @@ gnuplot process buffer will be displayed in a window."
 
 (defvar gnuplot-inhibit-filter nil)
 
-(defun gnuplot-insert-inline-image-output (string)
+(defun gnuplot-insert-inline-image-output (_string)
   "Insert Gnuplot graphical output STRING in the gnuplot-comint buffer.
 
 Called via `comint-preoutput-filter-functions' hook when
@@ -1778,7 +1778,7 @@ ARG is optional arg."
   (if (not arg) (setq arg 1))
   (if (> arg 0)
       (catch 'bob               ; go to beginning of ARGth prev. defun
-        (dotimes (n arg)
+        (dotimes (_n arg)
           (when (= (point)
                    (gnuplot-point-at-beginning-of-continuation))
             (forward-line -1)
@@ -1790,7 +1790,7 @@ ARG is optional arg."
         t)
 
     (catch 'eob                   ; find beginning of (-ARG)th following defun
-      (dotimes (n (- arg))
+      (dotimes (_n (- arg))
         (gnuplot-end-of-continuation)
         (forward-line)
         (if (eobp) (throw 'eob t))

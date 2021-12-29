@@ -1,6 +1,4 @@
-;;
-;; debugging utilities for the gnuplot-mode context matcher
-;;
+;; debugging utilities for the gnuplot-mode context matcher -*- lexical-binding: t -*-
 
 (require 'gnuplot-test-context) ; for gnuplot-simplify-tokens
 
@@ -56,7 +54,7 @@
 (defmacro gnuplot-trace (&rest args)
   `(with-gnuplot-trace-buffer (insert (format ,@args))))
 
-(defun gnuplot-backtrace ()
+(defun gnuplot-backtrace (stack)
   (if stack
       (with-gnuplot-trace-buffer
        (insert "\n-- * backtrace: * --\n")

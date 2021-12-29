@@ -1,4 +1,4 @@
-;;; Tests for gnuplot-mode.
+;;; Tests for gnuplot-mode. -*- lexical-binding: t -*-
 
 ;;; Currently these attempt to cover the correct identification of
 ;;; string and comment syntax.
