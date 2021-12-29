@@ -304,7 +304,6 @@ beginning the continued command."
   :type 'integer)
 
 (defvar gnuplot-info-frame nil)
-(defvar gnuplot-info-nodes '())
 
 ;; with info-look, there is no need to carry this list around -- it
 ;; can be generated on the fly appropriate to the currently installed
