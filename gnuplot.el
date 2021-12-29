@@ -837,18 +837,16 @@ create a `gnuplot-mode' buffer."
                                (boolean  :tag "Enabled" t)))))
 
 
-(defvar gnuplot-gui-popup-flag)
-(defvar gnuplot-insertions-bottom ()
+(defvar gnuplot-insertions-bottom
+  '("---"
+    ["Display of info with insertion" gnuplot-toggle-info-display
+     :style toggle :selected gnuplot-insertions-show-help-flag]
+    ["Display GUI popup with insertion" gnuplot-gui-toggle-popup
+     :active t
+     :style toggle :selected gnuplot-gui-popup-flag])
   "Bottom part of the insertions menu.
 This part contains the toggle buttons for displaying info or
 opening an argument-setting popup.")
-(setq gnuplot-insertions-bottom
-      '("---"
-        ["Display of info with insertion" gnuplot-toggle-info-display
-         :style toggle :selected gnuplot-insertions-show-help-flag]
-        ["Display GUI popup with insertion" gnuplot-gui-toggle-popup
-         :active t
-         :style toggle :selected gnuplot-gui-popup-flag]))
 
 (defun gnuplot-setup-menubar ()
   "Initial setup of gnuplot and insertions menus."
@@ -2130,7 +2128,8 @@ shown."
           (setq topic (downcase (match-string 2 string))
                 term            (match-string 4 string))
           (if (string= topic "terminal") (setq topic (downcase term)))))
-    (cond (gnuplot-gui-popup-flag
+    (cond ((and (bound-and-true-p gnuplot-gui-popup-flag)
+                (fboundp 'gnuplot-gui-set-options-and-insert))
            (gnuplot-gui-set-options-and-insert))
           (gnuplot-insertions-show-help-flag
            (if gnuplot-keywords-pending          ; <HW>
@@ -2232,7 +2231,6 @@ a list:
   (setq-local font-lock-multiline t)
   (setq-local parse-sexp-lookup-properties t)
 
-  (require 'gnuplot-gui)
   (setq gnuplot-first-call nil          ; a few more details ...
         gnuplot-comint-recent-buffer (current-buffer))
   (setq-local comint-process-echoes gnuplot-echo-command-line-flag)
