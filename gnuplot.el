@@ -990,48 +990,43 @@ These are highlighted using `font-lock-constant-face'.")
   (gnuplot-make-regexp gnuplot-keywords-negatable-options))
 
 ;; Set up colorization for gnuplot.
-(defvar gnuplot-font-lock-keywords nil)
-(defvar gnuplot-font-lock-syntactic-keywords nil)
-(defvar gnuplot-font-lock-defaults nil)
+(defvar gnuplot-font-lock-keywords
+  (list
+   ;; stuff in brackets, sugg. by <LB>
+   '("\\[\\([^]]+\\)\\]" 1 font-lock-constant-face)
 
-(when (featurep 'font-lock)             ; <KL>
-  (setq gnuplot-font-lock-keywords
-        (list
-         ;; stuff in brackets, sugg. by <LB>
-         '("\\[\\([^]]+\\)\\]" 1 font-lock-constant-face)
+   ;; variable/function definitions
+   '("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
+     1 font-lock-variable-name-face)
 
-         ;; variable/function definitions
-         '("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
-           1 font-lock-variable-name-face)
+   ;; built-in function names
+   (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
+         font-lock-function-name-face)
 
-         ;; built-in function names
-         (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
-               font-lock-function-name-face)
+   ;; reserved words associated with plotting <AL>
+   (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
+         font-lock-type-face)
+   (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
+         font-lock-function-name-face)
 
-         ;; reserved words associated with plotting <AL>
-         (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
-               font-lock-type-face)
-         (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
-               font-lock-function-name-face)
+   ;; (s)plot -- also thing (s)plotted
+   '("\\<s?plot\\>" . font-lock-keyword-face)
+   ;; '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
+   ;;   1 font-lock-variable-name-face)
 
-         ;; (s)plot -- also thing (s)plotted
-         '("\\<s?plot\\>" . font-lock-keyword-face)
-         ;; '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
-         ;;   1 font-lock-variable-name-face)
+   ;; other common commands
+   (cons (gnuplot-make-regexp gnuplot-keywords-misc)
+         font-lock-constant-face)
+   (cons "!.*$" font-lock-constant-face))) ; what is this for? jjo
 
-         ;; other common commands
-         (cons (gnuplot-make-regexp gnuplot-keywords-misc)
-               font-lock-constant-face)
-         (cons "!.*$" font-lock-constant-face))) ; what is this for? jjo
-
-  (setq gnuplot-font-lock-defaults
-        '(gnuplot-font-lock-keywords
-          nil                           ; Use syntactic fontification
-          t                             ; Use case folding
-          nil                           ; No extra syntax
-          ;; calls `gnuplot-beginning-of-continuation'
-          ;; to find a safe place to begin syntactic highlighting
-          beginning-of-defun)))
+(defvar gnuplot-font-lock-defaults
+  '(gnuplot-font-lock-keywords
+    nil                           ; Use syntactic fontification
+    t                             ; Use case folding
+    nil                           ; No extra syntax
+    ;; calls `gnuplot-beginning-of-continuation'
+    ;; to find a safe place to begin syntactic highlighting
+    beginning-of-defun))
 
 ;; Some corner cases in Gnuplot's comment and string syntax are
 ;; difficult to handle accurately using Emacs's built-in syntax tables
