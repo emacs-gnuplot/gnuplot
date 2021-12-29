@@ -500,10 +500,8 @@ non-nil."
      gnuplot-info-at-point
      gnuplot-context-sensitive-mode]
     ["Show gnuplot process buffer"      gnuplot-show-gnuplot-buffer t]
-    ["Set arguments at point"           gnuplot-gui-set-options-and-insert
-     (fboundp 'gnuplot-gui-set-options-and-insert)]
-    ["Swap plot/splot/fit lists in GUI" gnuplot-gui-swap-simple-complete
-     (fboundp 'gnuplot-gui-swap-simple-complete)]
+    ["Set arguments at point"           gnuplot-gui-set-options-and-insert t]
+    ["Swap plot/splot/fit lists in GUI" gnuplot-gui-swap-simple-complete t]
     "---"
     ["Customize gnuplot"                gnuplot-customize t]
     "---"
@@ -849,9 +847,8 @@ opening an argument-setting popup.")
         ["Display of info with insertion" gnuplot-toggle-info-display
          :style toggle :selected gnuplot-insertions-show-help-flag]
         ["Display GUI popup with insertion" gnuplot-gui-toggle-popup
-         :active (fboundp 'gnuplot-gui-toggle-popup)
-         :style toggle :selected (and (fboundp 'gnuplot-gui-toggle-popup)
-                                      gnuplot-gui-popup-flag)]))
+         :active t
+         :style toggle :selected gnuplot-gui-popup-flag]))
 
 (defun gnuplot-setup-menubar ()
   "Initial setup of gnuplot and insertions menus."
@@ -2133,8 +2130,7 @@ shown."
           (setq topic (downcase (match-string 2 string))
                 term            (match-string 4 string))
           (if (string= topic "terminal") (setq topic (downcase term)))))
-    (cond ((and (fboundp 'gnuplot-gui-set-options-and-insert)
-                gnuplot-gui-popup-flag)
+    (cond (gnuplot-gui-popup-flag
            (gnuplot-gui-set-options-and-insert))
           (gnuplot-insertions-show-help-flag
            (if gnuplot-keywords-pending          ; <HW>
