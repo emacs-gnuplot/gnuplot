@@ -114,10 +114,11 @@
   :group 'gnuplot-hooks
   :type 'hook)
 
-(defcustom gnuplot-load-hook nil
-  "Hook run when gnuplot.el is first loaded."
-  :group 'gnuplot-hooks
-  :type 'hook)
+(defvar gnuplot-load-hook nil)
+(make-obsolete-variable
+ 'gnuplot-load-hook
+ "The package loading hook has been removed, use `with-eval-after-load' instead."
+ "8.0")
 
 (defcustom gnuplot-after-plot-hook (list #'gnuplot-trim-gnuplot-buffer)
   "Hook run after gnuplot plots something.
@@ -543,18 +544,16 @@ The easiest way to customize the submenus is to use the custom
 package.  Just type \\[gnuplot-customize] and follow your nose.
 
 You can also add new items to any of these sub-menus by adding to the
-`gnuplot-load-hook' in your .emacs file.  Here is an example of adding
-the \"regis\" terminal type to the terminal sub-menu:
+`with-eval-after-load' blocks in your .emacs file. Here is an example of
+adding the \"regis\" terminal type to the terminal sub-menu:
 
- (add-hook
-  'gnuplot-load-hook
-  '(lambda ()
+ (with-eval-after-load 'gnuplot
       (setq gnuplot-insertions-terminal
             (append gnuplot-insertions-terminal
                     (list
                      [\"regis\"
                       (gnuplot-insert \"set terminal regis\")
-                       t])))))")
+                       t]))))")
 
 (defvar gnuplot-insertions-top ()
   "Top part of insertions menu.
@@ -2259,11 +2258,7 @@ following in your .emacs file:
 
 ;;; That's it! ----------------------------------------------------------------
 
-
-;;; --- final chores: provide 'gnuplot and run load-hook
-;; provide before run-hooks suggested by <DB>
 (provide 'gnuplot)
-(run-hooks 'gnuplot-load-hook)
 
 ;; Local Variables:
 ;; indent-tabs-mode: nil
