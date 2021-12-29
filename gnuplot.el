@@ -185,11 +185,10 @@ for backward compatibility."
   :group 'gnuplot-hooks
   :type 'hook)
 
-(defvar gnuplot-recently-sent nil
+(defvar-local gnuplot-recently-sent nil
   "This is a record of the most recent kind of text sent to gnuplot.
 It takes as its value nil, 'line, 'region, 'buffer, or 'file.  It is
 useful for functions included in `gnuplot-after-plot-hook'.")
-(make-variable-buffer-local 'gnuplot-recently-sent)
 
 (defcustom gnuplot-program "gnuplot"
   "The name of the gnuplot executable."
