@@ -307,8 +307,6 @@ beginning the continued command."
 (defvar gnuplot-info-frame nil)
 (defvar gnuplot-info-nodes '())
 
-(defvar gnuplot-first-call t)
-
 ;; with info-look, there is no need to carry this list around -- it
 ;; can be generated on the fly appropriate to the currently installed
 ;; version of gnuplot.info
@@ -2150,8 +2148,7 @@ a list:
   (setq-local font-lock-multiline t)
   (setq-local parse-sexp-lookup-properties t)
 
-  (setq gnuplot-first-call nil          ; a few more details ...
-        gnuplot-comint-recent-buffer (current-buffer))
+  (setq gnuplot-comint-recent-buffer (current-buffer))
   (setq-local comint-process-echoes gnuplot-echo-command-line-flag)
   (run-hooks 'gnuplot-mode-hook)
   (gnuplot-setup-menubar))
