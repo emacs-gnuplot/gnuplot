@@ -73,23 +73,6 @@
 ;; (eval-when-compile
 ;;   (require 'wid-edit))
 
-(eval-and-compile           ; I need this!
-  (if (fboundp 'split-string)
-      ()
-    (defun split-string (string &optional pattern)
-      "Return a list of substrings of STRING which are separated by PATTERN.
-If PATTERN is omitted, it defaults to \"[ \\f\\t\\n\\r\\v]+\"."
-      (or pattern
-          (setq pattern "[ \f\t\n\r\v]+"))
-      ;; The FSF version of this function takes care not to cons in case
-      ;; of infloop.  Maybe we should synch?
-      (let (parts (start 0))
-        (while (string-match pattern string start)
-          (setq parts (cons (substring string start (match-beginning 0)) parts)
-                start (match-end 0)))
-        (nreverse (cons (substring string start) parts)))) ))
-
-
 
 ;;; customizable variables
 
