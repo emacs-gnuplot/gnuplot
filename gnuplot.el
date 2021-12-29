@@ -2021,8 +2021,6 @@ distribution. See gnuplot-context.el for details."
         ;; Setup Eldoc
         (setq-local eldoc-documentation-function #'gnuplot-eldoc-function)
         (eldoc-add-command 'completion-at-point)     ; Check for eldoc after completion
-        (when (fboundp 'comint-dynamic-complete)
-          (eldoc-add-command 'comint-dynamic-complete))
 
         ;; Try to load Eldoc strings
         (when gnuplot-eldoc-mode
