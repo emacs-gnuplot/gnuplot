@@ -1052,32 +1052,31 @@ These are highlighted using `font-lock-constant-face'.")
 ;; normal syntax-table parser, which is accurate enough for most
 ;; normal cases. (See the definition of `gnuplot-mode-syntax-table'.)
 (defalias 'gnuplot-syntax-propertize
-  (when (fboundp 'syntax-propertize-rules)
-    (syntax-propertize-rules
-     ;; Double quoted strings
-     ((rx
-       (group "\"")
-       (* (or (seq "\\" anything)
-              (not (any "\"" "\n"))))
-       (group (or "\"" "\n" buffer-end)))
-      (1 "|") (2 "|"))
+  (syntax-propertize-rules
+   ;; Double quoted strings
+   ((rx
+     (group "\"")
+     (* (or (seq "\\" anything)
+            (not (any "\"" "\n"))))
+     (group (or "\"" "\n" buffer-end)))
+    (1 "|") (2 "|"))
 
-     ;; Single quoted strings
-     ((rx
-       (group "'")
-       (* (or (seq "\\" "\n")
-              "''"
-              (not (any "'" "\n"))))
-       (group (or "'" "\n" buffer-end)))
-      (1 "|") (2 "|"))
+   ;; Single quoted strings
+   ((rx
+     (group "'")
+     (* (or (seq "\\" "\n")
+            "''"
+            (not (any "'" "\n"))))
+     (group (or "'" "\n" buffer-end)))
+    (1 "|") (2 "|"))
 
-     ;; Comments
-     ((rx
-       (group "#")
-       (* (or (seq "\\" "\n")
-              any))
-       (or (group "\n") buffer-end))
-      (1 "!") (2 "!")))))
+   ;; Comments
+   ((rx
+     (group "#")
+     (* (or (seq "\\" "\n")
+            any))
+     (or (group "\n") buffer-end))
+    (1 "!") (2 "!"))))
 
 (defun gnuplot-syntax-propertize-extend-region (start end)
   "Expand the region to `syntax-propertize' for strings and comments.

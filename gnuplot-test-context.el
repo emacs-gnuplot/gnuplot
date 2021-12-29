@@ -24,8 +24,7 @@
   (with-temp-buffer
     (gnuplot-mode)
     (insert string)
-    (when (fboundp 'syntax-propertize)
-      (syntax-propertize (point-max)))
+    (syntax-propertize (point-max))
     (goto-char (point-max))
     (gnuplot-tokenize)))
 
