@@ -363,7 +363,7 @@ symbol `complete' in gnuplot-mode buffers."
 Set VARIABLE to VALUE.  ARGS is optional args."
   (if (and (eq variable 'gnuplot-inline-image-mode)
            value
-           (not (gnuplot-display-images-p)))
+           (not (display-images-p)))
       (progn
         (message "Displaying images is not supported.")
         (set variable nil))
@@ -461,7 +461,7 @@ non-nil."
        :style toggle
        :selected (null gnuplot-inline-image-mode)]
       ["In Comint buffer" gnuplot-inline-display-mode
-       :active (gnuplot-display-images-p)
+       :active (display-images-p)
        :style toggle
        :selected (eq gnuplot-inline-image-mode 'comint)]
       ["In dedicated buffer" gnuplot-dedicated-display-mode
@@ -1548,11 +1548,6 @@ gnuplot process buffer will be displayed in a window."
   "Name of the current Gnuplot output file.")
 
 (defvar gnuplot-image-buffer-name "*gnuplot output*")
-
-(defun gnuplot-display-images-p ()
-  "Inline images require GNU Emacs."
-  (and (fboundp 'display-images-p)
-       (display-images-p)))
 
 (defun gnuplot-external-display-mode ()
   "Display image in external."
