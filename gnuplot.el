@@ -1581,7 +1581,7 @@ gnuplot process buffer will be displayed in a window."
     (setq gnuplot-inline-image-filename tmp)
     (gnuplot-send-hiding-output (format "set output '%s'\n" tmp))))
 
-(defvar gnuplot-inhibit-filter nil)
+(defvar gnuplot--inhibit-filter nil)
 
 (defun gnuplot-insert-inline-image-output (_string)
   "Insert Gnuplot graphical output STRING in the gnuplot-comint buffer.
@@ -1592,8 +1592,8 @@ file `gnuplot-inline-image-filename'; if it exists and has
 nonzero size, inserts it as an inline image, stores a new
 temporary filename in `gnuplot-inline-image-filename', and
 updates Gnuplot with the appropriate 'set output' command."
-  (unless gnuplot-inhibit-filter        ; Prevent recursively entering this filter
-    (let ((gnuplot-inhibit-filter t))   ; (causing an infinite loop)
+  (unless gnuplot--inhibit-filter        ; Prevent recursively entering this filter
+    (let ((gnuplot--inhibit-filter t))   ; (causing an infinite loop)
       (save-excursion
         (goto-char (point-max))
         (beginning-of-line)
