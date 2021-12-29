@@ -119,7 +119,7 @@
   :group 'gnuplot-hooks
   :type 'hook)
 
-(defcustom gnuplot-after-plot-hook nil
+(defcustom gnuplot-after-plot-hook (list #'gnuplot-trim-gnuplot-buffer)
   "Hook run after gnuplot plots something.
 This is the last thing done by the functions for plotting a line, a
 region, a buffer, or a file."
@@ -389,8 +389,8 @@ and `gnuplot-dedicated-display-mode'."
           (const :tag "No" nil)
           (const :tag "In Comint buffer" inline)
           (const :tag "In dedicated buffer" dedicated))
-  :initialize 'custom-initialize-default
-  :set 'gnuplot-set-display-mode)
+  :initialize #'custom-initialize-default
+  :set #'gnuplot-set-display-mode)
 
 (defcustom gnuplot-image-format "png"
   "Image format to use for displaying images within Emacs.
@@ -403,8 +403,8 @@ This only has an effect when `gnuplot-inline-image-mode' is
 non-nil."
   :group 'gnuplot
   :type 'string
-  :initialize 'custom-initialize-default
-  :set 'gnuplot-set-display-mode)
+  :initialize #'custom-initialize-default
+  :set #'gnuplot-set-display-mode)
 
 (defgroup gnuplot-faces nil
   "Text faces used by gnuplot-mode."
@@ -423,27 +423,26 @@ non-nil."
 
 (defvar gnuplot-mode-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-b"    'gnuplot-send-buffer-to-gnuplot)
-    (define-key map "\C-c\C-c"    'comment-region) ; <RF>
+    (define-key map "\C-c\C-b"    #'gnuplot-send-buffer-to-gnuplot)
+    (define-key map "\C-c\C-c"    #'comment-region) ; <RF>
     (define-key map "\C-c\C-o"    'gnuplot-gui-set-options-and-insert)
-    (define-key map "\C-c\C-e"    'gnuplot-show-gnuplot-buffer)
-    (define-key map "\C-c\C-f"    'gnuplot-send-file-to-gnuplot)
-    (define-key map "\C-c\C-d"    'gnuplot-info-lookup-symbol)
-    (define-key map "\C-c\C-i"    'gnuplot-insert-filename)
-    (define-key map "\C-c\C-j"    'gnuplot-forward-script-line)
-    (define-key map "\C-c\C-k"    'gnuplot-kill-gnuplot-buffer)
-    (define-key map "\C-c\C-l"    'gnuplot-send-line-to-gnuplot)
-    (define-key map "\C-c\C-n"    'gnuplot-negate-option)
-    (define-key map "\C-c\C-r"    'gnuplot-send-region-to-gnuplot)
-    (define-key map (kbd "C-M-x") 'gnuplot-send-line-to-gnuplot)
-    (define-key map "\C-c\C-v"    'gnuplot-send-line-and-forward)
-    (define-key map "\C-c\C-z"    'gnuplot-customize)
-    (define-key map "\C-i"        'indent-for-tab-command)
-    (define-key map "\C-m"        'newline-and-indent)
-    (define-key map "\C-c\M-i"    'gnuplot-inline-image-mode)
-    (define-key map (kbd "}")     'gnuplot-electric-insert)
-    (define-key map "\M-\r"       'completion-at-point)
-    (define-key map "\M-\t"       'completion-at-point)
+    (define-key map "\C-c\C-e"    #'gnuplot-show-gnuplot-buffer)
+    (define-key map "\C-c\C-f"    #'gnuplot-send-file-to-gnuplot)
+    (define-key map "\C-c\C-d"    #'gnuplot-info-lookup-symbol)
+    (define-key map "\C-c\C-i"    #'gnuplot-insert-filename)
+    (define-key map "\C-c\C-j"    #'gnuplot-forward-script-line)
+    (define-key map "\C-c\C-k"    #'gnuplot-kill-gnuplot-buffer)
+    (define-key map "\C-c\C-l"    #'gnuplot-send-line-to-gnuplot)
+    (define-key map "\C-c\C-n"    #'gnuplot-negate-option)
+    (define-key map "\C-c\C-r"    #'gnuplot-send-region-to-gnuplot)
+    (define-key map (kbd "C-M-x") #'gnuplot-send-line-to-gnuplot)
+    (define-key map "\C-c\C-v"    #'gnuplot-send-line-and-forward)
+    (define-key map "\C-c\C-z"    #'gnuplot-customize)
+    (define-key map "\C-i"        #'indent-for-tab-command)
+    (define-key map "\C-m"        #'newline-and-indent)
+    (define-key map (kbd "}")     #'gnuplot-electric-insert)
+    (define-key map "\M-\r"       #'completion-at-point)
+    (define-key map "\M-\t"       #'completion-at-point)
     (define-key map [S-mouse-2]   'gnuplot-gui-mouse-set)
 
     map))
@@ -1351,8 +1350,6 @@ this function is attached to `gnuplot-after-plot-hook'"
             (delete-region (line-beginning-position) (1+ (line-end-position))))
           (goto-char (point-max))))))
 
-(add-hook 'gnuplot-after-plot-hook 'gnuplot-trim-gnuplot-buffer nil nil)
-
 
 ;;; --- functions controlling the gnuplot process
 
@@ -1402,13 +1399,13 @@ buffer."
   (setq-local parse-sexp-lookup-properties t)
   (setq-local syntax-propertize-function #'gnuplot-syntax-propertize)
 
-  (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
+  (add-hook 'kill-buffer-hook #'gnuplot-close-down nil t)
 
   (add-hook 'comint-output-filter-functions
-            'comint-postoutput-scroll-to-bottom
+            #'comint-postoutput-scroll-to-bottom
             nil t)
   (add-hook 'comint-output-filter-functions
-            'gnuplot-protect-prompt-fn
+            #'gnuplot-protect-prompt-fn
             nil t)
 
   ;; Set up completion, using completion-at-point
@@ -1422,17 +1419,16 @@ buffer."
   (easy-menu-add gnuplot-comint-mode-menu gnuplot-comint-mode-map))
 
 ;; Key bindings for gnuplot-comint-mode
-(define-key gnuplot-comint-mode-map "\M-\C-p"   'gnuplot-plot-from-comint)
-(define-key gnuplot-comint-mode-map "\M-\C-f"   'gnuplot-save-and-plot-from-comint)
-(define-key gnuplot-comint-mode-map "\C-d"      'gnuplot-delchar-or-maybe-eof)
-(define-key gnuplot-comint-mode-map "\M-\r"     'completion-at-point)
-(define-key gnuplot-comint-mode-map "\M-\t"     'completion-at-point)
-(define-key gnuplot-comint-mode-map "\C-c\C-d"  'gnuplot-info-lookup-symbol)
-(define-key gnuplot-comint-mode-map "\C-c\C-i"  'gnuplot-insert-filename)
-(define-key gnuplot-comint-mode-map "\C-c\C-n"  'gnuplot-negate-option)
-(define-key gnuplot-comint-mode-map "\C-c\C-z"  'gnuplot-customize)
-(define-key gnuplot-comint-mode-map "\C-c\C-e"  'gnuplot-pop-to-recent-buffer)
-(define-key gnuplot-comint-mode-map "\C-c\M-i"  'gnuplot-inline-image-mode)
+(define-key gnuplot-comint-mode-map "\M-\C-p"   #'gnuplot-plot-from-comint)
+(define-key gnuplot-comint-mode-map "\M-\C-f"   #'gnuplot-save-and-plot-from-comint)
+(define-key gnuplot-comint-mode-map "\C-d"      #'gnuplot-delchar-or-maybe-eof)
+(define-key gnuplot-comint-mode-map "\M-\r"     #'completion-at-point)
+(define-key gnuplot-comint-mode-map "\M-\t"     #'completion-at-point)
+(define-key gnuplot-comint-mode-map "\C-c\C-d"  #'gnuplot-info-lookup-symbol)
+(define-key gnuplot-comint-mode-map "\C-c\C-i"  #'gnuplot-insert-filename)
+(define-key gnuplot-comint-mode-map "\C-c\C-n"  #'gnuplot-negate-option)
+(define-key gnuplot-comint-mode-map "\C-c\C-z"  #'gnuplot-customize)
+(define-key gnuplot-comint-mode-map "\C-c\C-e"  #'gnuplot-pop-to-recent-buffer)
 
 ;; Menu for gnuplot-comint-mode
 (defvar gnuplot-comint-mode-menu nil
@@ -1444,7 +1440,7 @@ buffer."
   (unless (and gnuplot-process (eq (process-status gnuplot-process) 'run)
                gnuplot-buffer (buffer-live-p gnuplot-buffer))
     (message "Starting gnuplot plotting program...")
-    (let ((gnuplot-cmd (list 'make-comint gnuplot-process-name gnuplot-program)))
+    (let ((gnuplot-cmd (list #'make-comint gnuplot-process-name gnuplot-program)))
       (when gnuplot-program-args
         (setq gnuplot-cmd (append gnuplot-cmd '(nil) (split-string gnuplot-program-args))))
       (setq gnuplot-buffer  (eval gnuplot-cmd)
@@ -1571,10 +1567,10 @@ gnuplot process buffer will be displayed in a window."
              (format "set terminal %s\n" gnuplot-image-format))
             (gnuplot-inline-image-set-output)
             (add-hook 'comint-output-filter-functions
-                      'gnuplot-insert-inline-image-output nil t))
+                      #'gnuplot-insert-inline-image-output nil t))
         (gnuplot-send-hiding-output "set terminal pop\n")
         (remove-hook 'comint-output-filter-functions
-                     'gnuplot-insert-inline-image-output t)))))
+                     #'gnuplot-insert-inline-image-output t)))))
 
 (defun gnuplot-inline-image-set-output ()
   "Set Gnuplot's output file to `gnuplot-inline-image-filename'."
@@ -1630,7 +1626,7 @@ updates Gnuplot with the appropriate 'set output' command."
   "Send STRING to the running Gnuplot process invisibly."
   (with-current-buffer gnuplot-buffer
     (add-hook 'comint-preoutput-filter-functions
-              'gnuplot-discard-output nil t))
+              #'gnuplot-discard-output nil t))
   (with-current-buffer (get-buffer-create gnuplot-hidden-output-buffer)
     (erase-buffer))
   (comint-send-string (get-buffer-process gnuplot-buffer) string))
@@ -2214,7 +2210,7 @@ a list:
   (setq-local beginning-of-defun-function #'gnuplot-beginning-of-defun)
   (setq-local end-of-defun-function #'gnuplot-end-of-continuation)
 
-  (add-hook 'completion-at-point-functions 'gnuplot-completion-at-point nil t)
+  (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point nil t)
 
   (set-syntax-table gnuplot-mode-syntax-table)
 
