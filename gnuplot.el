@@ -363,7 +363,7 @@ symbol `complete' in gnuplot-mode buffers."
 Set VARIABLE to VALUE.  ARGS is optional args."
   (if (and (eq variable 'gnuplot-inline-image-mode)
            value
-           (not (gnuplot-display-images-p)))
+           (not (display-images-p)))
       (progn
         (message "Displaying images is not supported.")
         (set variable nil))
@@ -461,7 +461,7 @@ non-nil."
        :style toggle
        :selected (null gnuplot-inline-image-mode)]
       ["In Comint buffer" gnuplot-inline-display-mode
-       :active (gnuplot-display-images-p)
+       :active (display-images-p)
        :style toggle
        :selected (eq gnuplot-inline-image-mode 'comint)]
       ["In dedicated buffer" gnuplot-dedicated-display-mode
@@ -500,10 +500,8 @@ non-nil."
      gnuplot-info-at-point
      gnuplot-context-sensitive-mode]
     ["Show gnuplot process buffer"      gnuplot-show-gnuplot-buffer t]
-    ["Set arguments at point"           gnuplot-gui-set-options-and-insert
-     (fboundp 'gnuplot-gui-set-options-and-insert)]
-    ["Swap plot/splot/fit lists in GUI" gnuplot-gui-swap-simple-complete
-     (fboundp 'gnuplot-gui-swap-simple-complete)]
+    ["Set arguments at point"           gnuplot-gui-set-options-and-insert t]
+    ["Swap plot/splot/fit lists in GUI" gnuplot-gui-swap-simple-complete t]
     "---"
     ["Customize gnuplot"                gnuplot-customize t]
     "---"
@@ -849,9 +847,8 @@ opening an argument-setting popup.")
         ["Display of info with insertion" gnuplot-toggle-info-display
          :style toggle :selected gnuplot-insertions-show-help-flag]
         ["Display GUI popup with insertion" gnuplot-gui-toggle-popup
-         :active (fboundp 'gnuplot-gui-toggle-popup)
-         :style toggle :selected (and (fboundp 'gnuplot-gui-toggle-popup)
-                                      gnuplot-gui-popup-flag)]))
+         :active t
+         :style toggle :selected gnuplot-gui-popup-flag]))
 
 (defun gnuplot-setup-menubar ()
   "Initial setup of gnuplot and insertions menus."
@@ -990,48 +987,43 @@ These are highlighted using `font-lock-constant-face'.")
   (gnuplot-make-regexp gnuplot-keywords-negatable-options))
 
 ;; Set up colorization for gnuplot.
-(defvar gnuplot-font-lock-keywords nil)
-(defvar gnuplot-font-lock-syntactic-keywords nil)
-(defvar gnuplot-font-lock-defaults nil)
+(defvar gnuplot-font-lock-keywords
+  (list
+   ;; stuff in brackets, sugg. by <LB>
+   '("\\[\\([^]]+\\)\\]" 1 font-lock-constant-face)
 
-(when (featurep 'font-lock)             ; <KL>
-  (setq gnuplot-font-lock-keywords
-        (list
-         ;; stuff in brackets, sugg. by <LB>
-         '("\\[\\([^]]+\\)\\]" 1 font-lock-constant-face)
+   ;; variable/function definitions
+   '("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
+     1 font-lock-variable-name-face)
 
-         ;; variable/function definitions
-         '("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
-           1 font-lock-variable-name-face)
+   ;; built-in function names
+   (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
+         font-lock-function-name-face)
 
-         ;; built-in function names
-         (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
-               font-lock-function-name-face)
+   ;; reserved words associated with plotting <AL>
+   (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
+         font-lock-type-face)
+   (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
+         font-lock-function-name-face)
 
-         ;; reserved words associated with plotting <AL>
-         (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
-               font-lock-type-face)
-         (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
-               font-lock-function-name-face)
+   ;; (s)plot -- also thing (s)plotted
+   '("\\<s?plot\\>" . font-lock-keyword-face)
+   ;; '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
+   ;;   1 font-lock-variable-name-face)
 
-         ;; (s)plot -- also thing (s)plotted
-         '("\\<s?plot\\>" . font-lock-keyword-face)
-         ;; '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
-         ;;   1 font-lock-variable-name-face)
+   ;; other common commands
+   (cons (gnuplot-make-regexp gnuplot-keywords-misc)
+         font-lock-constant-face)
+   (cons "!.*$" font-lock-constant-face))) ; what is this for? jjo
 
-         ;; other common commands
-         (cons (gnuplot-make-regexp gnuplot-keywords-misc)
-               font-lock-constant-face)
-         (cons "!.*$" font-lock-constant-face))) ; what is this for? jjo
-
-  (setq gnuplot-font-lock-defaults
-        '(gnuplot-font-lock-keywords
-          nil                           ; Use syntactic fontification
-          t                             ; Use case folding
-          nil                           ; No extra syntax
-          ;; calls `gnuplot-beginning-of-continuation'
-          ;; to find a safe place to begin syntactic highlighting
-          beginning-of-defun)))
+(defvar gnuplot-font-lock-defaults
+  '(gnuplot-font-lock-keywords
+    nil                           ; Use syntactic fontification
+    t                             ; Use case folding
+    nil                           ; No extra syntax
+    ;; calls `gnuplot-beginning-of-continuation'
+    ;; to find a safe place to begin syntactic highlighting
+    beginning-of-defun))
 
 ;; Some corner cases in Gnuplot's comment and string syntax are
 ;; difficult to handle accurately using Emacs's built-in syntax tables
@@ -1057,32 +1049,31 @@ These are highlighted using `font-lock-constant-face'.")
 ;; normal syntax-table parser, which is accurate enough for most
 ;; normal cases. (See the definition of `gnuplot-mode-syntax-table'.)
 (defalias 'gnuplot-syntax-propertize
-  (when (fboundp 'syntax-propertize-rules)
-    (syntax-propertize-rules
-     ;; Double quoted strings
-     ((rx
-       (group "\"")
-       (* (or (seq "\\" anything)
-              (not (any "\"" "\n"))))
-       (group (or "\"" "\n" buffer-end)))
-      (1 "|") (2 "|"))
+  (syntax-propertize-rules
+   ;; Double quoted strings
+   ((rx
+     (group "\"")
+     (* (or (seq "\\" anything)
+            (not (any "\"" "\n"))))
+     (group (or "\"" "\n" buffer-end)))
+    (1 "|") (2 "|"))
 
-     ;; Single quoted strings
-     ((rx
-       (group "'")
-       (* (or (seq "\\" "\n")
-              "''"
-              (not (any "'" "\n"))))
-       (group (or "'" "\n" buffer-end)))
-      (1 "|") (2 "|"))
+   ;; Single quoted strings
+   ((rx
+     (group "'")
+     (* (or (seq "\\" "\n")
+            "''"
+            (not (any "'" "\n"))))
+     (group (or "'" "\n" buffer-end)))
+    (1 "|") (2 "|"))
 
-     ;; Comments
-     ((rx
-       (group "#")
-       (* (or (seq "\\" "\n")
-              any))
-       (or (group "\n") buffer-end))
-      (1 "!") (2 "!")))))
+   ;; Comments
+   ((rx
+     (group "#")
+     (* (or (seq "\\" "\n")
+            any))
+     (or (group "\n") buffer-end))
+    (1 "!") (2 "!"))))
 
 (defun gnuplot-syntax-propertize-extend-region (start end)
   "Expand the region to `syntax-propertize' for strings and comments.
@@ -1410,9 +1401,8 @@ buffer."
   (set-syntax-table gnuplot-mode-syntax-table)
 
   (setq font-lock-defaults gnuplot-font-lock-defaults)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (set (make-local-variable 'syntax-propertize-function)
-         #'gnuplot-syntax-propertize)
+  (setq-local parse-sexp-lookup-properties t)
+  (setq-local syntax-propertize-function #'gnuplot-syntax-propertize)
 
   (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
 
@@ -1549,11 +1539,6 @@ gnuplot process buffer will be displayed in a window."
   "Name of the current Gnuplot output file.")
 
 (defvar gnuplot-image-buffer-name "*gnuplot output*")
-
-(defun gnuplot-display-images-p ()
-  "Inline images require GNU Emacs."
-  (and (fboundp 'display-images-p)
-       (display-images-p)))
 
 (defun gnuplot-external-display-mode ()
   "Display image in external."
@@ -1897,9 +1882,7 @@ Negatable options are defined in `gnuplot-keywords-negatable-options'."
 (defun gnuplot-customize ()
   "Customize `gnuplot-mode'."
   (interactive)
-  (if (fboundp 'customize-group)
-      (customize-group "gnuplot")
-    (message "The Custom library is not installed.")))
+  (customize-group "gnuplot"))
 
 
 
@@ -2033,11 +2016,8 @@ distribution. See gnuplot-context.el for details."
         (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)
 
         ;; Setup Eldoc
-        (set (make-local-variable 'eldoc-documentation-function)
-             'gnuplot-eldoc-function)
+        (setq-local eldoc-documentation-function #'gnuplot-eldoc-function)
         (eldoc-add-command 'completion-at-point)     ; Check for eldoc after completion
-        (when (fboundp 'comint-dynamic-complete)
-          (eldoc-add-command 'comint-dynamic-complete))
 
         ;; Try to load Eldoc strings
         (when gnuplot-eldoc-mode
@@ -2055,15 +2035,12 @@ distribution. See gnuplot-context.el for details."
 
         ;; Set up tab-to-complete
         (when gnuplot-tab-completion
-          (set (make-local-variable 'tab-always-indent) 'complete))
-
-        (message "Gnuplot context-sensitive help & completion enabled."))
+          (setq-local tab-always-indent 'complete)))
 
     ;; Turn off
     (setq gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look)
     (setq eldoc-documentation-function nil)
-    (eldoc-mode 0)
-    (message "Gnuplot context-sensitive help & completion disabled.")))
+    (eldoc-mode 0)))
 
 ;; Older completion method using info-look
 (defun gnuplot-completion-at-point-info-look ()
@@ -2098,7 +2075,7 @@ according to the value of `gnuplot-info-display'."
           (list nil (message
                      "Help is not available.  The gnuplot info file could not be found.")))))
 
-  (when (and (featurep 'info-look) gnuplot-keywords)
+  (when gnuplot-keywords
     (unless symbol (setq symbol "Commands"))
     (save-window-excursion
       (info-lookup-symbol symbol mode))
@@ -2153,8 +2130,7 @@ shown."
           (setq topic (downcase (match-string 2 string))
                 term            (match-string 4 string))
           (if (string= topic "terminal") (setq topic (downcase term)))))
-    (cond ((and (fboundp 'gnuplot-gui-set-options-and-insert)
-                gnuplot-gui-popup-flag)
+    (cond (gnuplot-gui-popup-flag
            (gnuplot-gui-set-options-and-insert))
           (gnuplot-insertions-show-help-flag
            (if gnuplot-keywords-pending          ; <HW>
@@ -2230,14 +2206,14 @@ a list:
   (use-local-map gnuplot-mode-map)
   (setq major-mode 'gnuplot-mode
         mode-name "Gnuplot")
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-column) 32)
-  (set (make-local-variable 'comment-start-skip) "#[ \t]*")
-  (set (make-local-variable 'indent-line-function) 'gnuplot-indent-line)
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
+  (setq-local comment-column 32)
+  (setq-local comment-start-skip "#[ \t]*")
+  (setq-local indent-line-function #'gnuplot-indent-line)
 
-  (set (make-local-variable 'beginning-of-defun-function) 'gnuplot-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function) 'gnuplot-end-of-continuation)
+  (setq-local beginning-of-defun-function #'gnuplot-beginning-of-defun)
+  (setq-local end-of-defun-function #'gnuplot-end-of-continuation)
 
   (add-hook 'completion-at-point-functions 'gnuplot-completion-at-point nil t)
 
@@ -2247,20 +2223,16 @@ a list:
     (gnuplot-setup-info-look)) ;; <SE>
 
   ;; Add syntax-propertizing functions to search for strings and comments
-  (set (make-local-variable 'syntax-propertize-function)
-       #'gnuplot-syntax-propertize)
+  (setq-local syntax-propertize-function #'gnuplot-syntax-propertize)
   (add-hook 'syntax-propertize-extend-region-functions
             #'gnuplot-syntax-propertize-extend-region nil t)
 
   ;; Set up font-lock
   (setq font-lock-defaults gnuplot-font-lock-defaults)
-  (set (make-local-variable 'font-lock-multiline) t)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
+  (setq-local font-lock-multiline t)
+  (setq-local parse-sexp-lookup-properties t)
 
-  (if (fboundp 'widget-create)          ; gnuplot-gui
-      (condition-case ()
-          (require 'gnuplot-gui)
-        (error nil)))
+  (require 'gnuplot-gui)
   (setq gnuplot-first-call nil          ; a few more details ...
         gnuplot-comint-recent-buffer (current-buffer))
   (setq-local comint-process-echoes gnuplot-echo-command-line-flag)
