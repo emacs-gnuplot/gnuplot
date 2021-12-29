@@ -58,20 +58,9 @@
 ;;; Code:
 
 (require 'gnuplot)
-(eval-and-compile
-  (condition-case ()
-      (progn
-        (require 'widget)
-        (require 'wid-edit))
-    (error nil)))
+(require 'widget)
+(require 'wid-edit)
 (require 'cl-lib)
-(eval-when-compile          ; suppress some compiler warnings
-  (defvar gnuplot-quote-character nil)
-  (defvar gnuplot-info-display nil)
-  (defvar gnuplot-mode-map nil))
-
-;; (eval-when-compile
-;;   (require 'wid-edit))
 
 
 ;;; customizable variables
