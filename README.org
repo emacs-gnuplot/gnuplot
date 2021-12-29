@@ -103,7 +103,6 @@ When =gnuplot-mode= is on, the following keybindings are available:
 | M-tab or M-ret | complete keyword before point                        |
 | ret            | newline and indent                                   |
 | tab            | indent current line                                  |
-| C-c M-i        | toggle inline plot display in comint buffer          |
 
 
 With the exception of the commands for sending commands to Gnuplot,
@@ -140,16 +139,16 @@ terminal= commands.
 If you install the file =gnuplot-eldoc.el= from a recent Gnuplot
 distribution, gnuplot-mode can show syntax hints in the modeline when
 ~eldoc-mode~ is turned on and context sensitivity is enabled.
-    
+
 ** Inline Images
 
 You can optionally have plots displayed inline in the Gnuplot comint
 process buffer. This is handy for trying things out without having to
 switch between Emacs and the Gnuplot display. Call
-=gnuplot-inline-imge-mode= or type ~C-c M-i~ in a gnuplot-mode buffer
-to try it out. This feature is implemented using temporary =png=
-files, and is also somewhat experimental. It requires Gnuplot to have
-=png= support and a GNU Emacs with image support. Please report bugs.
+=gnuplot-inline-display-mode= in a gnuplot-mode buffer to try it out. This
+feature is implemented using temporary =png= files, and is also somewhat
+experimental. It requires Gnuplot to have =png= support and a GNU Emacs
+with image support. Please report bugs.
 
 
 
