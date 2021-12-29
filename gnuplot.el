@@ -2081,7 +2081,7 @@ according to the value of `gnuplot-info-display'."
           (list nil (message
                      "Help is not available.  The gnuplot info file could not be found.")))))
 
-  (when (and (featurep 'info-look) gnuplot-keywords)
+  (when gnuplot-keywords
     (unless symbol (setq symbol "Commands"))
     (save-window-excursion
       (info-lookup-symbol symbol mode))
