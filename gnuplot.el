@@ -1410,9 +1410,8 @@ buffer."
   (set-syntax-table gnuplot-mode-syntax-table)
 
   (setq font-lock-defaults gnuplot-font-lock-defaults)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (set (make-local-variable 'syntax-propertize-function)
-         #'gnuplot-syntax-propertize)
+  (setq-local parse-sexp-lookup-properties t)
+  (setq-local syntax-propertize-function #'gnuplot-syntax-propertize)
 
   (add-hook 'kill-buffer-hook 'gnuplot-close-down nil t)
 
@@ -2033,8 +2032,7 @@ distribution. See gnuplot-context.el for details."
         (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)
 
         ;; Setup Eldoc
-        (set (make-local-variable 'eldoc-documentation-function)
-             'gnuplot-eldoc-function)
+        (setq-local eldoc-documentation-function #'gnuplot-eldoc-function)
         (eldoc-add-command 'completion-at-point)     ; Check for eldoc after completion
         (when (fboundp 'comint-dynamic-complete)
           (eldoc-add-command 'comint-dynamic-complete))
@@ -2055,7 +2053,7 @@ distribution. See gnuplot-context.el for details."
 
         ;; Set up tab-to-complete
         (when gnuplot-tab-completion
-          (set (make-local-variable 'tab-always-indent) 'complete))
+          (setq-local tab-always-indent 'complete))
 
         (message "Gnuplot context-sensitive help & completion enabled."))
 
@@ -2230,14 +2228,14 @@ a list:
   (use-local-map gnuplot-mode-map)
   (setq major-mode 'gnuplot-mode
         mode-name "Gnuplot")
-  (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'comment-column) 32)
-  (set (make-local-variable 'comment-start-skip) "#[ \t]*")
-  (set (make-local-variable 'indent-line-function) 'gnuplot-indent-line)
+  (setq-local comment-start "# ")
+  (setq-local comment-end "")
+  (setq-local comment-column 32)
+  (setq-local comment-start-skip "#[ \t]*")
+  (setq-local indent-line-function #'gnuplot-indent-line)
 
-  (set (make-local-variable 'beginning-of-defun-function) 'gnuplot-beginning-of-defun)
-  (set (make-local-variable 'end-of-defun-function) 'gnuplot-end-of-continuation)
+  (setq-local beginning-of-defun-function #'gnuplot-beginning-of-defun)
+  (setq-local end-of-defun-function #'gnuplot-end-of-continuation)
 
   (add-hook 'completion-at-point-functions 'gnuplot-completion-at-point nil t)
 
@@ -2247,15 +2245,14 @@ a list:
     (gnuplot-setup-info-look)) ;; <SE>
 
   ;; Add syntax-propertizing functions to search for strings and comments
-  (set (make-local-variable 'syntax-propertize-function)
-       #'gnuplot-syntax-propertize)
+  (setq-local syntax-propertize-function #'gnuplot-syntax-propertize)
   (add-hook 'syntax-propertize-extend-region-functions
             #'gnuplot-syntax-propertize-extend-region nil t)
 
   ;; Set up font-lock
   (setq font-lock-defaults gnuplot-font-lock-defaults)
-  (set (make-local-variable 'font-lock-multiline) t)
-  (set (make-local-variable 'parse-sexp-lookup-properties) t)
+  (setq-local font-lock-multiline t)
+  (setq-local parse-sexp-lookup-properties t)
 
   (if (fboundp 'widget-create)          ; gnuplot-gui
       (condition-case ()
