@@ -2051,15 +2051,12 @@ distribution. See gnuplot-context.el for details."
 
         ;; Set up tab-to-complete
         (when gnuplot-tab-completion
-          (setq-local tab-always-indent 'complete))
-
-        (message "Gnuplot context-sensitive help & completion enabled."))
+          (setq-local tab-always-indent 'complete)))
 
     ;; Turn off
     (setq gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look)
     (setq eldoc-documentation-function nil)
-    (eldoc-mode 0)
-    (message "Gnuplot context-sensitive help & completion disabled.")))
+    (eldoc-mode 0)))
 
 ;; Older completion method using info-look
 (defun gnuplot-completion-at-point-info-look ()
