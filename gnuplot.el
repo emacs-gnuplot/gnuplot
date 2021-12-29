@@ -315,7 +315,6 @@ beginning the continued command."
   "A list of keywords used in GNUPLOT.
 These are set by `gnuplot-set-keywords-list' from the values in
 `info-lookup-cache'.")
-(defvar gnuplot-keywords-alist nil) ;; For all-completions
 (defvar gnuplot-keywords-pending t      ;; <HW>
   "A boolean which gets toggled when the info file is probed.")
 (defcustom gnuplot-keywords-when 'deferred ;; 'immediately
@@ -1944,8 +1943,7 @@ See the comments in `gnuplot-info-hook'."
     ;; user will not want them lying around
     (and (get-buffer "info dir")    (kill-buffer "info dir"))
     (and (get-buffer "info dir<2>") (kill-buffer "info dir<2>")))
-  (setq gnuplot-keywords (gnuplot-set-keywords-list))
-  (setq gnuplot-keywords-alist (mapcar 'list gnuplot-keywords)))
+  (setq gnuplot-keywords (gnuplot-set-keywords-list)))
 
 (defun gnuplot-set-keywords-list ()
   "Set `gnuplot-keywords' from `info-lookup-cache'.
@@ -2078,18 +2076,10 @@ positions and COMPLETIONS is a list."
 
   (if gnuplot-keywords-pending          ; <HW>
       (gnuplot-setup-info-look))
-  (let* ((end (point))
-         (beg (condition-case _err
-                  (save-excursion (backward-sexp 1) (point))
-                (error (point))))
-         (patt (buffer-substring beg end))
-         (pattern (if (string-match "\\([^ \t]*\\)\\s-+$" patt)
-                      (match-string 1 patt) patt))
-         (completions (all-completions pattern gnuplot-keywords-alist)))
-    (if completions
-        (list beg end completions)
-      (message "No gnuplot keywords complete '%s'" pattern)
-      nil)))
+  (list (condition-case _err
+            (save-excursion (backward-sexp 1) (point))
+          (error (point)))
+        (point) gnuplot-keywords))
 
 
 (defun gnuplot-info-lookup-symbol (symbol &optional mode)

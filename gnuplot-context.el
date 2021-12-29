@@ -2054,23 +2054,11 @@ there."
 
 (defun gnuplot-context-completion-at-point ()
   "Return completions of keyword preceding point, using context."
-  (let* ((end (point))
-         (beg
-          (save-excursion
-            (skip-syntax-backward "w_" (gnuplot-point-at-beginning-of-command))
-            (point)))
-         (word nil)
-         (completions (gnuplot-completions)))
-
-    (setq word (buffer-substring beg end)
-          completions (all-completions word completions))
-
-    (if completions
-        (list beg end completions)
-      (if (not (equal "" word))
-          (message "No gnuplot keywords complete '%s'" word)
-        (message "No completions at point"))
-      nil)))
+  (list (save-excursion
+          (skip-syntax-backward "w_" (gnuplot-point-at-beginning-of-command))
+          (point))
+        (point)
+        (gnuplot-completions)))
 
 ;; Eldoc help
 (defun gnuplot-eldoc-function ()
