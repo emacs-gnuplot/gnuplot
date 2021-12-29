@@ -2239,10 +2239,7 @@ a list:
   (setq-local font-lock-multiline t)
   (setq-local parse-sexp-lookup-properties t)
 
-  (if (fboundp 'widget-create)          ; gnuplot-gui
-      (condition-case ()
-          (require 'gnuplot-gui)
-        (error nil)))
+  (require 'gnuplot-gui)
   (setq gnuplot-first-call nil          ; a few more details ...
         gnuplot-comint-recent-buffer (current-buffer))
   (setq-local comint-process-echoes gnuplot-echo-command-line-flag)
