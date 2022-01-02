@@ -1,4 +1,4 @@
-;;;; gnuplot-gui.el -- GUI interface to setting options in gnuplot-mode
+;;;; gnuplot-gui.el -- GUI interface to setting options in gnuplot-mode -*- lexical-binding: t -*-
 
 ;; Copyright (C) 1998-2000 Bruce Ravel
 
@@ -805,6 +805,7 @@ This alist is formed at load time by appending together
                                     gnuplot-gui-test-type))
 
 
+;;;###autoload
 (defun gnuplot-gui-swap-simple-complete ()
   (interactive)
   (setq gnuplot-gui-plot-splot-fit-style
@@ -826,6 +827,7 @@ This alist is formed at load time by appending together
 
 ;;; user interface to the widget-y stuff
 
+;;;###autoload
 (defun gnuplot-gui-mouse-set (event)
   "Use the mouse to begin setting options using a GUI interface.
 EVENT is a mouse event.  Bound to \\[gnuplot-gui-mouse-set]
@@ -842,6 +844,7 @@ currently supported."
 (defun gnuplot-gui-set-frame-param (param value)
   (setcdr (assoc param gnuplot-gui-frame-parameters) value))
 
+;;;###autoload
 (defun gnuplot-gui-set-options-and-insert ()
   "Insert arguments using a GUI interface.
 Determine contents of current line and set up the appropriate GUI
@@ -923,6 +926,7 @@ Note that \"cntrparam\" is not currently supported."
                (message
                 "%S is not a gnuplot command which takes options" w)))) )))
 
+;;;###autoload
 (defun gnuplot-gui-toggle-popup ()
   (interactive)
   (setq gnuplot-gui-popup-flag (not gnuplot-gui-popup-flag))
@@ -931,7 +935,6 @@ Note that \"cntrparam\" is not currently supported."
              "Argument popup will no longer appear after insertions.")))
 
 
-(defun gnuplot-gui-y-n (foo))
 (defalias 'gnuplot-gui-y-n 'y-or-n-p)
 
 (defun gnuplot-gui-correct-command (word set term begin)
@@ -1312,7 +1315,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
                  :button-face 'gnuplot-gui-button-face
                  :help-echo "Push this button to set options"
                  :notify
-                 (lambda (widget &rest ignore)
+                 (lambda (widget &rest _ignore)
                    (kill-buffer (get-buffer-create "*Gnuplot GUI*"))
                    (delete-frame)
                    (select-frame gnuplot-current-frame)
@@ -1352,7 +1355,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
                  :button-face 'gnuplot-gui-button-face
                  :doc item
                  :notify
-                 (lambda (widget &rest ignore)
+                 (lambda (widget &rest _ignore)
                    (let ((word (widget-get widget :doc)))
                      (gnuplot-gui-set-alist word gnuplot-gui-current-string)
                      (gnuplot-gui-prompt-for-frame word t))))
@@ -1362,7 +1365,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
                  :button-face 'gnuplot-gui-button-face
                  :doc item
                  :notify
-                 (lambda (widget &rest ignore)
+                 (lambda (widget &rest _ignore)
                    (let* ((word (widget-get widget :doc))
                           (alist (cdr (assoc word gnuplot-gui-all-types))))
                      (while alist
@@ -1375,7 +1378,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
   (widget-create 'push-button :value "Cancel"
                  :help-echo "Quit setting options and dismiss frame"
                  :button-face 'gnuplot-gui-button-face
-                 :notify (lambda (widget &rest ignore)
+                 :notify (lambda (_widget &rest _ignore)
                            (kill-buffer (get-buffer-create "*Gnuplot GUI*"))
                            (setq gnuplot-gui-alist nil
                                  gnuplot-gui-current-string nil)
@@ -1425,7 +1428,7 @@ menu.  STARRED is true if this a 'list* widget."
                 :button-prefix "[" :button-suffix "]"
                 :help-echo (format "Mouse-2 to view the %S menu" (downcase item))
                 :notify
-                (lambda (widget &rest ignore)
+                (lambda (widget &rest _ignore)
                   (let ((lab (if (widget-get widget :doc)
                                  (concat (downcase (widget-get widget :tag)) " ")
                                "" )))
@@ -1450,7 +1453,7 @@ the numerical argument."
     (widget-create 'editable-field
                    :size 2 :tag item :value default :doc prefix
                    :help-echo (format "Insert new value of %S here" help-label)
-                   :notify (lambda (widget &rest ignore)
+                   :notify (lambda (widget &rest _ignore)
                              (let ((val (widget-value widget))
                                    (pre (concat (widget-get widget :doc) " ")))
                                (setcdr (assoc (widget-get widget :tag)
@@ -1486,7 +1489,7 @@ prefix for the string.  STARRED is t if quotes are not to be used."
      'editable-field
      :size width :tag item :doc prefix :value default
      :help-echo (format "Insert new value of %S here" help-label)
-     :notify (lambda (widget &rest ignore)
+     :notify (lambda (widget &rest _ignore)
                (let ((val (widget-value widget))
                      (q gnuplot-quote-character)
                      (p (widget-get widget :doc)) )
@@ -1520,7 +1523,7 @@ prefix for the string."
   (widget-create 'editable-field
                  :size (/ (frame-width) 3) :tag item :value default
                  :help-echo (format "Insert new format string here")
-                 :notify (lambda (widget &rest ignore)
+                 :notify (lambda (widget &rest _ignore)
                            (let ((val (widget-value widget)))
                              (setcdr (assoc (widget-get widget :tag)
                                             gnuplot-gui-alist)
@@ -1574,7 +1577,7 @@ the default value for the argument.  TAG is non-nil if ITEM rather than
                :doc item :help-echo "Insert a filename here"
                :complete 'gnuplot-gui-file-completion
                :notify
-               (lambda (widget &rest ignore)
+               (lambda (widget &rest _ignore)
                  (setcdr (assoc (widget-get widget :doc) gnuplot-gui-alist)
                          (format "%s%s%s" gnuplot-quote-character
                                  (widget-value widget)
@@ -1584,7 +1587,7 @@ the default value for the argument.  TAG is non-nil if ITEM rather than
      'push-button :value "Browse"
      :doc item :help-echo "Browse directories for a filename."
      :parent widg
-     :notify (lambda (widget &rest ignore)
+     :notify (lambda (widget &rest _ignore)
                (let ((fname (file-relative-name (read-file-name "File: ")
                                                 default-directory))
                      (q gnuplot-quote-character))
@@ -1610,7 +1613,7 @@ the default value for the argument."
    :format "%{%t%}:\n%v\t  %i\n"
    :entry-format "\t  %i %d %v\n"
    :button-face 'gnuplot-gui-labels-face
-   :notify (lambda (widget &rest ignore)
+   :notify (lambda (widget &rest _ignore)
              (setcdr (assoc (upcase (widget-get widget :tag))
                             gnuplot-gui-alist)
                      (widget-value widget)))))
@@ -1627,7 +1630,7 @@ is non-nil if this is a 'range widget."
                  :size 4 :tag item :value (car default)
                  :help-echo (format "Insert the first value of the %S here"
                                     (downcase item))
-                 :notify (lambda (widget &rest ignore)
+                 :notify (lambda (widget &rest _ignore)
                            (setcar (cdr (assoc (widget-get widget :tag)
                                                gnuplot-gui-alist))
                                    (format "%s" (widget-value widget)))))
@@ -1636,7 +1639,7 @@ is non-nil if this is a 'range widget."
                  :size 4 :tag item :value (cdr default)
                  :help-echo (format "Insert the second value of the %S here"
                                     (downcase item))
-                 :notify (lambda (widget &rest ignore)
+                 :notify (lambda (widget &rest _ignore)
                            (setcdr (cdr (assoc (widget-get widget :tag)
                                                gnuplot-gui-alist))
                                    (format "%s" (widget-value widget)))))
