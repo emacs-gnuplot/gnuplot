@@ -41,11 +41,10 @@
 ;;
 ;; Gnuplot's context sensitive mode is best controlled using Customize
 ;; (M-x customize-group gnuplot): simply enable the
-;; `gnuplot-context-sensitive-mode' setting.  On recent Emacs (>= 23),
-;; you may also want to turn on `gnuplot-tab-completion' so that the
-;; TAB key does auto-completion on lines which are already
-;; indented.  (This just sets the Emacs variable `tab-always-indent' to
-;; `complete' in Gnuplot buffers).
+;; `gnuplot-context-sensitive-mode' setting. You may also want to turn
+;; on `gnuplot-tab-completion' so that the TAB key does auto-completion
+;; on lines which are already indented. (This just sets the Emacs
+;; variable `tab-always-indent' to `complete' in Gnuplot buffers).
 ;;
 ;; If you need to turn context sensitivity on or off from Lisp code
 ;; for some reason, call the function
@@ -2097,10 +2096,7 @@ there."
 
 (defun gnuplot--find-info-node (node)
   (save-window-excursion
-    (if (>= emacs-major-version 23)
-        (info (format "(gnuplot)%s" node))
-      (info)
-      (Info-find-node "gnuplot" node)))
+    (info (format "(gnuplot)%s" node)))
   (gnuplot--adjust-info-display))
 
 
