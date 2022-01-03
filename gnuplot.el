@@ -179,7 +179,7 @@ So the configuration can be customised by the user."
   :type 'hook)
 
 (defcustom gnuplot-comint-mode-hook nil
-  "Hook run after setting up the gnuplot buffer in gnuplot-comint-mode.
+  "Hook run after setting up the gnuplot buffer in `gnuplot-comint-mode'.
 By default this runs the hook named `gnuplot-comint-setup-hook',
 for backward compatibility."
   :group 'gnuplot-hooks
@@ -316,7 +316,7 @@ These are set by `gnuplot-set-keywords-list' from the values in
   "A boolean which gets toggled when the info file is probed.")
 (defcustom gnuplot-keywords-when 'deferred ;; 'immediately
   "This variable controls when the info file is parsed.
-The choices are immediately upon starting gnuplot-mode or the first
+The choices are immediately upon starting `gnuplot-mode' or the first
 time that data is needed."
   :group 'gnuplot
   :type
@@ -326,7 +326,7 @@ time that data is needed."
 (defcustom gnuplot-use-context-sensitive-completion t
   "Non-nil if `gnuplot-context-sensitive-mode' should be enabled by default.
 
-In context-sensitive mode, gnuplot-mode parses the current
+In context-sensitive mode, `gnuplot-mode' parses the current
 command line to provide smarter completion and documentation
 suggestions."
   :group 'gnuplot
@@ -355,10 +355,10 @@ on."
   :type 'boolean)
 
 (defcustom gnuplot-tab-completion nil
-  "Non-nil if TAB should perform completion in gnuplot-mode buffers.
+  "Non-nil if TAB should perform completion in `gnuplot-mode' buffers.
 
 Setting this to non-nil sets the `tab-always-indent' variable to the
-symbol `complete' in gnuplot-mode buffers."
+symbol `complete' in `gnuplot-mode' buffers."
   :group 'gnuplot
   :type 'boolean)
 
@@ -1080,7 +1080,7 @@ Ensures that the region being searched begins and ends outside of
 any lines continued with a backslash.
 
 This function is added to `syntax-propertize-extend-region-functions'
-in gnuplot-mode buffers."
+in `gnuplot-mode' buffers."
   (let ((continuation-start
          (min start
               (gnuplot-point-at-beginning-of-continuation start)))
@@ -2060,7 +2060,7 @@ The info file should be installed by default with the Gnuplot
 distribution, or is available at the `gnuplot-mode' web page:
 https://github.com/emacsorphanage/gnuplot/
 
-With the new context-sensitive mode active, gnuplot-mode can also
+With the new context-sensitive mode active, `gnuplot-mode' can also
 provide function/`eldoc-mode' syntax hints as you type.  This requires a
 separate file of strings, `gnuplot-eldoc.el', which is also
 provided by recent Gnuplot distributions.

@@ -1729,7 +1729,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
 ;;;; Variables to be set via pattern matching
 (defvar gnuplot-completions nil
-  "List of possible gnuplot-mode completions at point.
+  "List of possible `gnuplot-mode' completions at point.
 This is filled in by `gnuplot-match-pattern' when it reaches the
 token before point.")
 
@@ -1747,7 +1747,7 @@ for the topmost entry when it reaches the token at point.")
 Set by `gnuplot-match-pattern'.  See also `gnuplot-info-at-point'.")
 
 (defvar gnuplot-captures nil
-  "Alist of named capture groups for gnuplot-mode completion code.
+  "Alist of named capture groups for `gnuplot-mode' completion code.
 
 Each entry is of the form (NAME BEGIN END), where NAME is the
 name specified in the (capture NAME PATTERN) form in the
@@ -1756,7 +1756,7 @@ list beginning the capture group, and END is the tail of the
 token list just after the end of the capture group.")
 
 (defvar gnuplot-eldoc-hash nil
-  "ElDoc strings for gnuplot-mode.
+  "ElDoc strings for `gnuplot-mode'.
 
 These have to be compiled from the Gnuplot source tree using
 `doc2texi.el'.")
