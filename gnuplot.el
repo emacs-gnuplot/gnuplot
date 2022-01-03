@@ -494,7 +494,6 @@ non-nil."
     "---"
     ["Insert filename at point"         gnuplot-insert-filename t]
     ["Negate set option"                gnuplot-negate-option t]
-    ;;["Set key binding"                gnuplot-set-binding t]
     ["Keyword help"                     gnuplot-info-lookup-symbol
      (or gnuplot-keywords gnuplot-keywords-pending)]
     ["Quick help for thing at point"    gnuplot-help-function
@@ -1849,29 +1848,6 @@ Negatable options are defined in `gnuplot-keywords-negatable-options'."
                 (t
                  (message "There is not a negatable set option on this line")))
         (message "There is not a set option on this line")))))
-
-;; (defun gnuplot-set-binding ()
-;;   "Interactively select a key sequence for binding to a plot function.
-;; This is only useful in gnuplot 3.8 and for plot terminals which support
-;; key bindings (i.e. those covered by pm3d)."
-;;   (interactive)
-;;   (let ((keyseq (read-key-sequence "Choose a key sequence now"))
-;;      (command (read-string "Bind to this command > ")))
-;;     (setq keyseq (format "%S" keyseq))
-;;     (string-match "keypress-event\\s-+" keyseq)
-;;     (setq keyseq (substring keyseq (match-end 0) -2))
-;;     ;; need to convert from emacs nomenclature to gnuplot.  what a pain.
-;;     (let* ((alist '(("backspace" . "Backspace") ("tab" . "Tab") ("linefeed" . "Linefeed")
-;;                  ("clear" . "Clear") ("return" . "Return") ("pause" . "Pause")
-;;                  ("scroll-lock" . "Scroll_Lock") ("SysReq" . "sys-req")
-;;                  ("escape" . "Escape") ("delete" . "Delete") ("home" . "Home")
-;;                  ("left" . "Left") ("right" . "Right") ("up" . "Up") ("down" . "Down")
-;;                  ("prior" . "PageUp") ("next" . "PageDown") ("end" . "End")
-;;                  ("begin". "Begin")))
-;;         (match (assoc keyseq alist)))
-;;       (if match (setq keyseq (cdr match)))
-;;
-;;     (insert (format "bind \"%s\" \"%s\"" keyseq command)))))
 
 
 (defun gnuplot-customize ()
