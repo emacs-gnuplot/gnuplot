@@ -116,7 +116,7 @@
 (make-obsolete-variable
  'gnuplot-load-hook
  "The package loading hook has been removed, use `with-eval-after-load' instead."
- "8.0")
+ "0.8.0")
 
 (defcustom gnuplot-after-plot-hook (list #'gnuplot-trim-gnuplot-buffer)
   "Hook run after gnuplot plots something.
@@ -2143,12 +2143,14 @@ following in your .emacs file:
   (gnuplot-mode))
 
 ;;;###autoload
-;;; TODO Rename to gnuplot-run-gnuplot
-(defun run-gnuplot ()
+(defun gnuplot-run ()
   "Run an inferior Gnuplot process."
   (interactive)
   (gnuplot-make-gnuplot-buffer)
   (pop-to-buffer gnuplot-buffer))
+
+;;;###autoload
+(define-obsolete-function-alias 'run-gnuplot 'gnuplot-run "0.8.0")
 
 ;;; That's it! ----------------------------------------------------------------
 
