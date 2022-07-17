@@ -3,7 +3,7 @@
 ;; Copyright (C) 2012-2013 Jon Oddie <jonxfield@gmail.com>
 
 ;; Author:     Jon Oddie <jonxfield@gmail.com>
-;; URL:        https://github.com/emacsorphanage/gnuplot
+;; URL:        https://github.com/emacs-gnuplot/gnuplot
 
 ;; This file is not part of GNU Emacs.
 

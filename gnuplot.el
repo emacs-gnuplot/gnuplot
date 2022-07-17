@@ -9,7 +9,7 @@
 ;; Created:    June 28 1998
 ;; Version:    0.8.0
 ;; Keywords:   data gnuplot plotting
-;; URL:        https://github.com/emacsorphanage/gnuplot
+;; URL:        https://github.com/emacs-gnuplot/gnuplot
 ;; Package-Requires: ((emacs "24.3"))
 
 ;; This file is not part of GNU Emacs.
@@ -95,7 +95,7 @@
   :group 'local
   :link '(emacs-library-link :tag "Lisp File" "gnuplot.el")
   :link '(url-link :tag "Homepage"
-                   "https://github.com/emacsorphanage/gnuplot/")
+                   "https://github.com/emacs-gnuplot/gnuplot/")
   :link '(custom-manual "(gnuplot)Top")
   :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el"))
 
@@ -2044,7 +2044,7 @@ shown."
 This was written with version 4.6 of gnuplot in mind, but should
 work with newer and older versions.
 
-Report bugs at https://github.com/emacsorphanage/gnuplot/issues
+Report bugs at https://github.com/emacs-gnuplot/gnuplot/issues
 
                             ------O------
 
@@ -2058,7 +2058,7 @@ to make a list of keywords.
 
 The info file should be installed by default with the Gnuplot
 distribution, or is available at the `gnuplot-mode' web page:
-https://github.com/emacsorphanage/gnuplot/
+https://github.com/emacs-gnuplot/gnuplot/
 
 With the new context-sensitive mode active, `gnuplot-mode' can also
 provide function/`eldoc-mode' syntax hints as you type.  This requires a
