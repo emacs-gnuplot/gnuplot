@@ -85,8 +85,6 @@
 
 (declare-function 'eldoc-add-command "eldoc")
 
-(defconst gnuplot-ntemacs-p (string-match "msvc" (emacs-version)))
-
 (defgroup gnuplot nil
   "Gnuplot-mode for Emacs."
   :prefix "gnuplot-"
@@ -247,7 +245,8 @@ The values are
                 (const :tag "Separate window" window)
                 (const :tag "This window"     nil)))
 
-(defcustom gnuplot-echo-command-line-flag (not gnuplot-ntemacs-p)
+(defcustom gnuplot-echo-command-line-flag
+  (not (string-match "msvc" (emacs-version)))
   "Non-nil means the gnuplot subprocess echoes any input.
 This sets the fall-back value of `comint-process-echoes'.
 If `gnuplot-mode' cannot figure out what version number of gnuplot
