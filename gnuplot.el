@@ -410,7 +410,7 @@ non-nil."
   :set #'gnuplot-set-display-mode)
 
 (defgroup gnuplot-faces nil
-  "Text faces used by gnuplot-mode."
+  "Text faces used by `gnuplot-mode'."
   :prefix "gnuplot-"
   :group 'gnuplot)
 
@@ -869,12 +869,10 @@ opening an argument-setting popup.")
                       gnuplot-insertions-bottom))
         (easy-menu-define gnuplot-mode-insertions-menu gnuplot-mode-map
           "Insertions menu used in Gnuplot-mode"
-          gnuplot-insertions-menu)
-        (easy-menu-add gnuplot-mode-insertions-menu gnuplot-mode-map)))
+          gnuplot-insertions-menu)))
   (easy-menu-define                     ; set up gnuplot menu
     gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
-    gnuplot-menu)
-  (easy-menu-add gnuplot-mode-menu gnuplot-mode-map))
+    gnuplot-menu))
 
 (defun gnuplot-mark-active ()
   "Return non-nil if the mark is active and it is not equal to point."
@@ -1414,8 +1412,7 @@ buffer."
   ;; Set up menu (see below)
   (easy-menu-define
     gnuplot-comint-mode-menu gnuplot-comint-mode-map "Menu used in gnuplot-comint-mode"
-    gnuplot-comint-menu)
-  (easy-menu-add gnuplot-comint-mode-menu gnuplot-comint-mode-map))
+    gnuplot-comint-menu))
 
 ;; Key bindings for gnuplot-comint-mode
 (define-key gnuplot-comint-mode-map "\M-\C-p"   #'gnuplot-plot-from-comint)

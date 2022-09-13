@@ -2184,9 +2184,9 @@ command."
 
 ;;;###autoload
 (define-minor-mode gnuplot-context-sensitive-mode
-  "Use context-sensitive completion and help in gnuplot-mode.
+  "Use context-sensitive completion and help in `gnuplot-mode'.
 
-When context-sensitive mode is enabled, gnuplot-mode tries to
+When context-sensitive mode is enabled, `gnuplot-mode' tries to
 provide more useful completions and help suggestions for built-in
 keywords and functions by parsing each command as you type.  It
 attempts to take into account Gnuplot's many abbreviated
