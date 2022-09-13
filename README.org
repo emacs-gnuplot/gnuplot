@@ -54,9 +54,8 @@ First of all, make sure that =gnuplot.el= is in your load-path (this is automati
 
 The function =gnuplot-info-lookup-symbol= looks at the Gnuplot info
 file. For that function to work, a =gnuplot.info= file must be placed
-somewhere where info can find it. You can either use the file provided
-by this package or a locally installed one. The following snippet
-allows you to put the =gnuplot.info= any place convenient:
+somewhere where info can find it. The following snippet allows you
+to put the =gnuplot.info= any place convenient:
 
 #+begin_src emacs-lisp
 (add-to-list 'Info-default-directory-list "/path/to/info/file")
