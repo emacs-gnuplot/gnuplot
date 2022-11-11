@@ -1,5 +1,11 @@
 #+TITLE: Gnuplot for Emacs
 
+#+html: <a href="https://www.gnu.org/software/emacs/"><img alt="GNU Emacs" src="https://github.com/minad/corfu/blob/screenshots/emacs.svg?raw=true"/></a>
+#+html: <a href="https://elpa.nongnu.org/nongnu/gnuplot.html"><img alt="NonGNU ELPA" src="https://elpa.nongnu.org/nongnu/gnuplot.svg"/></a>
+#+html: <a href="https://elpa.nongnu.org/nongnu-devel/gnuplot.html"><img alt="NonGNU-devel ELPA" src="https://elpa.nongnu.org/nongnu-devel/gnuplot.svg"/></a>
+#+html: <a href="https://melpa.org/#/gnuplot"><img alt="MELPA" src="https://melpa.org/packages/gnuplot-badge.svg"/></a>
+#+html: <a href="https://stable.melpa.org/#/gnuplot"><img alt="MELPA Stable" src="https://stable.melpa.org/packages/gnuplot-badge.svg"/></a>
+
 This package allows running [[http://www.gnuplot.info/][gnuplot]] files from within the [[https://www.gnu.org/software/emacs/][GNU Emacs]]
 editor. It features:
 
