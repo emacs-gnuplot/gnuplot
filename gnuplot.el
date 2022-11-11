@@ -2,15 +2,13 @@
 
 ;; Copyright (C) 1998, 2011 Phil Type and Bruce Ravel, 1999-2012 Bruce Ravel
 
-;; Author: Jon Oddie
-;;         Bruce Ravel
-;;         Phil Type
-;; Maintainer: Bruce Ravel <bruceravel1@gmail.com>
-;; Created:    June 28 1998
-;; Version:    0.8.0
-;; Keywords:   data gnuplot plotting
-;; URL:        https://github.com/emacs-gnuplot/gnuplot
-;; Package-Requires: ((emacs "24.3"))
+;; Author:           Jon Oddie, Bruce Ravel, Phil Type
+;; Maintainer:       Maxime Tréca <maxime@gmail.com>, Daniel Mendler <mail@daniel-mendler.de>
+;; Created:          1998
+;; Version:          0.8.0
+;; Keywords:         data gnuplot plotting
+;; URL:              https://github.com/emacs-gnuplot/gnuplot
+;; Package-Requires: ((emacs "25.1"))
 
 ;; This file is not part of GNU Emacs.
 
