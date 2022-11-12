@@ -110,12 +110,6 @@
   :group 'gnuplot-hooks
   :type 'hook)
 
-(defvar gnuplot-load-hook nil)
-(make-obsolete-variable
- 'gnuplot-load-hook
- "The package loading hook has been removed, use `with-eval-after-load' instead."
- "0.8.0")
-
 (defcustom gnuplot-after-plot-hook (list #'gnuplot-trim-gnuplot-buffer)
   "Hook run after gnuplot plots something.
 This is the last thing done by the functions for plotting a line, a
@@ -992,10 +986,7 @@ These are highlighted using `font-lock-constant-face'.")
 ;;
 ;; The following syntax-propertize rules should accurately mark string
 ;; and comment boundaries using the "generic string fence" and
-;; "generic comment fence" syntax properties.  When syntax-propertize
-;; is unavailable (on Emacs versions <24), we fall back to using the
-;; normal syntax-table parser, which is accurate enough for most
-;; normal cases. (See the definition of `gnuplot-mode-syntax-table'.)
+;; "generic comment fence" syntax properties.
 (defalias 'gnuplot-syntax-propertize
   (syntax-propertize-rules
    ;; Double quoted strings
