@@ -123,50 +123,6 @@ region, a buffer, or a file."
   :group 'gnuplot-hooks
   :type 'hook)
 
-(defcustom gnuplot-info-hook nil
-  "Hook run before setting up the info-look interface.
-This hook is necessary to handle inconsistencies in versions of and
-sources of the gnuplot info file.  If Gnuplot-mode can find the info
-file generated from the 3.6beta patchlevel 347 (or later) release of
-Gnuplot, then this hook probably is not necessary.  Some versions of
-the info file may have a General Index session, which can be used by
-info-look.  In that case the following (or something similar with the
-value of `info-lookup-symbol-alist' altered appropriately) should be
-placed in the .emacs file.
-
-Emacs version 20.2 ships with a different version of info-look that
-does 20.3.  If you use any version of Emacs 19, you must use the
-version from 20.2.  Any version of XEmacs 20 or 21 should use the
-version from 20.3 but can use either.  XEmacs 19 should use the
-version 20.2.
-
-For the newer version of info-look, do this:
-
-  (add-hook \'gnuplot-info-hook
-            \'(lambda ()
-               (let ((elem (assoc \'gnuplot-mode info-lookup-alist)))
-                 (delete elem info-lookup-alist)
-                 (info-lookup-maybe-add-help
-                  :mode 'gnuplot-mode :topic 'symbol
-                  :regexp \"[a-zA-Z][_a-zA-Z0-9]*\"
-                  :doc-spec '((\"(gnuplot)General Index\" nil
-                               \"[_a-zA-Z0-9]+\"))))))
-
-For the older version of info-look, do this:
-
-  (add-hook \'gnuplot-info-hook
-            \'(lambda ()
-               (let ((elem (assoc \'gnuplot-mode info-lookup-alist)))
-                 (delete elem info-lookup-alist)
-                 (setq info-lookup-alist
-                       (append info-lookup-alist
-                               \'((gnuplot-mode
-                                  \"[a-zA-Z][_a-zA-Z0-9]*\" nil
-                                  ((\"(gnuplot)General Index\" nil
-                                    \"[_a-zA-Z0-9]+\" )))))))))"
-  :group 'gnuplot-hooks
-  :type 'hook)
-
 ;; comint hook suggested by <DB>
 (defcustom gnuplot-comint-setup-hook nil
   "Hook run after setting up the gnuplot buffer in comint mode.
@@ -1860,8 +1816,7 @@ Negatable options are defined in `gnuplot-keywords-negatable-options'."
   "Setup info-look in the gnuplot buffer.
 
 Also set the variable `gnuplot-keywords' and do something sensible if
-info-look was not available.
-See the comments in `gnuplot-info-hook'."
+info-look was not available."
   (interactive)
   (setq gnuplot-keywords-pending nil)
   ;; TODO Update info layout
@@ -1879,11 +1834,6 @@ See the comments in `gnuplot-info-hook'."
      :regexp "[a-zA-Z][_a-zA-Z0-9]*"
      :doc-spec doc-spec))
 
-  ;; TODO Clean this up
-  ;; this hook is my best way of working with info-look and
-  ;; allowing multiple versions of the gnuplot-info file.
-  ;; yes, this is a hassle.
-  (run-hooks 'gnuplot-info-hook)
   (let ((there (bufferp (get-buffer "*info*"))))
     (info-lookup-setup-mode 'symbol 'gnuplot-mode)
     (or there (and (get-buffer "*info*") (kill-buffer "*info*")))
