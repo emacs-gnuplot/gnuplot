@@ -2079,14 +2079,11 @@ following in your .emacs file:
   (gnuplot-mode))
 
 ;;;###autoload
-(defun gnuplot-run ()
+(defun run-gnuplot ()
   "Run an inferior Gnuplot process."
   (interactive)
   (gnuplot-make-gnuplot-buffer)
   (pop-to-buffer gnuplot-buffer))
-
-;;;###autoload
-(define-obsolete-function-alias 'run-gnuplot 'gnuplot-run "0.8.0")
 
 ;;; That's it! ----------------------------------------------------------------
 
