@@ -1,5 +1,18 @@
 #+TITLE: Changelog for =gnuplot.el=
 
+* Version 8.1 (Feb 18th 2023)
+
+List of changes for =gnuplot.el= version 0.8.0 ranging from January 2021
+to February 2023.
+
+- Fixed the =completion-at-point= function
+
+- Improve lazy loading of the gnuplot-gui library
+
+- Remove legacy code
+
+- Lexical scoping and linting
+
 * Version 8.0 (Jan 3rd 2021)
 
 List of changes for =gnuplot.el= version 0.8.0 ranging from March 2014
@@ -57,7 +70,7 @@ to January 2021.
 - Wrote initial draft of gnuplot-gui.el, included it in insertions
   menu and in =gnuplot-insert=. Negate option function, bound to =C-c
   C-n=.
-  
+
 - =C-c C-h= with no response goes to Commands menu. Transparent toolbar
   icons. Replace kw-compl with a simple completion function. Put
   gnuplot-toolbar code in gnuplot.el.
@@ -177,7 +190,7 @@ to January 2021.
   =gnuplot-insertion-menu-flag=, intelligent Makefile knows which
   info-look to compile
 
-  
+
 * Verison 3.0 (Sep 15th 1998)
 
 - Include insertions menu.
@@ -200,11 +213,7 @@ to January 2021.
 
 - Made =indent-line-function= buffer-local (whoops!) and fixed some
   stuff in the installation script
-  
+
 * Version 1.0 (Jun 25th 1998)
 
 - Finished with initial release.
-
-
-
-
