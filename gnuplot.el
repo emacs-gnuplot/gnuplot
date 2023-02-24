@@ -1608,7 +1608,7 @@ For most lines, set indentation to previous level of indentation.
 Add additional indentation for continuation lines."
   (interactive)
   (let (indent)
-    (if (gnuplot-in-string (point-at-bol))
+    (if (gnuplot-in-string (line-beginning-position))
         ;; Continued strings begin at left margin
         (setq indent 0)
       (save-excursion
@@ -1619,7 +1619,7 @@ Add additional indentation for continuation lines."
             (progn
               (gnuplot-beginning-of-continuation)
               (back-to-indentation)
-              (re-search-forward "\\S-+\\s-+" (point-at-eol) 'end-at-limit)
+              (re-search-forward "\\S-+\\s-+" (line-end-position) 'end-at-limit)
               (setq indent (current-column)))
 
           ;; Not a continuation line; indent according to block
@@ -1628,7 +1628,7 @@ Add additional indentation for continuation lines."
             (condition-case nil
                 (progn
                   (beginning-of-line)
-                  (skip-syntax-forward "-" (point-at-eol))
+                  (skip-syntax-forward "-" (line-end-position))
                   (if (looking-at "\\s)") (forward-char))
                   (backward-up-list)
                   (gnuplot-beginning-of-continuation)
@@ -1696,7 +1696,7 @@ If there are no continuation lines, move point to `end-of-line'."
 (defun gnuplot-point-at-beginning-of-continuation (&optional pos)
   "Return value of point at beginning of the continued block containing point.
 
-If there are no continuation lines, returns `point-at-bol'.
+If there are no continuation lines, returns `line-beginning-position'.
 If specify POS, move POS befere execution."
   (save-excursion
     (when pos (goto-char pos))
@@ -1706,7 +1706,7 @@ If specify POS, move POS befere execution."
 (defun gnuplot-point-at-end-of-continuation (&optional pos)
   "Return value of point at the end of the continued block containing point.
 
-If there are no continuation lines, returns `point-at-eol'.
+If there are no continuation lines, returns `line-end-position'.
 If specify POS, move POS before execution."
   (save-excursion
     (when pos (goto-char pos))
