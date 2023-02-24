@@ -28,7 +28,7 @@
 ;;; Commentary:
 
 ;; This is a major mode for composing gnuplot scripts and displaying
-;; their results using gnuplot. It supports features of recent Gnuplot
+;; their results using gnuplot.  It supports features of recent Gnuplot
 ;; versions (5.0 and up), but should also work fine with older
 ;; versions.
 ;;
@@ -133,7 +133,7 @@ for backward compatibility."
 
 (defvar-local gnuplot-recently-sent nil
   "This is a record of the most recent kind of text sent to gnuplot.
-It takes as its value nil, 'line, 'region, 'buffer, or 'file.  It is
+It takes as its value nil, `line', `region', `buffer', or `file'.  It is
 useful for functions included in `gnuplot-after-plot-hook'.")
 
 (defcustom gnuplot-program "gnuplot"
@@ -159,7 +159,7 @@ useful for functions included in `gnuplot-after-plot-hook'.")
 
 (defvar gnuplot-process-frame nil
   "The frame for displaying the gnuplot process.
-This is used when `gnuplot-display-process' is equal to 'frame.")
+This is used when `gnuplot-display-process' is equal to `frame'.")
 
 (defvar gnuplot-comint-recent-buffer nil
   "The most recently plotted gnuplot script buffer.
@@ -167,15 +167,15 @@ This is used by the function that plot from the comint buffer.  It is
 reset every time something is plotted from a script buffer.")
 
 (defcustom gnuplot-gnuplot-buffer "plot.gp"
-  "The name of the gnuplot scratch buffer opened by 'gnuplot-make-buffer'."
+  "The name of the gnuplot scratch buffer opened by `gnuplot-make-buffer'."
   :group 'gnuplot
   :type 'string)
 
 (defcustom gnuplot-display-process 'window
   "This controls how the gnuplot process buffer is displayed.
 The values are
-   'frame    display gnuplot process in a separate frame
-   'window   display gnuplot process in this frame but in another window
+   \\='frame    display gnuplot process in a separate frame
+   \\='window   display gnuplot process in this frame but in another window
    nil       `gnuplot-process' is in the current frame but not displayed"
   :group 'gnuplot
   :type '(radio (const :tag "Separate frame"  frame)
@@ -185,8 +185,8 @@ The values are
 (defcustom gnuplot-info-display 'window
   "Determines how `gnuplot-info-lookup-symbol' displays the info file.
 The values are
-   'frame    display info file in a separate frame
-   'window   display info file in another window
+   \\='frame    display info file in a separate frame
+   \\='window   display info file in another window
    nil       display info file in the current window"
   :group 'gnuplot
   :type '(radio (const :tag "Separate frame"  frame)
@@ -480,7 +480,7 @@ describing the sub-menus are:
   `gnuplot-insertions-surface-plots'
 These variables can be customized by the user.  For example, there are
 many terminal types which are not in the terminal submenu but which
-may be compiled into a user's copy of gnuplot.
+may be compiled into your copy of gnuplot.
 
 Each of these variables is a list whose first element is a string and
 all the rest are vectors as described in the document string for
@@ -492,7 +492,7 @@ The easiest way to customize the submenus is to use the custom
 package.  Just type \\[gnuplot-customize] and follow your nose.
 
 You can also add new items to any of these sub-menus by adding to the
-`with-eval-after-load' blocks in your .emacs file. Here is an example of
+`with-eval-after-load' blocks in your .emacs file.  Here is an example of
 adding the \"regis\" terminal type to the terminal sub-menu:
 
  (with-eval-after-load 'gnuplot
@@ -1087,7 +1087,7 @@ This is a simple wrapper for `syntax-ppss'."
   "Sends STRING to the gnuplot program.
 If no gnuplot process exists, a new one is created.  TEXT indicates
 the type of text being sent to gnuplot and is typically one of
-nil, 'line, 'region, 'buffer, or 'file.  TEXT may be useful for
+nil, `line', `region', `buffer', or `file'.  TEXT may be useful for
 functions in `gnuplot-after-plot-hook'.  `gnuplot-after-plot-hook' is
 called by this function after all of STRING is sent to gnuplot."
   (gnuplot-make-gnuplot-buffer)         ; make sure a gnuplot buffer exists
@@ -1139,8 +1139,8 @@ Move point to the end if necessary."
   "Sends a selected region to the gnuplot program.
 If BEGIN and END are not specified, point and mark are used.  TEXT
 indicates the type of text being sent to gnuplot.  This will be
-'region unless explicitly set by a function calling this one.  Other
-typical values are of nil, 'line, 'buffer, or 'file.  TEXT may be
+`region' unless explicitly set by a function calling this one.  Other
+typical values are of nil, `line', `buffer', or `file'.  TEXT may be
 useful for function in `gnuplot-after-plot-hook'."
   (interactive "r")
   (let (string (txt (or text 'region)))
@@ -1156,7 +1156,7 @@ useful for function in `gnuplot-after-plot-hook'."
 (defun gnuplot-send-line-to-gnuplot ()
   "Sends the current line to the gnuplot program.
 Respects continuation lines.
-This sets `gnuplot-recently-sent' to 'line."
+This sets `gnuplot-recently-sent' to `line'."
   (interactive)
   (cond ((equal major-mode 'gnuplot-mode)
          (let (start end)
@@ -1218,7 +1218,7 @@ Blank lines and commented lines are not included in the NUM count."
 
 (defun gnuplot-send-buffer-to-gnuplot ()
   "Sends the entire buffer to the gnuplot program.
-This sets `gnuplot-recently-sent' to 'buffer."
+This sets `gnuplot-recently-sent' to `buffer'."
   (interactive)
   (if (equal major-mode 'gnuplot-mode)
       (gnuplot-send-region-to-gnuplot (point-min) (point-max) 'buffer)
@@ -1226,7 +1226,7 @@ This sets `gnuplot-recently-sent' to 'buffer."
 
 (defun gnuplot-send-file-to-gnuplot ()
   "Sends a selected file to the gnuplot program using the \"load\" command.
-This sets `gnuplot-recently-sent' to 'file."
+This sets `gnuplot-recently-sent' to `file'."
   (interactive)
   (let ((string (read-file-name "Name of file to send to gnuplot > " nil nil t)))
     (setq string (concat "load '" (expand-file-name string) "'\n"))
@@ -1529,7 +1529,7 @@ Called via `comint-preoutput-filter-functions' hook when
 file `gnuplot-inline-image-filename'; if it exists and has
 nonzero size, inserts it as an inline image, stores a new
 temporary filename in `gnuplot-inline-image-filename', and
-updates Gnuplot with the appropriate 'set output' command."
+updates Gnuplot with the appropriate \"set output\" command."
   (unless gnuplot--inhibit-filter        ; Prevent recursively entering this filter
     (let ((gnuplot--inhibit-filter t))   ; (causing an infinite loop)
       (save-excursion
@@ -1870,7 +1870,7 @@ Return a list of keywords."
 (defun gnuplot-completion-at-point-info-look ()
   "Return completions of keyword preceding point.
 
-Uses the cache of keywords generated by info-lookup.  See
+Uses the cache of keywords generated by `info-lookup'.  See
 `gnuplot-setup-info-look'.  If non-nil, the return value is in the form
 \(BEGIN END COMPLETIONS) where BEGIN and END are buffer
 positions and COMPLETIONS is a list."
@@ -1908,7 +1908,7 @@ according to the value of `gnuplot-info-display'."
 (defun gnuplot--adjust-info-display ()
   "Displays the *info* buffer in a window or frame.
 Specified by the value of `gnuplot-info-display'.
-If `gnuplot-info-display' is 'window, then the window will be
+If `gnuplot-info-display' is `window', then the window will be
 shrunk to the size of the info entry if it is smaller than half
 the height of the frame.
 
