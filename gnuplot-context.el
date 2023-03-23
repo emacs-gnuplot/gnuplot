@@ -296,7 +296,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
                (token
                 (cond
                  ((gnuplot-tokenize-by-regexps
-                   ("[A-Za-z_][A-Za-z0-9_]*" name)
+                   ("[[:alpha:]_][[:alpha:]0-9_]*" name)
                    ("[0-9]+\\(\\.[0-9]*\\)?\\([eE][+-]?[0-9]+\\)?\\|\\.[0-9]+\\([eE][+-]?[0-9]+\\)?" number)
                    (gnuplot-operator-regexp operator)
                    (";" separator)))
