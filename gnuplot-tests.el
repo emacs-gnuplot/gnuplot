@@ -241,7 +241,7 @@ mutliple # lines #")
 (gnuplot-test-comment gnuplot-comment-with-single-quotes
                       "# a comment 'containing a single-quoted string'")
 
-(gnuplot-test-comment gnuplot-comment-with-single-quotes
+(gnuplot-test-comment gnuplot-comment-with-double-quotes
                       "# a comment \"containing a double-quoted string\"")
 
 (gnuplot-test-comment gnuplot-comment-multiline-with-quotes
