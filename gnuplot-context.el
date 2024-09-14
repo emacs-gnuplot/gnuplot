@@ -2191,7 +2191,7 @@ provide more useful completions and help suggestions for built-in
 keywords and functions by parsing each command as you type.  It
 attempts to take into account Gnuplot's many abbreviated
 keywords.  For example, with point at the end of a line reading
-\"plot 'datafile' w \", typing \\[completion-at-point] will pop
+\"plot \\='datafile\\=' w \", typing \\[completion-at-point] will pop
 up a list of plotting styles.
 
 Key bindings:

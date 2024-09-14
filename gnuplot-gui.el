@@ -597,9 +597,9 @@ See the doc-string for `gnuplot-gui-all-types'.")
 
 (defcustom gnuplot-gui-plot-splot-fit-style 'simple
   "Control the complexity of the GUI display for plot, splot, and fit.
-The values are 'simple, which causes a limited set of plot, splot, or
-fit options to be displayed, and 'complete, which attempts to display
-all options.  The 'complete setting is prone to making errors when
+The values are \\='simple, which causes a limited set of plot, splot, or
+fit options to be displayed, and \\='complete, which attempts to display
+all options.  The \\='complete setting is prone to making errors when
 parsing values already in the script buffer."
   :group 'gnuplot-gui
   :type '(radio (const :tag "Simple listing"   simple)
@@ -745,54 +745,54 @@ TAG is the name used on the widget and indicates one of the options
 for this command, set option, or terminal type.
 
 TYPE is one of
-     'list       a menu-list of strings
-     'list*      a menu-list of strings with a prefix
-     'number     a number with an optional prefix
-     'tag        like number but must be the first argument
-     'fontsize   like number but must be the last argument
-     'range      a pair of numbers like [#,#] or [#:#]
-     'pair       a pair of numbers with no punctuation and a prefix
-     'file       a quoted string and a file browser
-     'string     a quoted string with an optional prefix
-     'string*    an unquoted string with a prefix
-     'format     a quoted string and an info-link to (gnuplot)format
-     'labels     an array as needed for xtics, ytics, etc
-     'position   2 or 3 comma separated numbers with an optional prefix
+     \\='list       a menu-list of strings
+     \\='list*      a menu-list of strings with a prefix
+     \\='number     a number with an optional prefix
+     \\='tag        like number but must be the first argument
+     \\='fontsize   like number but must be the last argument
+     \\='range      a pair of numbers like [#,#] or [#:#]
+     \\='pair       a pair of numbers with no punctuation and a prefix
+     \\='file       a quoted string and a file browser
+     \\='string     a quoted string with an optional prefix
+     \\='string*    an unquoted string with a prefix
+     \\='format     a quoted string and an info-link to (gnuplot)format
+     \\='labels     an array as needed for xtics, ytics, etc
+     \\='position   2 or 3 comma separated numbers with an optional prefix
 
 DEFAULT is the default value for this option.  Note that the default
-for 'range and 'pair is a cons cell and the default for 'labels is a
+for \\='range and \\='pair is a cons cell and the default for \\='labels is a
 list.  For most things, the best choice of DEFAULT is a string of
 white space or a cons cell of two strings of white space.  Strings of
 white space are better defaults than empty strings or nil.
 
 The value of REST depends upon TYPE:
 
-  For 'list &    REST is the list of options that will go into the
-      'list*       menu-button.  This can also be a symbol which
+  For \\='list &    REST is the list of options that will go into the
+      \\='list*       menu-button.  This can also be a symbol which
                    evaluates to a list containing the options to go into
                    the menu-button.  This list variable must contain the
                    DEFAULT.
-  For 'number    REST is the prefix string (if it exists) for that number.
-  For 'range     REST is the separator, \":\" for plot ranges and
+  For \\='number    REST is the prefix string (if it exists) for that number.
+  For \\='range     REST is the separator, \":\" for plot ranges and
                    \",\" for plot dimensions (see for example the tgif
                    terminal type)
-  For 'string &  REST may a number denoting the width of the editable-text
-      'string*     field or it may be a string denoting a prefix.  By
+  For \\='string &  REST may a number denoting the width of the editable-text
+      \\='string*     field or it may be a string denoting a prefix.  By
                    default, the width is half the width of the frame
                    and there is no prefix.  It may be useful to
                    specify \"1\" when the input is a single character
-                   as in 'set missing'.
-  For 'file      REST determines the label placed before the file insertion
+                   as in \"set missing\".
+  For \\='file      REST determines the label placed before the file insertion
                    field.  If non-nil, then TAG is used.  If nil, then
                    the default \"File\" is used.
-  For 'position  REST is the prefix and the number of comma separated numbers
+  For \\='position  REST is the prefix and the number of comma separated numbers
   For others     REST is not used.
 
 Here is an example entry for the png terminal type:
 
   (cons \"png\"
-    '((\"SIZE\"  'list \" \" \"small\" \"medium\" \"large\")
-      (\"COLOR\" 'list \" \" \"monochrome\" \"gray\" \"color\")))
+    \\='((\"SIZE\"  \\='list \" \" \"small\" \"medium\" \"large\")
+      (\"COLOR\" \\='list \" \" \"monochrome\" \"gray\" \"color\")))
 
 This alist is formed at load time by appending together
 `gnuplot-gui-terminal-types', `gnuplot-gui-set-types' and
@@ -1152,7 +1152,7 @@ arguments."
 
 (defun gnuplot-gui-post-process-alist (type)
   "A few types need some additional processing.
-'range, 'pair, and 'labels are cons or list valued and need to b made
+\\='range, \\='pair, and \\='labels are cons or list valued and need to b made
 into strings.  This is called right before inserting the arguments
 into the buffer.  TYPE is the object whose arguments are being set."
   (let ((alist gnuplot-gui-alist)
@@ -1420,7 +1420,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
   "Create a menu widget for the Gnuplot GUI.
 ITEM is the object whose arguments are set by this widget, DEFAULT
 is the default argument value, LIST contains the items for the pop-up
-menu.  STARRED is true if this a 'list* widget."
+menu.  STARRED is true if this a \\='list* widget."
   (let ((widget
          (apply 'widget-create
                 'menu-choice :value default :tag item :doc starred
@@ -1623,7 +1623,7 @@ the default value for the argument."
 ITEM is the object whose arguments are set by this widget, DEFAULT is
 the default value for the widget, SEPARATOR is a text string preceding
 the numerical argument, or the prefix for a pair operator.  IS-RANGE
-is non-nil if this is a 'range widget."
+is non-nil if this is a \\='range widget."
   (widget-insert (capitalize item) ": ")
   (if is-range (widget-insert "["))
   (widget-create 'editable-field
