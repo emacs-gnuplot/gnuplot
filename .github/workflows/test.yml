@@ -21,16 +21,12 @@ jobs:
           - '29.3'
           - 'release-snapshot'
           - 'snapshot'
-        include:
-          - emacs_version: 'snapshot'
-            allow_failure: true
     steps:
     - uses: actions/checkout@v1
     - uses: actions/setup-python@v2
     - uses: purcell/setup-emacs@master
       with:
         version: ${{ matrix.emacs_version }}
-    - uses: conao3/setup-cask@master
 
     - name: Install Gnuplot
       run: sudo apt update && sudo apt install gnuplot

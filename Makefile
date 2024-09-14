@@ -4,8 +4,7 @@ LOAD = -l gnuplot \
 	-l gnuplot-context \
 	-l gnuplot-debug-context \
 	-l gnuplot-gui \
-	-l gnuplot-tests \
-	-l gnuplot-test-context
+	-l gnuplot-tests
 
 .PHONY: all default clean
 
