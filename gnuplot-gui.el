@@ -828,15 +828,8 @@ This alist is formed at load time by appending together
 ;;; user interface to the widget-y stuff
 
 ;;;###autoload
-(defun gnuplot-gui-mouse-set (event)
-  "Use the mouse to begin setting options using a GUI interface.
-EVENT is a mouse event.  Bound to \\[gnuplot-gui-mouse-set]
-Note that \"plot\", \"splot\", \"fit\", and \"cntrparam\" are not
-currently supported."
-  (interactive "@e")
-  (save-excursion
-    (mouse-set-point event)
-    (gnuplot-gui-set-options-and-insert)))
+(define-obsolete-function-alias 'gnuplot-gui-mouse-set
+  #'gnuplot-gui-set-options-and-insert "2025")
 
 (defun gnuplot-gui-get-frame-param (param)
   (cdr (assoc param gnuplot-gui-frame-parameters)))
@@ -845,86 +838,89 @@ currently supported."
   (setcdr (assoc param gnuplot-gui-frame-parameters) value))
 
 ;;;###autoload
-(defun gnuplot-gui-set-options-and-insert ()
+(defun gnuplot-gui-set-options-and-insert (&optional event)
   "Insert arguments using a GUI interface.
 Determine contents of current line and set up the appropriate GUI
 frame.  Bound to \\[gnuplot-gui-set-options-and-insert]
 Note that \"cntrparam\" is not currently supported."
   (interactive)
-  (let ((begin  (gnuplot-point-at-beginning-of-command))
-        (end    (save-excursion (end-of-line)       (point-marker)))
-        (termin (concat "\\(,\\s-*" (regexp-quote "\\") "\\|;\\)"))
-        (set nil) (term nil))
-    (save-excursion
-      ;; there can be more then one command per line
-      (if (re-search-forward termin end "to_limit")
-          (progn (backward-char (length (match-string 1)))
-                 (setq end (point-marker))))
-      (goto-char begin)
-      (skip-syntax-forward "-" end)
-      ;; various constructions are recognized here. at the end of this
-      ;; cond, point should be just after the word whose arguments are
-      ;; to be set
-      (cond ((looking-at "set\\s-+")
-             (setq set t)
-             (goto-char (match-end 0))
-             (if (looking-at "\\sw+") (goto-char (match-end 0)))
-             (when (string-match "^ter" (gnuplot-this-word)) ; terminal?
-               (setq term t)
+  (interactive (list last-nonmenu-event))
+  (save-excursion
+    (if event (mouse-set-point event))
+    (let ((begin  (gnuplot-point-at-beginning-of-command))
+          (end    (save-excursion (end-of-line)       (point-marker)))
+          (termin (concat "\\(,\\s-*" (regexp-quote "\\") "\\|;\\)"))
+          (set nil) (term nil))
+      (save-excursion
+        ;; there can be more then one command per line
+        (if (re-search-forward termin end "to_limit")
+            (progn (backward-char (length (match-string 1)))
+                   (setq end (point-marker))))
+        (goto-char begin)
+        (skip-syntax-forward "-" end)
+        ;; various constructions are recognized here. at the end of this
+        ;; cond, point should be just after the word whose arguments are
+        ;; to be set
+        (cond ((looking-at "set\\s-+")
+               (setq set t)
+               (goto-char (match-end 0))
+               (if (looking-at "\\sw+") (goto-char (match-end 0)))
+               (when (string-match "^ter" (gnuplot-this-word)) ; terminal?
+                 (setq term t)
+                 (forward-word 1))
+               (when (string-match "^\\(da\\|fu\\)" (gnuplot-this-word))
+                 (unless (looking-at "\\s-+st")
+                   (insert " style") (forward-word 1))
+                 (forward-word 1)))
+              ((looking-at (concat "\\(cd\\|ca\\|lo\\|pa\\|pr\\|sa\\|u\\)"
+                                   "\\w*"
+                                   "[\\s-\\']"))
                (forward-word 1))
-             (when (string-match "^\\(da\\|fu\\)" (gnuplot-this-word))
-               (unless (looking-at "\\s-+st")
-                 (insert " style") (forward-word 1))
-               (forward-word 1)))
-            ((looking-at (concat "\\(cd\\|ca\\|lo\\|pa\\|pr\\|sa\\|u\\)"
-                                 "\\w*"
-                                 "[\\s-\\']"))
-             (forward-word 1))
-            ;;(goto-char (match-end 0)))
-            (t
-             (forward-word 1)))
-      (if (> (point) end) (goto-char end))
-      (let* ((w (gnuplot-this-word))
-             (wd (try-completion w gnuplot-gui-all-types))
-             (word "") wrd list)
-        (cond ((equal wd t)                     (setq word w))
-              ((equal wd nil)                   (setq word w))
-              ((assoc wd gnuplot-gui-all-types) (setq word wd))
-              (t                                (setq wd nil)))
-        (cond ((equal (string-match "^\\s-*$" w) 0)
-               (message "Blank line"))
-              ((and wd (stringp word))
-               (gnuplot-gui-correct-command word set term begin)
-               (setq gnuplot-gui-alist nil
-                     gnuplot-gui-current-string
-                     (buffer-substring-no-properties (point) end))
-               (gnuplot-gui-set-alist word gnuplot-gui-current-string)
-               (let* ((old-height (gnuplot-gui-get-frame-param 'height))
-                      (old-top    (gnuplot-gui-get-frame-param 'top)))
-                 (when (or
-                        (and (equal gnuplot-gui-plot-splot-fit-style 'complete)
-                             (cl-member word '("plot" "splot" "fit")
-                                        :test 'string=))
-                        (equal word "test"))
-                   (gnuplot-gui-set-frame-param 'height 32)
-                   (gnuplot-gui-set-frame-param 'top    50))
-                 (gnuplot-gui-prompt-for-frame word)
-                 (when (or
-                        (and (equal gnuplot-gui-plot-splot-fit-style 'complete)
-                             (cl-member word '("plot" "splot" "fit")
-                                        :test 'string=))
-                        (equal word "test"))
-                   (gnuplot-gui-set-frame-param 'height old-height)
-                   (gnuplot-gui-set-frame-param 'top    old-top)) ))
-              ((setq wrd (car (all-completions w '(("cntrparam")))))
-               (message
-                "Setting arguments for %S is currently unsuported in gnuplot-mode"
-                wrd))
-              ((setq list (all-completions w gnuplot-gui-all-types))
-               (message "%S could be one of %S" w list))
+              ;;(goto-char (match-end 0)))
               (t
-               (message
-                "%S is not a gnuplot command which takes options" w)))) )))
+               (forward-word 1)))
+        (if (> (point) end) (goto-char end))
+        (let* ((w (gnuplot-this-word))
+               (wd (try-completion w gnuplot-gui-all-types))
+               (word "") wrd list)
+          (cond ((equal wd t)                     (setq word w))
+                ((equal wd nil)                   (setq word w))
+                ((assoc wd gnuplot-gui-all-types) (setq word wd))
+                (t                                (setq wd nil)))
+          (cond ((equal (string-match "^\\s-*$" w) 0)
+                 (message "Blank line"))
+                ((and wd (stringp word))
+                 (gnuplot-gui-correct-command word set term begin)
+                 (setq gnuplot-gui-alist nil
+                       gnuplot-gui-current-string
+                       (buffer-substring-no-properties (point) end))
+                 (gnuplot-gui-set-alist word gnuplot-gui-current-string)
+                 (let* ((old-height (gnuplot-gui-get-frame-param 'height))
+                        (old-top    (gnuplot-gui-get-frame-param 'top)))
+                   (when (or
+                          (and (equal gnuplot-gui-plot-splot-fit-style 'complete)
+                               (cl-member word '("plot" "splot" "fit")
+                                          :test 'string=))
+                          (equal word "test"))
+                     (gnuplot-gui-set-frame-param 'height 32)
+                     (gnuplot-gui-set-frame-param 'top    50))
+                   (gnuplot-gui-prompt-for-frame word)
+                   (when (or
+                          (and (equal gnuplot-gui-plot-splot-fit-style 'complete)
+                               (cl-member word '("plot" "splot" "fit")
+                                          :test 'string=))
+                          (equal word "test"))
+                     (gnuplot-gui-set-frame-param 'height old-height)
+                     (gnuplot-gui-set-frame-param 'top    old-top)) ))
+                ((setq wrd (car (all-completions w '(("cntrparam")))))
+                 (message
+                  "Setting arguments for %S is currently unsuported in gnuplot-mode"
+                  wrd))
+                ((setq list (all-completions w gnuplot-gui-all-types))
+                 (message "%S could be one of %S" w list))
+                (t
+                 (message
+                  "%S is not a gnuplot command which takes options" w)))) ))))
 
 ;;;###autoload
 (defun gnuplot-gui-toggle-popup ()
