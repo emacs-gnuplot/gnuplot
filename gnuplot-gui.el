@@ -839,7 +839,6 @@ This alist is formed at load time by appending together
 Determine contents of current line and set up the appropriate GUI
 frame.  Bound to \\[gnuplot-gui-set-options-and-insert]
 Note that \"cntrparam\" is not currently supported."
-  (interactive)
   (interactive (list last-nonmenu-event))
   (save-excursion
     (if event (mouse-set-point event))
@@ -931,7 +930,7 @@ Note that \"cntrparam\" is not currently supported."
 
 (defun gnuplot-gui-correct-command (word set term begin)
   "Check syntax of set command and terminal specifications.
-WORD is the item being set. SET and TERM are non-nil if the words
+WORD is the item being set.  SET and TERM are non-nil if the words
 \"set\" and \"terminal\" were found preceding WORD in the buffer.
 BEGIN is the beginning of the command."
   (save-excursion

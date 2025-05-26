@@ -41,9 +41,9 @@
 ;;
 ;; Gnuplot's context sensitive mode is best controlled using Customize
 ;; (M-x customize-group gnuplot): simply enable the
-;; `gnuplot-context-sensitive-mode' setting. You may also want to turn
+;; `gnuplot-context-sensitive-mode' setting.  You may also want to turn
 ;; on `gnuplot-tab-completion' so that the TAB key does auto-completion
-;; on lines which are already indented. (This just sets the Emacs
+;; on lines which are already indented.  (This just sets the Emacs
 ;; variable `tab-always-indent' to `complete' in Gnuplot buffers).
 ;;
 ;; If you need to turn context sensitivity on or off from Lisp code
@@ -86,7 +86,7 @@
 ;; grammar in S-expression notation (`gnuplot-grammar') is compiled
 ;; down into a vector of "machine code" for the parsing machine (see
 ;; `gnuplot-compile-pattern', `gnuplot-compile-grammar' and
-;; `gnuplot-compiled-grammar'). This is complicated, but it seems to
+;; `gnuplot-compiled-grammar').  This is complicated, but it seems to
 ;; work well enough, and it saves on the Emacs call stack.
 ;;
 ;; Compiling the grammar does require increasing `max-lisp-eval-depth'
