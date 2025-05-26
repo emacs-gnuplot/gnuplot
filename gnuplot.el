@@ -282,11 +282,11 @@ suggestions."
          (set sym value)
          (cond
           (value
-           (add-hook 'gnuplot-mode-hook #'gnuplot-context-sensitive-mode nil nil)
-           (add-hook 'gnuplot-comint-mode-hook #'gnuplot-context-sensitive-mode nil nil))
+           (add-hook 'gnuplot-mode-hook 'gnuplot-context-sensitive-mode nil nil)
+           (add-hook 'gnuplot-comint-mode-hook 'gnuplot-context-sensitive-mode nil nil))
           (t
-           (remove-hook 'gnuplot-mode-hook #'gnuplot-context-sensitive-mode)
-           (remove-hook 'gnuplot-comint-mode-hook #'gnuplot-context-sensitive-mode)))
+           (remove-hook 'gnuplot-mode-hook 'gnuplot-context-sensitive-mode)
+           (remove-hook 'gnuplot-comint-mode-hook 'gnuplot-context-sensitive-mode)))
          (dolist (buffer (buffer-list))
            (with-current-buffer buffer
              (when (and (derived-mode-p 'gnuplot-mode 'gnuplot-comint-mode)
@@ -376,7 +376,7 @@ non-nil."
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-b"    #'gnuplot-send-buffer-to-gnuplot)
     (define-key map "\C-c\C-c"    #'comment-region) ; <RF>
-    (define-key map "\C-c\C-o"    #'gnuplot-gui-set-options-and-insert)
+    (define-key map "\C-c\C-o"    'gnuplot-gui-set-options-and-insert)
     (define-key map "\C-c\C-e"    #'gnuplot-show-gnuplot-buffer)
     (define-key map "\C-c\C-f"    #'gnuplot-send-file-to-gnuplot)
     (define-key map "\C-c\C-d"    #'gnuplot-info-lookup-symbol)
@@ -394,7 +394,7 @@ non-nil."
     (define-key map (kbd "}")     #'gnuplot-electric-insert)
     (define-key map "\M-\r"       #'completion-at-point)
     (define-key map "\M-\t"       #'completion-at-point)
-    (define-key map [S-mouse-2]   #'gnuplot-gui-set-options-and-insert)
+    (define-key map [S-mouse-2]   'gnuplot-gui-set-options-and-insert)
 
     map))
 
