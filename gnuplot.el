@@ -930,33 +930,33 @@ These are highlighted using `font-lock-constant-face'.")
 
 ;; Set up colorization for gnuplot.
 (defvar gnuplot-font-lock-keywords
-  (list
-   ;; stuff in brackets, sugg. by <LB>
-   '("\\[\\([^]]+\\)\\]" 1 font-lock-constant-face)
+  `(; stuff in brackets, sugg. by <LB>
+    ("\\[\\([^]]+\\)\\]" (1 'font-lock-constant-face))
 
-   ;; variable/function definitions
-   '("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
-     1 font-lock-variable-name-face)
+    ;; variable/function definitions
+    ("\\(\\(\\sw\\|\\s_\\)+\\s-*\\((\\s-*\\(\\sw\\|\\s_\\)*\\s-*\\(,\\s-*\\sw*\\)*\\s-*)\\)?\\s-*=\\)[^=]"
+     (1 'font-lock-variable-name-face))
 
-   ;; built-in function names
-   (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
-         font-lock-function-name-face)
+    ;; built-in function names
+    (,(gnuplot-make-regexp gnuplot-keywords-builtin-functions)
+     (0 'font-lock-function-name-face))
 
-   ;; reserved words associated with plotting <AL>
-   (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
-         font-lock-type-face)
-   (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
-         font-lock-function-name-face)
+    ;; reserved words associated with plotting <AL>
+    (,(gnuplot-make-regexp gnuplot-keywords-plotting)
+     (0 'font-lock-type-face))
+    (,(gnuplot-make-regexp gnuplot-keywords-plotting-styles)
+     (0 'font-lock-function-name-face))
 
-   ;; (s)plot -- also thing (s)plotted
-   '("\\<s?plot\\>" . font-lock-keyword-face)
-   ;; '("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
-   ;;   1 font-lock-variable-name-face)
+    ;; (s)plot -- also thing (s)plotted
+    ("\\<s?plot\\>" (0 'font-lock-keyword-face))
+    ;; ("\\<s?plot\\s-+\\([^'\" ]+\\)[) \n,\\\\]"
+    ;;  (1 'font-lock-variable-name-face))
 
-   ;; other common commands
-   (cons (gnuplot-make-regexp gnuplot-keywords-misc)
-         font-lock-constant-face)
-   (cons "!.*$" font-lock-constant-face))) ; what is this for? jjo
+    ;; other common commands
+    (,(gnuplot-make-regexp gnuplot-keywords-misc)
+     (0 'font-lock-constant-face))
+    ("!.*$" (0 'font-lock-constant-face))))
+
 
 (defvar gnuplot-font-lock-defaults
   '(gnuplot-font-lock-keywords
