@@ -2020,16 +2020,7 @@ a list:
      not yet supported by the GUI generate messages printed in grey
      text.
  5.  The GUI handling of \"hidden3d\" is flaky and \"cntrparam\" is
-     unsupported.
-
-                            ------O------
-
- Key bindings:
- \\{gnuplot-mode-map}"
-  (kill-all-local-variables)
-  (use-local-map gnuplot-mode-map)
-  (setq major-mode 'gnuplot-mode
-        mode-name "Gnuplot")
+     unsupported."
   (setq-local comment-start "# ")
   (setq-local comment-end "")
   (setq-local comment-column 32)
