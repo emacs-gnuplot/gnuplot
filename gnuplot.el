@@ -1974,7 +1974,7 @@ shown."
 ;;; --- autoloaded functions: gnuplot-mode and gnuplot-make-buffer
 
 ;;;###autoload
-(defun gnuplot-mode ()
+(define-derived-mode gnuplot-mode prog-mode
   "Major mode for editing and executing GNUPLOT scripts.
 This was written with version 4.6 of gnuplot in mind, but should
 work with newer and older versions.
@@ -2026,7 +2026,6 @@ a list:
 
  Key bindings:
  \\{gnuplot-mode-map}"
-  (interactive)
   (kill-all-local-variables)
   (use-local-map gnuplot-mode-map)
   (setq major-mode 'gnuplot-mode
