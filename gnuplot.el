@@ -940,13 +940,13 @@ These are highlighted using `font-lock-constant-face'.")
 
    ;; built-in function names
    (cons (gnuplot-make-regexp gnuplot-keywords-builtin-functions)
-         'font-lock-function-name-face)
+         font-lock-function-name-face)
 
    ;; reserved words associated with plotting <AL>
    (cons (gnuplot-make-regexp gnuplot-keywords-plotting)
-         'font-lock-type-face)
+         font-lock-type-face)
    (cons (gnuplot-make-regexp gnuplot-keywords-plotting-styles)
-         'font-lock-function-name-face)
+         font-lock-function-name-face)
 
    ;; (s)plot -- also thing (s)plotted
    '("\\<s?plot\\>" . font-lock-keyword-face)
@@ -955,8 +955,8 @@ These are highlighted using `font-lock-constant-face'.")
 
    ;; other common commands
    (cons (gnuplot-make-regexp gnuplot-keywords-misc)
-         'font-lock-constant-face)
-   (cons "!.*$" 'font-lock-constant-face))) ; what is this for? jjo
+         font-lock-constant-face)
+   (cons "!.*$" font-lock-constant-face))) ; what is this for? jjo
 
 (defvar gnuplot-font-lock-defaults
   '(gnuplot-font-lock-keywords
