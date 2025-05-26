@@ -1974,7 +1974,7 @@ shown."
 ;;; --- autoloaded functions: gnuplot-mode and gnuplot-make-buffer
 
 ;;;###autoload
-(define-derived-mode gnuplot-mode prog-mode
+(define-derived-mode gnuplot-mode prog-mode "Gnuplot"
   "Major mode for editing and executing GNUPLOT scripts.
 This was written with version 4.6 of gnuplot in mind, but should
 work with newer and older versions.
