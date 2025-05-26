@@ -827,10 +827,6 @@ This alist is formed at load time by appending together
 
 ;;; user interface to the widget-y stuff
 
-;;;###autoload
-(define-obsolete-function-alias 'gnuplot-gui-mouse-set
-  #'gnuplot-gui-set-options-and-insert "2025")
-
 (defun gnuplot-gui-get-frame-param (param)
   (cdr (assoc param gnuplot-gui-frame-parameters)))
 
