@@ -1,0 +1,9 @@
+.elpaignore
+.github
+.gitignore
+LICENSE
+Makefile
+gnuplot-debug-context.el
+gnuplot-test-context.el
+gnuplot-tests.el
+gpelcard.tex
