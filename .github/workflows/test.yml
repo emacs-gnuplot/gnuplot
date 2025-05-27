@@ -1,13 +1,12 @@
 name: CI
 on: [push, pull_request]
-
 jobs:
   build:
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        emacs_version:
+        emacs-version:
           - '25.1'
           - '25.2'
           - '25.3'
@@ -23,19 +22,15 @@ jobs:
           - 'release-snapshot'
           - 'snapshot'
     steps:
-    - uses: actions/checkout@v1
-    - uses: actions/setup-python@v2
+    - uses: actions/checkout@v4
     - uses: purcell/setup-emacs@master
       with:
-        version: ${{ matrix.emacs_version }}
-
+        version: ${{ matrix.emacs-version }}
     - name: Install Gnuplot
       run: sudo apt update && sudo apt install gnuplot
-
     - name: Run tests
       if: matrix.allow_failure != true
       run: 'make && make test'
-
     - name: Run tests (allow failure)
       if: matrix.allow_failure == true
       run: 'make && make test || true'
