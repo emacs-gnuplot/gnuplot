@@ -29,8 +29,4 @@ jobs:
     - name: Install Gnuplot
       run: sudo apt update && sudo apt install gnuplot
     - name: Run tests
-      if: matrix.allow_failure != true
       run: 'make && make test'
-    - name: Run tests (allow failure)
-      if: matrix.allow_failure == true
-      run: 'make && make test || true'
