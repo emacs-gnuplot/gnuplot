@@ -2074,12 +2074,11 @@ following in your .emacs file:
   (gnuplot-make-gnuplot-buffer)
   (pop-to-buffer gnuplot-buffer))
 
-;;; That's it! ----------------------------------------------------------------
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode))
 
 (provide 'gnuplot)
-
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
-
 ;;; gnuplot.el ends here

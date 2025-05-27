@@ -2256,12 +2256,8 @@ distribution. See gnuplot-context.el for details."
     (setq eldoc-documentation-function nil)
     (eldoc-mode 0)))
 
-
-;;; All done!
 (provide 'gnuplot-context)
-
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
-
 ;;; gnuplot-context.el ends here

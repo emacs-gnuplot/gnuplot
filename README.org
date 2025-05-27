@@ -19,73 +19,31 @@ It is recommended to run =gnuplot-mode= on GNU Emacs 25 or above,
 using gnuplot version 5.0 or above.
 
 * Installation
-** Using MELPA
 
-The easiest way to install =gnuplot-mode= is to directly get it from
-[[http://melpa.milkbox.net][MELPA]]. After [[http://melpa.milkbox.net/#installing][configuring Emacs to use MELPA]], you should be able to
-install gnuplot-mode by typing
+The easiest way to install =gnuplot-mode= is to directly get it from [[https://elpa.nongnu.org/][NonGNU ELPA]]
+or [[http://melpa.org][MELPA]]. After configuring Emacs to use MELPA, you should be able to install
+gnuplot-mode by typing
 
 : M-x install-package RET gnuplot RET
 
 or do =M-x list-packages= and search for =gnuplot= in the list.
 
-** Using =el-get=
-
-The [[https://github.com/dimitri/el-get.git][el-get]] package includes a gnuplot-mode recipe. So to install
-simply call
-
-: M-x el-get-install RET gnuplot-mode
-
-Alternatively, you can directly place the following in your init file so that
-=el-get= can install and load gnuplot-mode at Emacs start up:
-
-: (el-get 'sync 'gnuplot-mode)
-
-** From source
-
-After fetching the package's source from [[https://github.com/emacs-gnuplot/gnuplot][the homepage]], byte-compile
-the package's files using the =make= command and move the compiled
-=.elc= files to your chosen target directory.
-
 * Configuration
-** Load Path
 
-First of all, make sure that =gnuplot.el= is in your load-path (this is automatic if using a package helper like use-package). To do so manually, add the following snippet in your emacs configuration file
-
-#+begin_src emacs-lisp
-(add-to-list 'load-path "/path/to/gnuplot")
-#+end_src
-
-** Info File
-
-The function =gnuplot-info-lookup-symbol= looks at the Gnuplot info
-file. For that function to work, a =gnuplot.info= file must be placed
-somewhere where info can find it. The following snippet allows you
-to put the =gnuplot.info= any place convenient:
-
-#+begin_src emacs-lisp
-(add-to-list 'Info-default-directory-list "/path/to/info/file")
-#+end_src
-
-** Enable Mode
-
-You can automatically enable =gnuplot-mode= using the snippet below:
-
-#+begin_src emacs-lisp
-(autoload 'gnuplot-mode "gnuplot" "Gnuplot major mode" t)
-(autoload 'gnuplot-make-buffer "gnuplot" "open a buffer in gnuplot-mode" t)
-(setq auto-mode-alist (append '(("\\.gp$" . gnuplot-mode)) auto-mode-alist))
-#+end_src
+=gnuplot-mode= is enabled automatically for =*.gp= files. The function
+=gnuplot-info-lookup-symbol= looks at the Gnuplot info file. For that function to
+work, a =gnuplot.info= file must be available in a directory in
+=Info-directory-list=.
 
 * Usage
 
-Apart from enabling =gnuplot-mode= automatically (see above), these
-two functions are useful for starting up gnuplot-mode:
+Apart from enabling =gnuplot-mode= automatically for =*.gp= files, these functions
+are useful for starting up gnuplot-mode:
 
+- =M-x run-gnuplot= : start gnuplot repl
 - =M-x gnuplot-mode= : start gnuplot-mode in the current buffer
 - =M-x gnuplot-make-buffer= : open a new buffer (which is not visiting
   a file) and start gnuplot-mode in that buffer
-
 
 ** Bindings
 
@@ -126,7 +84,7 @@ and suggest only relevant completion candidates on typing =M-TAB= or
 tab completion will suggest only plotting styles. This also enables
 more specific help topic lookup in the gnuplot info file, provided you
 have the right version of =gnuplot.info= installed (see the
-Installation section for isntructions).
+Installation section for instructions).
 
 If the context-sensitivity annoys you, you can get simple
 non-context-sensitive completion back by toggling

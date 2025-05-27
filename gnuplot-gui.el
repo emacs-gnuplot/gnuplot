@@ -1650,13 +1650,8 @@ is non-nil if this is a \\='range widget."
                (gnuplot-info-lookup-symbol (widget-value widget)
                                            'gnuplot-mode))))
 
-
-;;; just about done
-
 (provide 'gnuplot-gui)
-
 ;; Local Variables:
 ;; indent-tabs-mode: nil
 ;; End:
-
 ;;; gnuplot-gui.el ends here
