@@ -64,7 +64,6 @@ When =gnuplot-mode= is on, the following keybindings are available:
 | C-c C-k   | kill gnuplot process                                 |
 | C-c C-z   | customize gnuplot-mode                               |
 | M-tab     | complete keyword before point                        |
-| ret       | newline and indent                                   |
 | tab       | indent current line                                  |
 
 
