@@ -49,23 +49,23 @@ are useful for starting up gnuplot-mode:
 
 When =gnuplot-mode= is on, the following keybindings are available:
 
-| C-c C-l        | send current line to gnuplot                         |
-| C-c C-v        | send current line to gnuplot and move forward 1 line |
-| C-c C-r        | send current region to gnuplot                       |
-| C-c C-b        | send entire buffer to gnuplot                        |
-| C-c C-f        | send a file to gnuplot                               |
-| C-c C-i        | insert filename at point                             |
-| C-c C-n        | negate set option on current line                    |
-| C-c C-c        | comment region                                       |
-| C-c C-o        | set arguments for command at point                   |
-| S-mouse-2      | set arguments for command under mouse cursor         |
-| C-c C-d        | read the gnuplot info file                           |
-| C-c C-e        | show-gnuplot-buffer                                  |
-| C-c C-k        | kill gnuplot process                                 |
-| C-c C-z        | customize gnuplot-mode                               |
-| M-tab or M-ret | complete keyword before point                        |
-| ret            | newline and indent                                   |
-| tab            | indent current line                                  |
+| C-c C-l   | send current line to gnuplot                         |
+| C-c C-v   | send current line to gnuplot and move forward 1 line |
+| C-c C-r   | send current region to gnuplot                       |
+| C-c C-b   | send entire buffer to gnuplot                        |
+| C-c C-f   | send a file to gnuplot                               |
+| C-c C-i   | insert filename at point                             |
+| C-c C-n   | negate set option on current line                    |
+| C-c C-c   | comment region                                       |
+| C-c C-o   | set arguments for command at point                   |
+| S-mouse-2 | set arguments for command under mouse cursor         |
+| C-c C-d   | read the gnuplot info file                           |
+| C-c C-e   | show-gnuplot-buffer                                  |
+| C-c C-k   | kill gnuplot process                                 |
+| C-c C-z   | customize gnuplot-mode                               |
+| M-tab     | complete keyword before point                        |
+| ret       | newline and indent                                   |
+| tab       | indent current line                                  |
 
 
 With the exception of the commands for sending commands to Gnuplot,

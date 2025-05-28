@@ -391,7 +391,6 @@ non-nil."
     (define-key map "\C-c\C-z"    #'gnuplot-customize)
     (define-key map "\C-i"        #'indent-for-tab-command)
     (define-key map (kbd "}")     #'gnuplot-electric-insert)
-    (define-key map "\M-\r"       #'completion-at-point)
     (define-key map "\M-\t"       #'completion-at-point)
     (define-key map [S-mouse-2]   'gnuplot-gui-set-options-and-insert)
 
@@ -1362,7 +1361,6 @@ buffer."
 (define-key gnuplot-comint-mode-map "\M-\C-p"   #'gnuplot-plot-from-comint)
 (define-key gnuplot-comint-mode-map "\M-\C-f"   #'gnuplot-save-and-plot-from-comint)
 (define-key gnuplot-comint-mode-map "\C-d"      #'gnuplot-delchar-or-maybe-eof)
-(define-key gnuplot-comint-mode-map "\M-\r"     #'completion-at-point)
 (define-key gnuplot-comint-mode-map "\M-\t"     #'completion-at-point)
 (define-key gnuplot-comint-mode-map "\C-c\C-d"  #'gnuplot-info-lookup-symbol)
 (define-key gnuplot-comint-mode-map "\C-c\C-i"  #'gnuplot-insert-filename)
