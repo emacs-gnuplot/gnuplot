@@ -390,7 +390,6 @@ non-nil."
     (define-key map "\C-c\C-v"    #'gnuplot-send-line-and-forward)
     (define-key map "\C-c\C-z"    #'gnuplot-customize)
     (define-key map "\C-i"        #'indent-for-tab-command)
-    (define-key map "\C-m"        #'newline-and-indent)
     (define-key map (kbd "}")     #'gnuplot-electric-insert)
     (define-key map "\M-\r"       #'completion-at-point)
     (define-key map "\M-\t"       #'completion-at-point)
