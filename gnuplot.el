@@ -309,7 +309,7 @@ symbol `complete' in `gnuplot-mode' buffers."
   :group 'gnuplot
   :type 'boolean)
 
-(defun gnuplot-set-display-mode (variable value &rest _args)
+(defun gnuplot--set-display-mode (variable value &rest _args)
   "Customize :set function for `gnuplot-inline-image-mode'.
 Set VARIABLE to VALUE.  ARGS is optional args."
   (if (and (eq variable 'gnuplot-inline-image-mode)
@@ -341,7 +341,7 @@ and `gnuplot-dedicated-display-mode'."
           (const :tag "In Comint buffer" inline)
           (const :tag "In dedicated buffer" dedicated))
   :initialize #'custom-initialize-default
-  :set #'gnuplot-set-display-mode)
+  :set #'gnuplot--set-display-mode)
 
 (defcustom gnuplot-image-format "png"
   "Image format to use for displaying images within Emacs.
@@ -355,7 +355,7 @@ non-nil."
   :group 'gnuplot
   :type 'string
   :initialize #'custom-initialize-default
-  :set #'gnuplot-set-display-mode)
+  :set #'gnuplot--set-display-mode)
 
 (defgroup gnuplot-faces nil
   "Text faces used by `gnuplot-mode'."
@@ -1088,7 +1088,7 @@ the type of text being sent to gnuplot and is typically one of
 nil, `line', `region', `buffer', or `file'.  TEXT may be useful for
 functions in `gnuplot-after-plot-hook'.  `gnuplot-after-plot-hook' is
 called by this function after all of STRING is sent to gnuplot."
-  (gnuplot-make-gnuplot-buffer)         ; make sure a gnuplot buffer exists
+  (gnuplot--make-gnuplot-buffer)         ; make sure a gnuplot buffer exists
   (setq gnuplot-comint-recent-buffer (current-buffer))
 
   ;; Create a gnuplot frame if needed
@@ -1116,16 +1116,16 @@ called by this function after all of STRING is sent to gnuplot."
         (goto-char (point-max))))
 
     (cond ((equal gnuplot-display-process 'window)
-           (gnuplot-display-and-recenter-gnuplot-buffer))
+           (gnuplot--display-and-recenter-gnuplot-buffer))
           ((equal gnuplot-display-process 'frame)
            ;;(raise-frame gnuplot-process-frame)
            (with-selected-frame gnuplot-process-frame
-             (gnuplot-display-and-recenter-gnuplot-buffer))))
+             (gnuplot--display-and-recenter-gnuplot-buffer))))
 
     (setq gnuplot-recently-sent text)
     (run-hooks 'gnuplot-after-plot-hook)))
 
-(defun gnuplot-display-and-recenter-gnuplot-buffer ()
+(defun gnuplot--display-and-recenter-gnuplot-buffer ()
   "Make sure the gnuplot comint buffer is displayed.
 Move point to the end if necessary."
   (save-selected-window
@@ -1229,7 +1229,7 @@ This sets `gnuplot-recently-sent' to `file'."
   (let ((string (read-file-name "Name of file to send to gnuplot > " nil nil t)))
     (setq string (concat "load '" (expand-file-name string) "'\n"))
     (message "%S" string)
-    (gnuplot-make-gnuplot-buffer)       ; make sure a gnuplot buffer exists
+    (gnuplot--make-gnuplot-buffer)       ; make sure a gnuplot buffer exists
     (gnuplot-send-string-to-gnuplot string 'file)))
 
 ;; suggested by <JS>
@@ -1372,8 +1372,7 @@ buffer."
 (defvar gnuplot-comint-mode-menu nil
   "Menu for `gnuplot-comint-mode'.")
 
-;; Switch to the gnuplot program buffer
-(defun gnuplot-make-gnuplot-buffer ()
+(defun gnuplot--make-gnuplot-buffer ()
   "Switch to the gnuplot program buffer or create one if none exists."
   (unless (and gnuplot-process (eq (process-status gnuplot-process) 'run)
                gnuplot-buffer (buffer-live-p gnuplot-buffer))
@@ -1451,7 +1450,7 @@ the gnuplot process buffer.  When that variable is non-nil, the
 gnuplot process buffer will be displayed in a window."
   (interactive)
   (unless (and gnuplot-buffer (get-buffer gnuplot-buffer))
-    (gnuplot-make-gnuplot-buffer))
+    (gnuplot--make-gnuplot-buffer))
   (cond ((equal gnuplot-display-process 'window)
          (switch-to-buffer-other-window gnuplot-buffer))
         ((equal gnuplot-display-process 'frame)
@@ -1475,22 +1474,22 @@ gnuplot process buffer will be displayed in a window."
 (defun gnuplot-external-display-mode ()
   "Display image in external."
   (interactive)
-  (gnuplot-set-display-mode 'gnuplot-inline-image-mode nil))
+  (gnuplot--set-display-mode 'gnuplot-inline-image-mode nil))
 
 (defun gnuplot-inline-display-mode ()
   "Display image in inline."
   (interactive)
-  (gnuplot-set-display-mode 'gnuplot-inline-image-mode 'inline))
+  (gnuplot--set-display-mode 'gnuplot-inline-image-mode 'inline))
 
 (defun gnuplot-dedicated-display-mode ()
   "Display image in dedicated."
   (interactive)
-  (gnuplot-set-display-mode 'gnuplot-inline-image-mode 'dedicated))
+  (gnuplot--set-display-mode 'gnuplot-inline-image-mode 'dedicated))
 
 (defun gnuplot-set-image-format (format)
   "Display image in FORMAT."
   (interactive "sGnuplot image format: ")
-  (gnuplot-set-display-mode 'gnuplot-image-format format)
+  (gnuplot--set-display-mode 'gnuplot-image-format format)
   (unless gnuplot-inline-image-mode
     (message "Setting will take effect when plots are displayed in Emacs")))
 
@@ -1503,14 +1502,14 @@ gnuplot process buffer will be displayed in a window."
           (progn
             (gnuplot-send-hiding-output
              (format "set terminal %s\n" gnuplot-image-format))
-            (gnuplot-inline-image-set-output)
+            (gnuplot--inline-image-set-output)
             (add-hook 'comint-output-filter-functions
                       #'gnuplot--insert-inline-image-output nil t))
         (gnuplot-send-hiding-output "set terminal pop\n")
         (remove-hook 'comint-output-filter-functions
                      #'gnuplot--insert-inline-image-output t)))))
 
-(defun gnuplot-inline-image-set-output ()
+(defun gnuplot--inline-image-set-output ()
   "Set Gnuplot's output file to `gnuplot-inline-image-filename'."
   (let ((tmp (make-temp-file "gnuplot")))
     (setq gnuplot-inline-image-filename tmp)
@@ -1546,7 +1545,7 @@ updates Gnuplot with the appropriate \"set output\" command."
                       (beginning-of-line)
                       (insert-image image)
                       (insert "\n")
-                      (gnuplot-inline-image-set-output))))
+                      (gnuplot--inline-image-set-output))))
                 (dedicated
                  (with-current-buffer
                      (get-buffer-create gnuplot-image-buffer-name)
@@ -1555,7 +1554,7 @@ updates Gnuplot with the appropriate \"set output\" command."
                      (insert-file-contents filename)
                      (ignore-errors (normal-mode))
                      (display-buffer (current-buffer))
-                     (gnuplot-inline-image-set-output))))))))))))
+                     (gnuplot--inline-image-set-output))))))))))))
 
 ;;; Send commands to GNUPLOT silently & without generating an extra prompt
 (defvar gnuplot-hidden-output-buffer " *gnuplot output*")
@@ -2068,7 +2067,7 @@ following in your .emacs file:
 (defun run-gnuplot ()
   "Run an inferior Gnuplot process."
   (interactive)
-  (gnuplot-make-gnuplot-buffer)
+  (gnuplot--make-gnuplot-buffer)
   (pop-to-buffer gnuplot-buffer))
 
 ;;;###autoload
@@ -2080,17 +2079,21 @@ following in your .emacs file:
 (define-obsolete-function-alias 'gnuplot-close-down #'gnuplot--close-down "0.8.1")
 (define-obsolete-function-alias 'gnuplot-continuation-line-p #'gnuplot--continuation-line-p "0.8.1")
 (define-obsolete-function-alias 'gnuplot-discard-output #'gnuplot--discard-output "0.8.1")
+(define-obsolete-function-alias 'gnuplot-display-and-recenter-gnuplot-buffer #'gnuplot--display-and-recenter-gnuplot-buffer "0.8.1")
 (define-obsolete-function-alias 'gnuplot-end-of-command #'gnuplot--end-of-command "0.8.1")
 (define-obsolete-function-alias 'gnuplot-end-of-continuation #'gnuplot--end-of-continuation "0.8.1")
 (define-obsolete-function-alias 'gnuplot-in-comment #'gnuplot--in-comment "0.8.1")
 (define-obsolete-function-alias 'gnuplot-in-string #'gnuplot--in-string "0.8.1")
 (define-obsolete-function-alias 'gnuplot-in-string-or-comment #'gnuplot--in-string-or-comment "0.8.1")
+(define-obsolete-function-alias 'gnuplot-inline-image-set-output #'gnuplot--inline-image-set-output "0.8.1")
 (define-obsolete-function-alias 'gnuplot-insert-inline-image-output #'gnuplot--insert-inline-image-output "0.8.1")
+(define-obsolete-function-alias 'gnuplot-make-gnuplot-buffer #'gnuplot--make-gnuplot-buffer "0.8.1")
 (define-obsolete-function-alias 'gnuplot-point-at-beginning-of-command #'gnuplot--point-at-beginning-of-command "0.8.1")
 (define-obsolete-function-alias 'gnuplot-point-at-beginning-of-continuation #'gnuplot--point-at-beginning-of-continuation "0.8.1")
 (define-obsolete-function-alias 'gnuplot-point-at-end-of-command #'gnuplot--point-at-end-of-command "0.8.1")
 (define-obsolete-function-alias 'gnuplot-point-at-end-of-continuation #'gnuplot--point-at-end-of-continuation "0.8.1")
 (define-obsolete-function-alias 'gnuplot-protect-prompt-fn #'gnuplot--protect-prompt-fn "0.8.1")
+(define-obsolete-function-alias 'gnuplot-set-display-mode #'gnuplot--set-display-mode "0.8.1")
 (define-obsolete-function-alias 'gnuplot-set-keywords-list #'gnuplot--set-keywords-list "0.8.1")
 (define-obsolete-function-alias 'gnuplot-setup-comint-for-image-mode #'gnuplot--setup-comint-for-image-mode "0.8.1")
 (define-obsolete-function-alias 'gnuplot-split-string #'gnuplot--split-string "0.8.1")
