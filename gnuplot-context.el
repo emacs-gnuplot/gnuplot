@@ -1736,9 +1736,9 @@ token before point.")
   "Relevant page of the Gnuplot info manual for the construction at point.
 
 Set by `gnuplot-context--match-pattern' using information from
-`gnuplot-context--compiled-grammar'.  `gnuplot-context--match-pattern' pushes ElDoc
-and info strings onto the stack as it runs, and scans the stack
-for the topmost entry when it reaches the token at point.")
+`gnuplot-context--compiled-grammar'.  `gnuplot-context--match-pattern'
+pushes ElDoc and info strings onto the stack as it runs, and scans the
+stack for the topmost entry when it reaches the token at point.")
 
 (defvar gnuplot-context--captures nil
   "Alist of named capture groups for `gnuplot-mode' completion code.
