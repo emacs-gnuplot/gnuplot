@@ -84,7 +84,7 @@
 
 (defun gnuplot-dump-code (&optional inst)
   (interactive)
-  (let ((inst (or inst gnuplot-compiled-grammar)))
+  (let ((inst (or inst gnuplot-context--compiled-grammar)))
     (with-gnuplot-trace-buffer
      (insert "\n-- * compiled code: * --\n")
      (dotimes (i (length inst))
@@ -94,17 +94,17 @@
 
 (defun gnuplot-dump-captures ()
   (interactive)
-  (if gnuplot-captures
+  (if gnuplot-context--captures
       (with-gnuplot-trace-buffer
        (insert "\n-- * capture groups: * --\n")
-       (cl-loop for c on gnuplot-captures
+       (cl-loop for c on gnuplot-context--captures
              do
              (let ((name (caar c))
-                   (gnuplot-captures c))
+                   (gnuplot-context--captures c))
                (insert (format "%s\t%s\n"
                                name
                                (mapconcat 'gnuplot-token-id
-                                          (gnuplot-capture-group name)
+                                          (gnuplot-context--capture-group name)
                                           " ")))))
        (insert "-- end capture groups  --\n\n"))))
 

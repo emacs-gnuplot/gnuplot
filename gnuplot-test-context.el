@@ -18,13 +18,13 @@
 
 
 ;;
-(defun gnuplot-tokenize-string (string)
+(defun gnuplot-context--tokenize-string (string)
   (with-temp-buffer
     (gnuplot-mode)
     (insert string)
     (syntax-propertize (point-max))
     (goto-char (point-max))
-    (gnuplot-tokenize)))
+    (gnuplot-context--tokenize)))
 
 (defun gnuplot-simplify-tokens (tokens)
   (mapcar
@@ -44,17 +44,17 @@
 
 ;; compile a single pattern to usable form
 (eval-and-compile
-  (defun gnuplot-compile-pattern-1 (pattern)
-    (gnuplot-compile-grammar `((rule ,pattern)) 'rule)))
+  (defun gnuplot-context--compile-pattern-1 (pattern)
+    (gnuplot-context--compile-grammar `((rule ,pattern)) 'rule)))
 
 ;; match a string
 (defun gnuplot-match-string (string rule)
   (if (vectorp rule)
-      (gnuplot-match-pattern
-       rule (gnuplot-tokenize-string string) nil)
-    (gnuplot-match-pattern
-     gnuplot-compiled-grammar
-     (gnuplot-tokenize-string string)
+      (gnuplot-context--match-pattern
+       rule (gnuplot-context--tokenize-string string) nil)
+    (gnuplot-context--match-pattern
+     gnuplot-context--compiled-grammar
+     (gnuplot-context--tokenize-string string)
      nil rule)))
 
 ;; with-gensyms
@@ -72,7 +72,7 @@
   (with-gensyms (tokens result rest)
                 `(let ((rule ,(if (symbolp rule)
                                   `(quote ,rule)
-                                (gnuplot-compile-pattern-1 rule))))
+                                (gnuplot-context--compile-pattern-1 rule))))
                    ,@(mapcar
                       (lambda (pair)
                         (if (stringp pair)
@@ -410,11 +410,11 @@
         (let ((ln (line-number-at-pos))
               (tokens (progn
                         (gnuplot--end-of-command)
-                        (gnuplot-tokenize))))
+                        (gnuplot-context--tokenize))))
           (when (> (length tokens) 1)
             (let ((result
-                   (gnuplot-match-pattern
-                    gnuplot-compiled-grammar
+                   (gnuplot-context--match-pattern
+                    gnuplot-context--compiled-grammar
                     tokens nil)))
               (cl-incf gnuplot-test-count)
               (if (equal result '(nil))

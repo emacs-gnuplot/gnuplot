@@ -79,14 +79,14 @@
 ;; point.
 ;;
 ;; The parsing/matching process happens in two phases: tokenizing
-;; (`gnuplot-tokenize') and matching (`gnuplot-match-pattern').  In
+;; (`gnuplot-context--tokenize') and matching (`gnuplot-context--match-pattern').  In
 ;; order to be able to construct a full list of possible completions
 ;; via backtracking, the matching algorithm simulates a simple stack
 ;; machine with continuations.  At byte-compile time, the PEG-like
 ;; grammar in S-expression notation (`gnuplot-grammar') is compiled
 ;; down into a vector of "machine code" for the parsing machine (see
-;; `gnuplot-compile-pattern', `gnuplot-compile-grammar' and
-;; `gnuplot-compiled-grammar').  This is complicated, but it seems to
+;; `gnuplot-context--compile-pattern', `gnuplot-context--compile-grammar' and
+;; `gnuplot-context--compiled-grammar').  This is complicated, but it seems to
 ;; work well enough, and it saves on the Emacs call stack.
 ;;
 ;; Compiling the grammar does require increasing `max-lisp-eval-depth'
@@ -100,7 +100,7 @@
 ;; The pattern-matching language
 ;; =============================
 ;;
-;; The gnuplot-mode grammar (see `gnuplot-compiled-grammar') is a list
+;; The gnuplot-mode grammar (see `gnuplot-context--compiled-grammar') is a list
 ;; of rules (RULE PATTERN), with each pattern written in S-expression
 ;; notation as follows:
 ;;
@@ -166,8 +166,8 @@
 ;;
 ;;    (capture NAME PATTERN)
 ;;      Match PATTERN, capturing the tokens in a capture group named
-;;      NAME.  Capture groups are stored in `gnuplot-captures'
-;;      and can be retrieved using `gnuplot-capture-group'.  This is
+;;      NAME.  Capture groups are stored in `gnuplot-context--captures'
+;;      and can be retrieved using `gnuplot-context--capture-group'.  This is
 ;;      used to store the plotting style, which we need in order to
 ;;      give the correct ElDoc string for "using" clauses, and for
 ;;      info keywords (see below)
@@ -192,7 +192,7 @@
 ;;  Evaluate LISP-FORM and fail if it returns NIL.  We need this in
 ;;  the patterns for "plot" and "splot" to check whether the
 ;;  command at point should be parsed in parametric mode or
-;;  not.  See `gnuplot-guess-parametric-p'.
+;;  not.  See `gnuplot-context--guess-parametric-p'.
 ;;
 ;;
 ;; Bugs, TODOs, etc.
@@ -244,7 +244,7 @@
   id        ; Text
   type)     ; a symbol: name, number, string, operator, separator
 
-(defvar gnuplot-operator-regexp
+(defvar gnuplot-context--operator-regexp
   (eval-when-compile
     (regexp-opt
      '("(" ")" "(" ")" "{" "," "}" "[" ":" "]" "!" "**" "-" "+" "~" "!" "*" "/"
@@ -253,7 +253,7 @@
   "Regexp to match Gnuplot operators for tokenizing.")
 
 (eval-when-compile
-  (defmacro gnuplot-tokenize-by-regexps (&rest rules)
+  (defmacro gnuplot-context--tokenize-by-regexps (&rest rules)
     `(cond ,@(mapcar
               (lambda (rule)
                 (let ((regexp (car rule))
@@ -267,7 +267,7 @@
                                           :end (match-end 0))))))
               rules))))
 
-(defun gnuplot-tokenize (&optional completing-p)
+(defun gnuplot-context--tokenize (&optional completing-p)
   "Tokenize the Gnuplot command at point.
 Return a list of `gnuplot-token' objects.
 
@@ -295,10 +295,10 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
         (let* ((from (point))
                (token
                 (cond
-                 ((gnuplot-tokenize-by-regexps
+                 ((gnuplot-context--tokenize-by-regexps
                    ("[[:alpha:]_][[:alpha:]0-9_]*" name)
                    ("[0-9]+\\(\\.[0-9]*\\)?\\([eE][+-]?[0-9]+\\)?\\|\\.[0-9]+\\([eE][+-]?[0-9]+\\)?" number)
-                   (gnuplot-operator-regexp operator)
+                   (gnuplot-context--operator-regexp operator)
                    (";" separator)))
 
                  ((looking-at "['\"]")
@@ -311,7 +311,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
                      :start from :end to)))
 
                  (t (error
-                     "Gnuplot-tokenize: bad token beginning %s"
+                     "gnuplot-context--tokenize: bad token beginning %s"
                      (buffer-substring-no-properties (point) stop-point))))))
 
           (push token tokens))))
@@ -335,7 +335,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 ;;
 ;; These functions compile the source S-expression grammar into a
 ;; vector of instructions for the parsing machine,
-;; `gnuplot-match-pattern'. Its state consists of a program counter
+;; `gnuplot-context--match-pattern'. Its state consists of a program counter
 ;; (PC), a position in the list of tokens, a call stack, and a second
 ;; stack of backtracking entries (continuations). Its "machine
 ;; instructions" are the following:
@@ -404,12 +404,12 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 ;;
 ;;    (save-start NAME)
 ;;      Open a capture group named NAME. Pushes an entry onto
-;;      `gnuplot-captures' with current position in token list as the
+;;      `gnuplot-context--captures' with current position in token list as the
 ;;      start of the group.
 ;;
 ;;    (save-end NAME)
 ;;      Close the capture group named NAME. Finds the topmost entry in
-;;      `gnuplot-captures' with this name and sets its endpoint to the
+;;      `gnuplot-context--captures' with this name and sets its endpoint to the
 ;;      current position in token list. Error if no group with that
 ;;      name is found.
 ;;
@@ -424,8 +424,8 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
   ;; Compile a single pattern into a list of instructions. Leaves
   ;; calls to other rules as symbolic instructions (call SYMBOL) and
   ;; jumps, commits etc. as relative offsets; these are resolved into
-  ;; absolute locations by `gnuplot-compile-grammar', below.
-  (defun gnuplot-compile-pattern (pat)
+  ;; absolute locations by `gnuplot-context--compile-grammar', below.
+  (defun gnuplot-context--compile-pattern (pat)
     (cond
      ;; Strings match a single token literally
      ((stringp pat)
@@ -442,7 +442,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
      ;; Syntactic sugar: write sequences (sequence ...) as vectors [...]
      ((vectorp pat)
-      (gnuplot-compile-pattern
+      (gnuplot-context--compile-pattern
        (append '(sequence) pat '())))
 
      ;; Other forms combine simpler patterns
@@ -454,11 +454,11 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           ((sequence)
            (cl-destructuring-bind
                (subpats eldoc info)
-               (gnuplot-filter-arg-list (cdr pat))
+               (gnuplot-context--filter-arg-list (cdr pat))
              (let ((eldoc-push '()) (eldoc-pop '())
                    (info-push '()) (info-pop '())
                    (compiled
-                    (mapcar 'gnuplot-compile-pattern subpats)))
+                    (mapcar 'gnuplot-context--compile-pattern subpats)))
                (if eldoc
                    (setq eldoc-push `((push eldoc ,eldoc))
                          eldoc-pop `((pop eldoc))))
@@ -479,16 +479,16 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           ((either)
            (cond
             ((= (length pat) 2)         ; trivial case
-             (gnuplot-compile-pattern (cadr pat)))
+             (gnuplot-context--compile-pattern (cadr pat)))
 
             ((> (length pat) 3)         ; could be more efficient...
-             (gnuplot-compile-pattern (gnuplot-either-helper pat)))
+             (gnuplot-context--compile-pattern (gnuplot-context--either-helper pat)))
 
             (t              ; two patterns
              (let* ((pat1 (cadr pat))
                     (pat2 (cl-caddr pat))
-                    (pat1-c (gnuplot-compile-pattern pat1))
-                    (pat2-c (gnuplot-compile-pattern pat2))
+                    (pat1-c (gnuplot-context--compile-pattern pat1))
+                    (pat2-c (gnuplot-context--compile-pattern pat2))
                     (pat1-l (length pat1-c))
                     (pat2-l (length pat2-c)))
                `((choice ,(+ pat1-l 2))
@@ -499,7 +499,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           ;; Repetition (*)
           ((many)
            (let* ((pat1 (cons 'sequence (cdr pat)))
-                  (pat1-c (gnuplot-compile-pattern pat1))
+                  (pat1-c (gnuplot-context--compile-pattern pat1))
                   (pat1-l (length pat1-c)))
              `((choice ,(+ pat1-l 3))
                (check-progress)         ; bail out of infinite loops
@@ -509,14 +509,14 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           ;; Repetition (+)
           ((many1)
            (let* ((pat1 (cdr pat)))
-             (gnuplot-compile-pattern
+             (gnuplot-context--compile-pattern
               `(sequence ,@pat1 (many ,@pat1)))))
 
 
           ;; Optional (?)
           ((maybe)
            (let* ((pat1 (cons 'sequence (cdr pat)))
-                  (pat1-c (gnuplot-compile-pattern pat1))
+                  (pat1-c (gnuplot-context--compile-pattern pat1))
                   (pat1-l (length pat1-c)))
              `((choice ,(+ pat1-l 1))
                ,@pat1-c)))
@@ -525,20 +525,20 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           ((delimited-list)
            (let* ((item (cadr pat))
                   (sep (cl-caddr pat)))
-             (gnuplot-compile-pattern
+             (gnuplot-context--compile-pattern
               `(sequence ,item (many (sequence ,sep ,item))))))
 
           ;; keywords
           ((kw)
            (cl-destructuring-bind (regex name)
-               (gnuplot-keyword-helper (cdr pat))
+               (gnuplot-context--keyword-helper (cdr pat))
              `((keyword ,regex ,name))))
 
           ;; Capturing groups
           ((capture)
            (let* ((name (cadr pat))
                   (pat1 (cons 'sequence (cddr pat)))
-                  (pat1-c (gnuplot-compile-pattern pat1)))
+                  (pat1-c (gnuplot-context--compile-pattern pat1)))
              `((save-start ,name)
                ,@pat1-c
                (save-end ,name))))
@@ -546,7 +546,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           ;; Use the first token as an info keyword
           ((info-keyword)
            (let* ((pat1 (cons 'sequence (cdr pat)))
-                  (pat1-c (gnuplot-compile-pattern pat1)))
+                  (pat1-c (gnuplot-context--compile-pattern pat1)))
              `((push info first-token)
                ,@pat1-c
                (pop info))))
@@ -557,12 +557,12 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
              `((assert ,form))))
 
           (t
-           (error "Gnuplot-compile-pattern: bad pattern form %s" pat)))))))
+           (error "gnuplot-context--compile-pattern: bad pattern form %s" pat)))))))
 
   ;; Helper function for destructuring (sequence ...) forms in patterns
   ;; Takes the cdr of the sequence form, returns a list (PATTERNS ELDOC
   ;; INFO).
-  (defun gnuplot-filter-arg-list (args)
+  (defun gnuplot-context--filter-arg-list (args)
     (let ((accum '())
           (eldoc nil) (info nil))
       (dolist (item args)
@@ -576,7 +576,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
   ;; Helper function for compiling (kw...) patterns
   ;; Takes the cdr of the kw form, returns a list (REGEXP KEYWORD)
-  (defun gnuplot-keyword-helper (args)
+  (defun gnuplot-context--keyword-helper (args)
     (let ((keyword (car args)) (aliases (cdr args)))
       (when (consp keyword)
         (let ((pre (car keyword)) (suf (cdr keyword)))
@@ -594,18 +594,18 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
   ;; Helper function for compiling (either ...) patterns. Rewrites
   ;; alternates (either A B C) into (either A (either B (either C D)))
-  (defun gnuplot-either-helper (pat)
+  (defun gnuplot-context--either-helper (pat)
     (if (= (length pat) 3)
         pat
       `(either ,(cadr pat)
-               ,(gnuplot-either-helper
+               ,(gnuplot-context--either-helper
                  (cons 'either (cddr pat))))))
 
   ;; Compile the grammar (a list of rule-pattern pairs (RULE PATTERN))
   ;; into a single vector of matching-machine instructions. Compiles
   ;; each pattern individually, then "links" them into one vector,
   ;; converting symbolic (call ...) instructions into numeric offsets
-  (defun gnuplot-compile-grammar (grammar start-symbol)
+  (defun gnuplot-context--compile-grammar (grammar start-symbol)
     (let ((compiled-pats '())         ; Alist of (name . instructions)
           ;; Reserve space for a jump to the start symbol
           (code-length 1))
@@ -614,7 +614,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
       (dolist (item grammar)
         (let* ((name (car item))
                (pat (cadr item))
-               (code (gnuplot-compile-pattern pat)))
+               (code (gnuplot-context--compile-pattern pat)))
           (push (cons name code) compiled-pats)
           ;; Reserve space for a label at the beginning and (return) at
           ;; the end
@@ -653,7 +653,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
                           (location (gethash name name->offset)))
                      (if (not location)
                          (error
-                          (concat "gnuplot-compile-grammar: "
+                          (concat "gnuplot-context--compile-grammar: "
                                   "No rule found for symbol `%s' in pattern `%s'")
                           name pattern-name))
                      (setcdr inst `(,location ,name))))
@@ -664,14 +664,14 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
                      (setcdr inst `(,location))))
 
                   (t
-                   (error "Gnuplot-compile-grammar: bad instruction %s" inst))))))))
+                   (error "gnuplot-context--compile-grammar: bad instruction %s" inst))))))))
         object-code))))
 
 ;;; The grammar.
-(defvar gnuplot-compiled-grammar
+(defvar gnuplot-context--compiled-grammar
   (eval-when-compile
     (let ((max-lisp-eval-depth 600))
-      (gnuplot-compile-grammar
+      (gnuplot-context--compile-grammar
        '((expression
           [infix-expression (maybe "?" expression ":" expression)])
 
@@ -781,7 +781,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
            (either
             ;; Parametric ranges
-            [(assert (gnuplot-guess-parametric-p))
+            [(assert (gnuplot-context--guess-parametric-p))
              (maybe t-axis-range) (maybe x-axis-range) (maybe y-axis-range)]
 
             ;; Non-parametric ranges
@@ -796,7 +796,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
            (either
             ;; Parametric ranges
-            [(assert (gnuplot-guess-parametric-p))
+            [(assert (gnuplot-context--guess-parametric-p))
              (maybe u-axis-range) (maybe v-axis-range)
              (maybe x-axis-range) (maybe y-axis-range) (maybe z-axis-range)]
 
@@ -1727,30 +1727,30 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
 
 ;;;; Variables to be set via pattern matching
-(defvar gnuplot-completions nil
+(defvar gnuplot-context--completions nil
   "List of possible `gnuplot-mode' completions at point.
-This is filled in by `gnuplot-match-pattern' when it reaches the
+This is filled in by `gnuplot-context--match-pattern' when it reaches the
 token before point.")
 
 (defvar gnuplot-info-at-point nil
   "Relevant page of the Gnuplot info manual for the construction at point.
 
-Set by `gnuplot-match-pattern' using information from
-`gnuplot-compiled-grammar'.  `gnuplot-match-pattern' pushes ElDoc
+Set by `gnuplot-context--match-pattern' using information from
+`gnuplot-context--compiled-grammar'.  `gnuplot-context--match-pattern' pushes ElDoc
 and info strings onto the stack as it runs, and scans the stack
 for the topmost entry when it reaches the token at point.")
 
 (defvar gnuplot-eldoc nil
   "ElDoc documentation string for the Gnuplot construction at point.
 
-Set by `gnuplot-match-pattern'.  See also `gnuplot-info-at-point'.")
+Set by `gnuplot-context--match-pattern'.  See also `gnuplot-info-at-point'.")
 
-(defvar gnuplot-captures nil
+(defvar gnuplot-context--captures nil
   "Alist of named capture groups for `gnuplot-mode' completion code.
 
 Each entry is of the form (NAME BEGIN END), where NAME is the
 name specified in the (capture NAME PATTERN) form in the
-`gnuplot-compiled-grammar' source, BEGIN is the tail of the token
+`gnuplot-context--compiled-grammar' source, BEGIN is the tail of the token
 list beginning the capture group, and END is the tail of the
 token list just after the end of the capture group.")
 
@@ -1762,14 +1762,14 @@ These have to be compiled from the Gnuplot source tree using
 
 
 ;;;; The pattern matching machine
-(defun gnuplot-match-pattern (instructions tokens completing-p
+(defun gnuplot-context--match-pattern (instructions tokens completing-p
                                            &optional start-symbol)
   "Parse TOKENS, setting completions, info and ElDoc information.
 
 This function parses TOKENS by simulating a stack machine with
 unlimited backtracking.  If COMPLETING-P is non-nil, it stops
 before the token at point and collects a list of the next tokens
-that it would accept in `gnuplot-completions'.  If COMPLETING-P is
+that it would accept in `gnuplot-context--completions'.  If COMPLETING-P is
 nil, it parses up to the token at point and sets `gnuplot-eldoc'
 and `gnuplot-info-at-point' based on the contents of the stack
 there."
@@ -1797,16 +1797,16 @@ there."
             (cl-incf pc))
           (cl-incf pc)))
 
-      (setq gnuplot-completions nil
+      (setq gnuplot-context--completions nil
             gnuplot-eldoc nil
             gnuplot-info-at-point nil
-            gnuplot-captures nil)
+            gnuplot-context--captures nil)
 
       (cl-flet ((advance
               ()
               (pop tokens)
               (if (and (null tokens) (not completing-p))
-                  (gnuplot-scan-stack stack tokens)))
+                  (gnuplot-context--scan-stack stack tokens)))
              (fail () (setq fail t)))
 
         ;; Main loop
@@ -1825,7 +1825,7 @@ there."
                  (cond (end-of-tokens
                         (unless no-complete
                           (gnuplot-trace "\tpushing \"%s\" to completions\n" expect)
-                          (push expect gnuplot-completions))
+                          (push expect gnuplot-context--completions))
                         (fail))
 
                        ((not (equal (gnuplot-token-id token) expect))
@@ -1849,7 +1849,7 @@ there."
                      (name (cl-caddr inst)))
                  (cond (end-of-tokens
                         (gnuplot-trace "\tpushing \"%s\" to completions\n" name)
-                        (push name gnuplot-completions)
+                        (push name gnuplot-context--completions)
                         (fail))
 
                        ((not (string-match-p regexp (gnuplot-token-id token)))
@@ -1896,7 +1896,7 @@ there."
               ;; backtracking points and continue at next instruction
               ((choice)
                (let ((location (cadr inst)))
-                 (push `(,stack ,tokens ,location ,gnuplot-captures
+                 (push `(,stack ,tokens ,location ,gnuplot-context--captures
                                 ,progress)
                        backtrack)))
 
@@ -1938,13 +1938,13 @@ there."
               ;; beginning of capture group NAME
               ((save-start)
                (let ((name (cadr inst)))
-                 (push `(,name ,tokens nil) gnuplot-captures)))
+                 (push `(,name ,tokens nil) gnuplot-context--captures)))
 
               ;; (save-end NAME): save current token pointer as end of
               ;; capture group NAME
               ((save-end)
                (let* ((name (cadr inst))
-                      (record (assoc name gnuplot-captures)))
+                      (record (assoc name gnuplot-context--captures)))
                  (if (not record)
                      (error "Gnuplot-match-tokens: no open capture group named %s" name)
                    (setf (cl-caddr record) tokens)
@@ -1973,7 +1973,7 @@ there."
                 ;; If we got as far as token-at-point before failing,
                 ;; scan the stack for eldoc and info strings
                 (when (and end-of-tokens (not completing-p))
-                  (gnuplot-scan-stack stack tokens))
+                  (gnuplot-context--scan-stack stack tokens))
 
                 (cl-destructuring-bind
                     (bt-stack bt-tokens bt-pc bt-captures bt-progress)
@@ -1981,12 +1981,12 @@ there."
                   (setq stack bt-stack
                         tokens bt-tokens
                         pc bt-pc
-                        gnuplot-captures bt-captures
+                        gnuplot-context--captures bt-captures
                         progress bt-progress
                         fail nil)
                   (gnuplot-debug (gnuplot-dump-progress progress)))))))))))
 
-(defun gnuplot-scan-stack (stack tokens)
+(defun gnuplot-context--scan-stack (stack tokens)
   "Scan STACK for the most recently pushed eldoc and info strings."
   (gnuplot-trace "\t* scanning stack *\n")
   (gnuplot-debug (gnuplot-backtrace stack))
@@ -2030,9 +2030,9 @@ there."
                    (gnuplot-trace "\tset eldoc to \"%s\"\n" gnuplot-eldoc)))))))
       (pop stack))))
 
-(defun gnuplot-capture-group (name)
+(defun gnuplot-context--capture-group (name)
   "Return capture group NAME from the most recent parse, as a list of tokens."
-  (let ((record (assoc name gnuplot-captures)))
+  (let ((record (assoc name gnuplot-context--captures)))
     (if (not record) nil
       (let ((begin (cadr record))
             (end (cl-caddr record))
@@ -2041,21 +2041,16 @@ there."
           (push (pop begin) accum))
         (nreverse accum)))))
 
-(defun gnuplot-capture-group->string (name)
-  (let ((tokens (gnuplot-capture-group name)))
-    (and tokens
-         (mapconcat 'gnuplot-token-id tokens " "))))
-
 
 ;;; Interface to the matching machine
-(defun gnuplot-parse-at-point (completing-p)
-  (let ((tokens (gnuplot-tokenize completing-p)))
-    (gnuplot-match-pattern gnuplot-compiled-grammar tokens completing-p)))
+(defun gnuplot-context--parse-at-point (completing-p)
+  (let ((tokens (gnuplot-context--tokenize completing-p)))
+    (gnuplot-context--match-pattern gnuplot-context--compiled-grammar tokens completing-p)))
 
 ;; Completions
-(defun gnuplot-completions ()
-  (gnuplot-parse-at-point t)
-  gnuplot-completions)
+(defun gnuplot-context--completions ()
+  (gnuplot-context--parse-at-point t)
+  gnuplot-context--completions)
 
 (defun gnuplot-context-completion-at-point ()
   "Return completions of keyword preceding point, using context."
@@ -2063,18 +2058,18 @@ there."
           (skip-syntax-backward "w_" (gnuplot--point-at-beginning-of-command))
           (point))
         (point)
-        (gnuplot-completions)))
+        (gnuplot-context--completions)))
 
 ;; Eldoc help
 (defun gnuplot-eldoc-function ()
   "Return the ElDoc string for the Gnuplot construction at point."
-  (gnuplot-parse-at-point nil)
+  (gnuplot-context--parse-at-point nil)
   gnuplot-eldoc)
 
 (defun gnuplot-help-function ()
   "Pop up the extended documentation for the construction at point."
   (interactive)
-  (gnuplot-parse-at-point nil)
+  (gnuplot-context--parse-at-point nil)
   (if (and gnuplot-info-at-point gnuplot-eldoc-hash)
       (let ((eldoc
              (cadr (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
@@ -2086,7 +2081,7 @@ there."
   (interactive "P")
   (setq gnuplot-info-at-point nil)
   (unless query
-    (gnuplot-parse-at-point nil))
+    (gnuplot-context--parse-at-point nil))
   (if (or query (not gnuplot-info-at-point))
       (let ((info
              (info-lookup-interactive-arguments 'symbol)))
@@ -2153,8 +2148,8 @@ there."
 
 This will fail if the \"using\" clause comes before the \"with\"
 clause."
-  (let ((with-style (gnuplot-capture-group :with-style))
-        (3d-p (gnuplot-capture-group :splot-command))
+  (let ((with-style (gnuplot-context--capture-group :with-style))
+        (3d-p (gnuplot-context--capture-group :splot-command))
         (column-description nil))
     (if with-style
         (let ((with-style-string (gnuplot-token-id (car with-style))))
@@ -2166,7 +2161,7 @@ clause."
     (format "using %s {'format'}" column-description)))
 
 ;;; Needed for correctly parsing plot commands
-(defun gnuplot-guess-parametric-p (&optional start)
+(defun gnuplot-context--guess-parametric-p (&optional start)
   "Guess whether the command beginning at START is in parametric mode.
 
 Searches backward in current buffer for an \"(un)set parametric\"

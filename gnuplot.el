@@ -862,7 +862,7 @@ characters.")
 ;; These regular expressions treat the gnuplot vocabulary as complete
 ;; words.  Although gnuplot will recognise unique abbreviations, these
 ;; regular expressions will not.
-(defmacro gnuplot-make-regexp (list)
+(defmacro gnuplot--make-regexp (list)
   "Macro to generate efficient regexps for keyword matching from LIST."
   `(regexp-opt ,list 'words))
 
@@ -924,7 +924,7 @@ These are highlighted using `font-lock-constant-face'.")
   "List of gnuplot options which can be negated using `gnuplot-negate-option'.")
 
 (defvar gnuplot-negatable-options-regexp
-  (gnuplot-make-regexp gnuplot-keywords-negatable-options))
+  (gnuplot--make-regexp gnuplot-keywords-negatable-options))
 
 ;; Set up colorization for gnuplot.
 (defvar gnuplot-font-lock-keywords
@@ -936,13 +936,13 @@ These are highlighted using `font-lock-constant-face'.")
      (1 'font-lock-variable-name-face))
 
     ;; built-in function names
-    (,(gnuplot-make-regexp gnuplot-keywords-builtin-functions)
+    (,(gnuplot--make-regexp gnuplot-keywords-builtin-functions)
      (0 'font-lock-function-name-face))
 
     ;; reserved words associated with plotting <AL>
-    (,(gnuplot-make-regexp gnuplot-keywords-plotting)
+    (,(gnuplot--make-regexp gnuplot-keywords-plotting)
      (0 'font-lock-type-face))
-    (,(gnuplot-make-regexp gnuplot-keywords-plotting-styles)
+    (,(gnuplot--make-regexp gnuplot-keywords-plotting-styles)
      (0 'font-lock-function-name-face))
 
     ;; (s)plot -- also thing (s)plotted
@@ -951,7 +951,7 @@ These are highlighted using `font-lock-constant-face'.")
     ;;  (1 'font-lock-variable-name-face))
 
     ;; other common commands
-    (,(gnuplot-make-regexp gnuplot-keywords-misc)
+    (,(gnuplot--make-regexp gnuplot-keywords-misc)
      (0 'font-lock-constant-face))
     ("!.*$" (0 'font-lock-constant-face))))
 
