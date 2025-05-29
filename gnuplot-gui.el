@@ -842,7 +842,7 @@ Note that \"cntrparam\" is not currently supported."
   (interactive (list last-nonmenu-event))
   (save-excursion
     (if event (mouse-set-point event))
-    (let ((begin  (gnuplot-point-at-beginning-of-command))
+    (let ((begin  (gnuplot--point-at-beginning-of-command))
           (end    (save-excursion (end-of-line)       (point-marker)))
           (termin (concat "\\(,\\s-*" (regexp-quote "\\") "\\|;\\)"))
           (set nil) (term nil))

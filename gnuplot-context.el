@@ -275,13 +275,13 @@ If COMPLETING-P is non-nil, omits the token at point if it is a
 name; otherwise continues tokenizing up to the token at point.  FIXME."
   (let ((tokens '())
         (stop-point (min (point)
-                         (gnuplot-point-at-end-of-command))))
+                         (gnuplot--point-at-end-of-command))))
     (save-excursion
       (if (save-excursion               ; HACK FIXME
-            (gnuplot-beginning-of-continuation)
+            (gnuplot--beginning-of-continuation)
             (looking-at "\\s-*if\\s-*("))
-          (gnuplot-beginning-of-continuation)
-        (gnuplot-beginning-of-command))
+          (gnuplot--beginning-of-continuation)
+        (gnuplot--beginning-of-command))
       (while
           ;; Skip whitespace and continuation lines
           (progn
@@ -2060,7 +2060,7 @@ there."
 (defun gnuplot-context-completion-at-point ()
   "Return completions of keyword preceding point, using context."
   (list (save-excursion
-          (skip-syntax-backward "w_" (gnuplot-point-at-beginning-of-command))
+          (skip-syntax-backward "w_" (gnuplot--point-at-beginning-of-command))
           (point))
         (point)
         (gnuplot-completions)))
@@ -2176,7 +2176,7 @@ command."
     (catch 'result
       (while
           (search-backward-regexp "reset\\|set\\s-+parametric" (point-min) t)
-        (gnuplot-beginning-of-command)
+        (gnuplot--beginning-of-command)
         (cond ((looking-at "reset\\|unset\\s-+parametric") (throw 'result nil))
               ((looking-at "set\\s-+parametric") (throw 'result t))))
       nil)))

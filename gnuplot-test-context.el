@@ -409,7 +409,7 @@
       (while (not (eobp))
         (let ((ln (line-number-at-pos))
               (tokens (progn
-                        (gnuplot-end-of-command)
+                        (gnuplot--end-of-command)
                         (gnuplot-tokenize))))
           (when (> (length tokens) 1)
             (let ((result
@@ -421,8 +421,8 @@
                   (cl-incf gnuplot-test-success-count)
                 (let ((cmd
                        (buffer-substring
-                        (gnuplot-point-at-beginning-of-command)
-                        (gnuplot-point-at-end-of-command))))
+                        (gnuplot--point-at-beginning-of-command)
+                        (gnuplot--point-at-end-of-command))))
                   (with-current-buffer
                       (get-buffer-create gnuplot-test-result-buffer)
                     (insert
@@ -431,7 +431,7 @@
                       (insert
                        (format "\tUNMATCHED TOKENS were: %s\n"
                                (gnuplot-simplify-tokens (car result)))))))))))
-        (gnuplot-beginning-of-defun -1)))))
+        (gnuplot--beginning-of-defun -1)))))
 
 (when (boundp 'compilation-error-regexp-alist-alist)
   (add-to-list 'compilation-error-regexp-alist-alist
