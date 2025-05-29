@@ -74,8 +74,8 @@
 ;; features was to do a complete parse of the command line.  So that's
 ;; what this package does.  Instead of building a parse tree, it
 ;; matches up until the token at point, and then either makes a list
-;; of possible completions, or sets the variables `gnuplot-eldoc' and
-;; `gnuplot-info-at-point' based on where it is in the grammar at that
+;; of possible completions, or sets the variables `gnuplot-context--eldoc' and
+;; `gnuplot-context--info-at-point' based on where it is in the grammar at that
 ;; point.
 ;;
 ;; The parsing/matching process happens in two phases: tokenizing
@@ -1732,7 +1732,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 This is filled in by `gnuplot-context--match-pattern' when it reaches the
 token before point.")
 
-(defvar gnuplot-info-at-point nil
+(defvar gnuplot-context--info-at-point nil
   "Relevant page of the Gnuplot info manual for the construction at point.
 
 Set by `gnuplot-context--match-pattern' using information from
@@ -1749,7 +1749,7 @@ name specified in the (capture NAME PATTERN) form in the
 list beginning the capture group, and END is the tail of the
 token list just after the end of the capture group.")
 
-(defvar gnuplot-eldoc nil
+(defvar gnuplot-context--eldoc nil
   "ElDoc documentation string for the Gnuplot construction at point.
 
 Set by `gnuplot-context--match-pattern'.  See also `gnuplot-info-at-point'.")
@@ -1770,8 +1770,8 @@ This function parses TOKENS by simulating a stack machine with
 unlimited backtracking.  If COMPLETING-P is non-nil, it stops
 before the token at point and collects a list of the next tokens
 that it would accept in `gnuplot-context--completions'.  If COMPLETING-P is
-nil, it parses up to the token at point and sets `gnuplot-eldoc'
-and `gnuplot-info-at-point' based on the contents of the stack
+nil, it parses up to the token at point and sets `gnuplot-context--eldoc'
+and `gnuplot-context--info-at-point' based on the contents of the stack
 there."
   (catch 'return
     (let ((pc 0)            ; Program counter
@@ -1798,8 +1798,8 @@ there."
           (cl-incf pc)))
 
       (setq gnuplot-context--completions nil
-            gnuplot-eldoc nil
-            gnuplot-info-at-point nil
+            gnuplot-context--eldoc nil
+            gnuplot-context--info-at-point nil
             gnuplot-context--captures nil)
 
       (cl-flet ((advance
@@ -1994,7 +1994,7 @@ there."
 
   (catch 'no-scan
     (while (and stack
-                (not (and gnuplot-info-at-point gnuplot-eldoc)))
+                (not (and gnuplot-context--info-at-point gnuplot-context--eldoc)))
       (let* ((item (car stack))
              (type (car item))
              (position (cl-caddr item))) ; must progress by at least one token
@@ -2005,29 +2005,29 @@ there."
                (throw 'no-scan nil))
 
               ((info)
-               (when (not gnuplot-info-at-point)
+               (when (not gnuplot-context--info-at-point)
                  (let ((info (cadr item)))
-                   (setq gnuplot-info-at-point
+                   (setq gnuplot-context--info-at-point
                          (cond
                           ((eq info 'first-token)
                            (gnuplot-token-id (car position)))
                           ((functionp info) (funcall info))
                           (t info)))
-                   (when gnuplot-info-at-point
-                     (gnuplot-context--trace "\tset info to \"%s\"\n" gnuplot-info-at-point)
-                     (when (and (not gnuplot-eldoc) gnuplot-eldoc-hash)
+                   (when gnuplot-context--info-at-point
+                     (gnuplot-context--trace "\tset info to \"%s\"\n" gnuplot-context--info-at-point)
+                     (when (and (not gnuplot-context--eldoc) gnuplot-eldoc-hash)
                        (let ((eldoc
-                              (car (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
+                              (car (gethash gnuplot-context--info-at-point gnuplot-eldoc-hash))))
                          (when eldoc
-                           (setq gnuplot-eldoc eldoc)
+                           (setq gnuplot-context--eldoc eldoc)
                            (gnuplot-context--trace "\tand set eldoc to \"%s\"\n" eldoc))))))))
 
               ((eldoc)
-               (when (not gnuplot-eldoc)
+               (when (not gnuplot-context--eldoc)
                  (let ((eldoc (cadr item)))
-                   (setq gnuplot-eldoc
+                   (setq gnuplot-context--eldoc
                          (if (functionp eldoc) (funcall eldoc) eldoc))
-                   (gnuplot-context--trace "\tset eldoc to \"%s\"\n" gnuplot-eldoc)))))))
+                   (gnuplot-context--trace "\tset eldoc to \"%s\"\n" gnuplot-context--eldoc)))))))
       (pop stack))))
 
 (defun gnuplot-context--capture-group (name)
@@ -2064,30 +2064,30 @@ there."
 (defun gnuplot-eldoc-function (&rest _)
   "Return the ElDoc string for the Gnuplot construction at point."
   (gnuplot-context--parse-at-point nil)
-  gnuplot-eldoc)
+  gnuplot-context--eldoc)
 
 (defun gnuplot-help-function ()
   "Pop up the extended documentation for the construction at point."
   (interactive)
   (gnuplot-context--parse-at-point nil)
-  (if (and gnuplot-info-at-point gnuplot-eldoc-hash)
+  (if (and gnuplot-context--info-at-point gnuplot-eldoc-hash)
       (let ((eldoc
-             (cadr (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
+             (cadr (gethash gnuplot-context--info-at-point gnuplot-eldoc-hash))))
         (if eldoc (message eldoc)))))
 
 ;; Info lookup
 (defun gnuplot-info-at-point (&optional query)
   "Open the relevant gnuplot info page for the construction at point."
   (interactive "P")
-  (setq gnuplot-info-at-point nil)
+  (setq gnuplot-context--info-at-point nil)
   (unless query
     (gnuplot-context--parse-at-point nil))
-  (if (or query (not gnuplot-info-at-point))
+  (if (or query (not gnuplot-context--info-at-point))
       (let ((info
              (info-lookup-interactive-arguments 'symbol)))
-        (setq gnuplot-info-at-point (car info))))
-  (when gnuplot-info-at-point
-    (gnuplot-context--find-info-node gnuplot-info-at-point)))
+        (setq gnuplot-context--info-at-point (car info))))
+  (when gnuplot-context--info-at-point
+    (gnuplot-context--find-info-node gnuplot-context--info-at-point)))
 
 (defun gnuplot-context--find-info-node (node)
   (save-window-excursion
