@@ -44,19 +44,19 @@
     (load-library "gnuplot-debug-context"))
   (gnuplot-recompile))
 
-(defmacro with-gnuplot-trace-buffer (&rest body)
-  `(with-current-buffer (get-buffer-create "gnuplot-trace")
+(defmacro gnuplot-context--with-trace-buffer (&rest body)
+  `(with-current-buffer (get-buffer-create "gnuplot-context-trace")
      ,@body))
 
-(defmacro gnuplot-debug (&rest args)
+(defmacro gnuplot-context--debug (&rest args)
   `(progn ,@args))
 
-(defmacro gnuplot-trace (&rest args)
-  `(with-gnuplot-trace-buffer (insert (format ,@args))))
+(defmacro gnuplot-context--trace (&rest args)
+  `(gnuplot-context--with-trace-buffer (insert (format ,@args))))
 
 (defun gnuplot-backtrace (stack)
   (if stack
-      (with-gnuplot-trace-buffer
+      (gnuplot-context--with-trace-buffer
        (insert "\n-- * backtrace: * --\n")
        (dolist (x stack)
          (insert (format "%s\n"
@@ -68,7 +68,7 @@
 
 (defun gnuplot-dump-backtrack (backtrack)
   (if backtrack
-      (with-gnuplot-trace-buffer
+      (gnuplot-context--with-trace-buffer
        (insert "\n-- * backtrack records: * --\n")
        (dolist (x backtrack)
          (insert (format "%s\t%s\n" (cl-caddr x) (gnuplot-simplify-tokens (cadr x)))))
@@ -76,7 +76,7 @@
 
 (defun gnuplot-dump-progress (progress)
   (if progress
-      (with-gnuplot-trace-buffer
+      (gnuplot-context--with-trace-buffer
        (insert "\n-- * progress records: * --\n")
        (dolist (x progress)
          (insert (format "%s\t%s\n" (car x) (gnuplot-simplify-tokens (cdr x)))))
@@ -85,7 +85,7 @@
 (defun gnuplot-dump-code (&optional inst)
   (interactive)
   (let ((inst (or inst gnuplot-context--compiled-grammar)))
-    (with-gnuplot-trace-buffer
+    (gnuplot-context--with-trace-buffer
      (insert "\n-- * compiled code: * --\n")
      (dotimes (i (length inst))
        (insert (format "%s\t%s\n" i (aref inst i))))
@@ -95,7 +95,7 @@
 (defun gnuplot-dump-captures ()
   (interactive)
   (if gnuplot-context--captures
-      (with-gnuplot-trace-buffer
+      (gnuplot-context--with-trace-buffer
        (insert "\n-- * capture groups: * --\n")
        (cl-loop for c on gnuplot-context--captures
              do

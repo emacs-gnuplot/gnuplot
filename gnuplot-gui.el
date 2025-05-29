@@ -103,9 +103,9 @@ the first entry in the list be a blank string."
   :type '(repeat (string :tag "Font name:")))
 
 ;; some global variables
-(defvar gnuplot-current-frame nil)
-(defvar gnuplot-current-buffer nil)
-(defvar gnuplot-current-buffer-point nil)
+(defvar gnuplot-gui-current-frame nil)
+(defvar gnuplot-gui-current-buffer nil)
+(defvar gnuplot-gui-current-buffer-point nil)
 (defvar gnuplot-gui-alist nil)
 (defvar gnuplot-gui-current-string nil)
 
@@ -120,7 +120,7 @@ the first entry in the list be a blank string."
 (defsubst gnuplot-gui-type-fourth  (obj) (elt obj 4))
 (defsubst gnuplot-gui-type-list    (obj) (cddr obj))
 
-(defun gnuplot-this-word ()
+(defun gnuplot-gui-this-word ()
   "Return the word under point."
   (let ((begin (save-excursion (beginning-of-line) (point-marker)))
         (end   (save-excursion (end-of-line)       (point-marker))))
@@ -860,10 +860,10 @@ Note that \"cntrparam\" is not currently supported."
                (setq set t)
                (goto-char (match-end 0))
                (if (looking-at "\\sw+") (goto-char (match-end 0)))
-               (when (string-match "^ter" (gnuplot-this-word)) ; terminal?
+               (when (string-match "^ter" (gnuplot-gui-this-word)) ; terminal?
                  (setq term t)
                  (forward-word 1))
-               (when (string-match "^\\(da\\|fu\\)" (gnuplot-this-word))
+               (when (string-match "^\\(da\\|fu\\)" (gnuplot-gui-this-word))
                  (unless (looking-at "\\s-+st")
                    (insert " style") (forward-word 1))
                  (forward-word 1)))
@@ -875,7 +875,7 @@ Note that \"cntrparam\" is not currently supported."
               (t
                (forward-word 1)))
         (if (> (point) end) (goto-char end))
-        (let* ((w (gnuplot-this-word))
+        (let* ((w (gnuplot-gui-this-word))
                (wd (try-completion w gnuplot-gui-all-types))
                (word "") wrd list)
           (cond ((equal wd t)                     (setq word w))
@@ -1217,9 +1217,9 @@ ITEM is the object for which arguments are being set.  ALIST is
 the alist of arguments for ITEM taken from `gnuplot-gui-all-types'.
 SAVE-FRAME is non-nil when the widgets are being reset."
   (unless save-frame
-    (setq gnuplot-current-frame (selected-frame)
-          gnuplot-current-buffer (current-buffer)
-          gnuplot-current-buffer-point (point-marker))
+    (setq gnuplot-gui-current-frame (selected-frame)
+          gnuplot-gui-current-buffer (current-buffer)
+          gnuplot-gui-current-buffer-point (point-marker))
     (unless (and gnuplot-gui-frame (frame-live-p gnuplot-gui-frame))
       (setq gnuplot-gui-frame (make-frame gnuplot-gui-frame-parameters)))
     (select-frame gnuplot-gui-frame)
@@ -1309,16 +1309,16 @@ SAVE-FRAME is non-nil when the widgets are being reset."
                  (lambda (widget &rest _ignore)
                    (kill-buffer (get-buffer-create "*Gnuplot GUI*"))
                    (delete-frame)
-                   (select-frame gnuplot-current-frame)
-                   (switch-to-buffer gnuplot-current-buffer)
-                   (goto-char gnuplot-current-buffer-point)
+                   (select-frame gnuplot-gui-current-frame)
+                   (switch-to-buffer gnuplot-gui-current-buffer)
+                   (goto-char gnuplot-gui-current-buffer-point)
                    (gnuplot-gui-post-process-alist
                     (widget-get widget :doc))
                    (let ((alist gnuplot-gui-alist) marker
                          (eol (save-excursion (end-of-line) (point-marker) )) )
                      (if (re-search-forward ";" eol "to_limit")
                          (backward-char 1))
-                     (delete-region gnuplot-current-buffer-point (point-marker))
+                     (delete-region gnuplot-gui-current-buffer-point (point-marker))
                      (delete-horizontal-space)
                      (setq marker (point-marker))
                      (while alist
@@ -1374,7 +1374,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
                            (setq gnuplot-gui-alist nil
                                  gnuplot-gui-current-string nil)
                            (delete-frame)
-                           (select-frame gnuplot-current-frame)))
+                           (select-frame gnuplot-gui-current-frame)))
   (goto-char (point-min))
   (use-local-map widget-keymap)
   (widget-setup))

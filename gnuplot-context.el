@@ -790,7 +790,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
            plot-body])
 
          (splot-command
-          [ ;; This capturing group lets `gnuplot-find-using-eldoc' know
+          [ ;; This capturing group lets `gnuplot-context--find-using-eldoc' know
            ;; that this is an splot command
            (capture :splot-command (kw ("spl" . "ot")))
 
@@ -1007,7 +1007,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           [(kw "thru") expression])
 
          (using-modifier
-          [(:eldoc gnuplot-find-using-eldoc)
+          [(:eldoc gnuplot-context--find-using-eldoc)
            (kw ("u" . "sing"))
            (either
             string
@@ -1720,9 +1720,9 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 ;; them. For normal use, they compile to no-ops.
 (eval-when-compile
   (when (not (featurep 'gnuplot-debug-context))
-    (defmacro with-gnuplot-trace-buffer (&rest _) "No-op." '(progn nil))
-    (defmacro gnuplot-trace (&rest _) "No-op." '(progn nil))
-    (defmacro gnuplot-debug (&rest _) "No-op." '(progn nil))))
+    (defmacro gnuplot-context--with-trace-buffer (&rest _) "No-op." '(progn nil))
+    (defmacro gnuplot-context--trace (&rest _) "No-op." '(progn nil))
+    (defmacro gnuplot-context--debug (&rest _) "No-op." '(progn nil))))
 
 
 
@@ -1740,11 +1740,6 @@ Set by `gnuplot-context--match-pattern' using information from
 and info strings onto the stack as it runs, and scans the stack
 for the topmost entry when it reaches the token at point.")
 
-(defvar gnuplot-eldoc nil
-  "ElDoc documentation string for the Gnuplot construction at point.
-
-Set by `gnuplot-context--match-pattern'.  See also `gnuplot-info-at-point'.")
-
 (defvar gnuplot-context--captures nil
   "Alist of named capture groups for `gnuplot-mode' completion code.
 
@@ -1753,6 +1748,11 @@ name specified in the (capture NAME PATTERN) form in the
 `gnuplot-context--compiled-grammar' source, BEGIN is the tail of the token
 list beginning the capture group, and END is the tail of the
 token list just after the end of the capture group.")
+
+(defvar gnuplot-eldoc nil
+  "ElDoc documentation string for the Gnuplot construction at point.
+
+Set by `gnuplot-context--match-pattern'.  See also `gnuplot-info-at-point'.")
 
 (defvar gnuplot-eldoc-hash nil
   "ElDoc strings for `gnuplot-mode'.
@@ -1789,7 +1789,7 @@ there."
           ;; of conses (pc . tokens)
           (progress '()))
 
-      (with-gnuplot-trace-buffer (erase-buffer))
+      (gnuplot-context--with-trace-buffer (erase-buffer))
 
       (when start-symbol        ; HACK FIXME
         (let ((look-for `(label ,start-symbol)))
@@ -1815,7 +1815,7 @@ there."
                  (opcode (car inst))
                  (token (car tokens))
                  (end-of-tokens (null tokens)))
-            (gnuplot-trace "%s\t%s\t%s\n" pc inst (and token (gnuplot-token-id token)))
+            (gnuplot-context--trace "%s\t%s\t%s\n" pc inst (and token (gnuplot-token-id token)))
 
             (cl-case opcode
               ;; (literal LITERAL NO-COMPLETE)
@@ -1824,7 +1824,7 @@ there."
                      (no-complete (cl-caddr inst)))
                  (cond (end-of-tokens
                         (unless no-complete
-                          (gnuplot-trace "\tpushing \"%s\" to completions\n" expect)
+                          (gnuplot-context--trace "\tpushing \"%s\" to completions\n" expect)
                           (push expect gnuplot-context--completions))
                         (fail))
 
@@ -1848,7 +1848,7 @@ there."
                (let ((regexp (cadr inst))
                      (name (cl-caddr inst)))
                  (cond (end-of-tokens
-                        (gnuplot-trace "\tpushing \"%s\" to completions\n" name)
+                        (gnuplot-context--trace "\tpushing \"%s\" to completions\n" name)
                         (push name gnuplot-context--completions)
                         (fail))
 
@@ -1948,7 +1948,7 @@ there."
                  (if (not record)
                      (error "Gnuplot-match-tokens: no open capture group named %s" name)
                    (setf (cl-caddr record) tokens)
-                   (gnuplot-debug (gnuplot-dump-captures)))))
+                   (gnuplot-context--debug (gnuplot-dump-captures)))))
 
               ;; (check-progress): make sure not stuck in an infinite loop
               ((check-progress)
@@ -1968,8 +1968,8 @@ there."
             (when fail
               (if (not backtrack)   ; Out of backtracking stack: failed match
                   (throw 'return nil)
-                (gnuplot-trace "\t*fail*\t%s\n" (length backtrack))
-                (gnuplot-debug (gnuplot-dump-backtrack backtrack))
+                (gnuplot-context--trace "\t*fail*\t%s\n" (length backtrack))
+                (gnuplot-context--debug (gnuplot-dump-backtrack backtrack))
                 ;; If we got as far as token-at-point before failing,
                 ;; scan the stack for eldoc and info strings
                 (when (and end-of-tokens (not completing-p))
@@ -1984,13 +1984,13 @@ there."
                         gnuplot-context--captures bt-captures
                         progress bt-progress
                         fail nil)
-                  (gnuplot-debug (gnuplot-dump-progress progress)))))))))))
+                  (gnuplot-context--debug (gnuplot-dump-progress progress)))))))))))
 
 (defun gnuplot-context--scan-stack (stack tokens)
   "Scan STACK for the most recently pushed eldoc and info strings."
-  (gnuplot-trace "\t* scanning stack *\n")
-  (gnuplot-debug (gnuplot-backtrace stack))
-  (gnuplot-debug (gnuplot-dump-captures))
+  (gnuplot-context--trace "\t* scanning stack *\n")
+  (gnuplot-context--debug (gnuplot-backtrace stack))
+  (gnuplot-context--debug (gnuplot-dump-captures))
 
   (catch 'no-scan
     (while (and stack
@@ -2014,20 +2014,20 @@ there."
                           ((functionp info) (funcall info))
                           (t info)))
                    (when gnuplot-info-at-point
-                     (gnuplot-trace "\tset info to \"%s\"\n" gnuplot-info-at-point)
+                     (gnuplot-context--trace "\tset info to \"%s\"\n" gnuplot-info-at-point)
                      (when (and (not gnuplot-eldoc) gnuplot-eldoc-hash)
                        (let ((eldoc
                               (car (gethash gnuplot-info-at-point gnuplot-eldoc-hash))))
                          (when eldoc
                            (setq gnuplot-eldoc eldoc)
-                           (gnuplot-trace "\tand set eldoc to \"%s\"\n" eldoc))))))))
+                           (gnuplot-context--trace "\tand set eldoc to \"%s\"\n" eldoc))))))))
 
               ((eldoc)
                (when (not gnuplot-eldoc)
                  (let ((eldoc (cadr item)))
                    (setq gnuplot-eldoc
                          (if (functionp eldoc) (funcall eldoc) eldoc))
-                   (gnuplot-trace "\tset eldoc to \"%s\"\n" gnuplot-eldoc)))))))
+                   (gnuplot-context--trace "\tset eldoc to \"%s\"\n" gnuplot-eldoc)))))))
       (pop stack))))
 
 (defun gnuplot-context--capture-group (name)
@@ -2087,9 +2087,9 @@ there."
              (info-lookup-interactive-arguments 'symbol)))
         (setq gnuplot-info-at-point (car info))))
   (when gnuplot-info-at-point
-    (gnuplot--find-info-node gnuplot-info-at-point)))
+    (gnuplot-context--find-info-node gnuplot-info-at-point)))
 
-(defun gnuplot--find-info-node (node)
+(defun gnuplot-context--find-info-node (node)
   (save-window-excursion
     (info (format "(gnuplot)%s" node)))
   (gnuplot--adjust-info-display))
@@ -2100,7 +2100,7 @@ there."
 ;; ElDoc strings for "using" specs, which depend on other information
 ;; from the parsed command
 
-(defvar gnuplot-using-eldoc
+(defvar gnuplot-context--using-eldoc
   '(("boxerrorbars" . "x:y:ydelta{:xdelta} | x:y:ylow:yhigh{:xdelta}")
     ("boxes" . "x:y{:x_width}")
     ("boxxyerrorbars" . "x:y:xdelta:ydelta | x:y:xlow:xhigh:ylow:yhigh")
@@ -2128,7 +2128,7 @@ there."
     ("xyerrorlines" . "x:y:xdelta:ydelta | x:y:xlow:xhigh:ylow:yhigh"))
   "Alist of ElDoc strings for Gnuplot \"using\" clauses in \"plot\" commands.")
 
-(defvar gnuplot-using-3d-eldoc
+(defvar gnuplot-context--using-3d-eldoc
   (append
    '(("fsteps" . "z | x:y:z")
      ("histeps" . "z | x:y:z")
@@ -2140,10 +2140,10 @@ there."
      ("lines" . "z | x:y:z")
      ("steps" . "z | x:y:z")
      ("vectors" . "x:y:z:xdelta:ydelta:zdelta"))
-   gnuplot-using-eldoc)
+   gnuplot-context--using-eldoc)
   "Alist of ElDoc strings for Gnuplot \"using\" clauses in \"splot\" commands.")
 
-(defun gnuplot-find-using-eldoc ()
+(defun gnuplot-context--find-using-eldoc ()
   "Return ElDoc string for a Gnuplot \"using\" clause, based on plotting style.
 
 This will fail if the \"using\" clause comes before the \"with\"
@@ -2155,8 +2155,8 @@ clause."
         (let ((with-style-string (gnuplot-token-id (car with-style))))
           (setq column-description
                 (or (and 3d-p
-                         (cdr (assoc with-style-string gnuplot-using-3d-eldoc)))
-                    (cdr (assoc with-style-string gnuplot-using-eldoc))
+                         (cdr (assoc with-style-string gnuplot-context--using-3d-eldoc)))
+                    (cdr (assoc with-style-string gnuplot-context--using-eldoc))
                     "<columns>"))))
     (format "using %s {'format'}" column-description)))
 
