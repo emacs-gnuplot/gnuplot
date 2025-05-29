@@ -3,14 +3,15 @@
 *.elc
 *.log
 *.pdf
+*.tar.gz
+*.tar.xz
 */#*#
 *~
 .#*
 /#*#
 /*-autoloads.el
 /*-pkg.el
+/gnuplot-*.*.*/
 /gpelcard.ps
 /hacks.el
 /info-look.el
-gnuplot-mode-*.tar.gz
-/gnuplot-*.*.*/
