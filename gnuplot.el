@@ -294,7 +294,7 @@ suggestions."
                (gnuplot-context-sensitive-mode (if value 1 0))))))
   :link '(emacs-commentary-link "gnuplot-context"))
 
-(defcustom gnuplot-eldoc-mode nil
+(defcustom gnuplot-eldoc-mode t
   "Non-nil if ElDoc mode should be enabled by default in Gnuplot buffers.
 ElDoc support requires `gnuplot-context-sensitive-mode' to be
 on."

@@ -98,9 +98,8 @@ terminal= commands.
 
 ** Eldoc mode
 
-If you install the file =gnuplot-eldoc.el= from a recent Gnuplot
-distribution, gnuplot-mode can show syntax hints in the modeline when
-~eldoc-mode~ is turned on and context sensitivity is enabled.
+~gnuplot-mode~ can show syntax hints in the modeline when ~eldoc-mode~
+is turned on and context sensitivity is enabled.
 
 ** Inline Images
 
