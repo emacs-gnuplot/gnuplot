@@ -2061,7 +2061,7 @@ there."
         (gnuplot-context--completions)))
 
 ;; Eldoc help
-(defun gnuplot-eldoc-function ()
+(defun gnuplot-eldoc-function (&rest _)
   "Return the ElDoc string for the Gnuplot construction at point."
   (gnuplot-context--parse-at-point nil)
   gnuplot-eldoc)
@@ -2225,22 +2225,12 @@ distribution. See gnuplot-context.el for details."
         (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)
 
         ;; Setup Eldoc
-        (setq-local eldoc-documentation-function #'gnuplot-eldoc-function)
+        (add-hook 'eldoc-documentation-functions #'gnuplot-eldoc-function nil 'local)
         (eldoc-add-command 'completion-at-point)     ; Check for eldoc after completion
 
         ;; Try to load Eldoc strings
-        (when gnuplot-eldoc-mode
-          (unless gnuplot-eldoc-hash
-            (condition-case nil
-                (load-library "gnuplot-eldoc")
-              (error
-               (message "gnuplot-eldoc.el not found. Install it from the Gnuplot distribution.")
-               (setq gnuplot-eldoc-hash nil
-                     gnuplot-eldoc-mode nil))))
-
-          (if gnuplot-eldoc-hash
-              (eldoc-mode 1)
-            (eldoc-mode 0)))
+        (when (and gnuplot-eldoc-mode (not gnuplot-eldoc-hash))
+          (load "gnuplot-eldoc" nil t))
 
         ;; Set up tab-to-complete
         (when gnuplot-tab-completion
@@ -2248,8 +2238,7 @@ distribution. See gnuplot-context.el for details."
 
     ;; Turn off
     (setq gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look)
-    (setq eldoc-documentation-function nil)
-    (eldoc-mode 0)))
+    (remove-hook 'eldoc-documentation-functions #'gnuplot-eldoc-function 'local)))
 
 (provide 'gnuplot-context)
 ;; Local Variables:
