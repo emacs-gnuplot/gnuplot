@@ -155,3 +155,11 @@ by doing =pause -1 "Hit return"= or similar.
 ** Issue with Unicode Character Display
 
 Some users have reported [[https://github.com/emacs-gnuplot/gnuplot/issues/39][issues when trying to display unicode characters]]. This issue is likely due to your distribution bundling gnuplot with [[https://unix.stackexchange.com/questions/496206/unicode-in-gnuplot-terminal/496245#496245][editline instead of readline]]. Recompiling the source with support for unicode should fix the issue until this issue is fixed upstream. Thanks to [[https://github.com/rolandog][rolandog]] for discovering this fix.
+
+* Maintenance
+
+Regenerate gnuplot.texi and gnuplot-eldoc.el from the Gnuplot source.
+
+1. ~emacs -batch -l doc2texi.el -f d2t-doc-to-texi~ inside the gnuplot-*/docs/ directory
+2. ~makeinfo --no-split gnuplot.texi~ and ensure that it compiles cleanly
+3. ~install-info --dir=dir *.info~ to generate dir file

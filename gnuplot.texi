@@ -968,7 +968,7 @@ More terminals (png/jpeg/sixel/kitty) scale the size of a "dot" by the
 current line width.  Some other terminals already did this.
 @item
 Plot styles that draw error bars place a gap at the position of the data
-point.  The size of the gap is controlled by @ref{pointintervalbox}. 
+point.  The size of the gap is controlled by @ref{pointintervalbox}.
 @item
 Multiplots can now be redrawn or rescaled (see `new multiplots`).
 Because of this it is no longer possible to read in-line data from
@@ -3285,7 +3285,7 @@ real arguments a > 0, z >= 0.
 The inverse incomplete gamma function `invigamma(a,p)` returns the value
 z such that p = igamma(a,z).
 p is limited to (0;1]. a must be a positive real number.
-The implementation in gnuplot has relative accuracy that ranges from 
+The implementation in gnuplot has relative accuracy that ranges from
 1.e-16 for a<1 to 5.e-6 for a = 1.e10.  Convergence may fail for a < 0.005.
 
 
@@ -3610,7 +3610,7 @@ including for example use of `columnhead` in constructing the plot title.
 @c ?expressions functions column
 @cindex column
 
-The `column(x)` function may be used only in the `using` specifier 
+The `column(x)` function may be used only in the `using` specifier
 of a plot, splot, fit, or stats command.
 It evaluates to the numerical value of the content of column x.
 If the column is expected to hold a string, use instead stringcolumn(x)
@@ -6519,7 +6519,7 @@ Examples
      set ytics rangelimited nomirror
      plot 'dataset_A' using (1.):2:xticlabel('A') with boxplot, \
           'dataset_B' using (2.):2:xticlabel('B') with boxplot
-      
+
      #
      # Compare y-values from two categories of data in the same file.
      # Each line contains a category string ("A" or "B") in column 1 and
@@ -7168,7 +7168,7 @@ a point-density function can be mapped onto a gridded plane or smooth surface.
 See @ref{dgrid3d}.  The gridded surface can then be plotted as a pm3d surface
 (see @ref{masking} example). In this case the points on the heat map do not retain
 a one-to-one correspondence with the input data.  I.e. the validity of the heat
-map represenation is only as good as the gridded approximation. 
+map represenation is only as good as the gridded approximation.
 The demo collection has examples of generating 2D heatmaps from a set of points
 @uref{http://www.gnuplot.info/demo/heatmap_points.html,heatmap_points.dem
 }
@@ -7460,7 +7460,7 @@ cases there may be additional properties of the data that could be
 visualized by, say, varying the intensity or saturation of their base
 color.  As an alternative to the automatic color assignment, you can
 provide an explicit color value for each data value in a second `using`
-column via the `linecolor variable` or `rgb variable` mechanism. 
+column via the `linecolor variable` or `rgb variable` mechanism.
 See @ref{colorspec}. Depending on the layout of your data, the color category
 might correspond to a row header or a column header or a data column.
 Note that you will probably have to customize the key sample colors
@@ -7538,7 +7538,7 @@ the adjacent inner points (see @ref{histeps}, @ref{boxes}).
 
 The default (`baseline`) and `pillar` variants employ a baseline y value.
 If not provided in the plot command, the baseline is taken to be y=0.
-If the plot command uses a fill style, the baseline also serves to 
+If the plot command uses a fill style, the baseline also serves to
 delimit one boundary of the fill area.
 Four style variants are possible.
 
@@ -7712,7 +7712,7 @@ for `splot`.  The r, g, b, and alpha components are assumed to lie in the range
 the range [0:1], first use the command `set rgbmax 1.0`.
 
 If only a single data column is provided for the color components of either
-rgbimage or rgbalpha plots, it is interpreted as containing 32 bit packed ARGB 
+rgbimage or rgbalpha plots, it is interpreted as containing 32 bit packed ARGB
 data using the convention that alpha=0 means opaque and alpha=255 means fully
 transparent. Note that this is backwards from the alpha convention if alpha
 is supplied in a separate column, but matches the ARGB packing convention for
@@ -8278,7 +8278,7 @@ other polar mode plot styles.
 An example of using sectors to create a wind rose in shown here.
 Other applications include polar heatmaps, dial charts, pie/donut charts,
 and annular error boxes for data points in polar coordinates.
-Worked examples for all of these are given in the 
+Worked examples for all of these are given in the
 @uref{http://www.gnuplot.info/demo/sectors.html,sectors demo.
 }
 
@@ -8598,7 +8598,7 @@ The @ref{yerrorbars} (or @ref{errorbars}) style is only relevant to 2D data plot
 At each point (x,y), a line is drawn from (x,y-ydelta) to (x,y+ydelta) or
 from (x,ylow) to (x,yhigh), depending on how many data columns are provided.
 The appearance of the tic mark at the ends of the bar is controlled by
-@ref{errorbars}.  The clearance between the point and the error bars is 
+@ref{errorbars}.  The clearance between the point and the error bars is
 controlled by @ref{pointintervalbox}.  To have the error bars pass directly
 through the point with no interruption, use @ref{pointintervalbox}.
 
@@ -11378,7 +11378,7 @@ See also @ref{matrix}.
 
 Filter operations are applied immediately after reading input data, before
 applying any smoothing or style-specific processing options.
-In general the purpose of a filter is to replace the original full set of 
+In general the purpose of a filter is to replace the original full set of
 input points with a selected subset of points, possibly modified, regrouped,
 or reordered,
 The filters currently supported are `bins`, `convexhull`, `concavehull`,
@@ -11461,7 +11461,7 @@ For related processing options see `smooth frequency` and `smooth kdensity`.
 @cindex convexhull
 
 
-Convexhull is not a plot style. It can appear either alone as a filter 
+Convexhull is not a plot style. It can appear either alone as a filter
 keyword or in combination with `smooth path` and/or `expand <increment>`.
 
 @example
@@ -11591,7 +11591,7 @@ Example:
 
 Without the "sharpen" keyword, the resulting graph shows a continuous curve
 with minima at intervals of pi that should reach zero but are artefactually
-truncated to apparent minimal y values between 0.02 and 0.20. 
+truncated to apparent minimal y values between 0.02 and 0.20.
 Adding the "sharpen" keyword produces instead a correct representation of
 the function with periodic sharp minima that reach y=0.
 D sharpen 1
@@ -11919,7 +11919,7 @@ input file, where a blank line separates the sets.
 Plotting `smooth path with filledcurves closed` will guarantee that each set
 of points creates a closed curve.  Plotting `smooth path with lines` will
 generate a closed curve if the first and last points in the set overlap,
-otherwise it will create an open-ended smooth path.  See 
+otherwise it will create an open-ended smooth path.  See
 @uref{http://www.gnuplot.info/demo_6.0/smooth_path.html,smooth_path.dem
 }
 
@@ -13909,7 +13909,7 @@ but
 @end example
 
 See also
-@uref{http://www.gnuplot.info/demo/poldat.html,poldat.dem: polar plot using @ref{angles} demo.
+@uref{http://www.gnuplot.info/demo/poldat.html,poldat.dem: polar plot using angles demo.
 }
 
 @node arrow, autoscale, angles, set-show
@@ -14510,7 +14510,7 @@ of a square cross section independent of the axis scales on x and y.
 The concave hull filter creates χ-shapes defined by a characteristic length
 chi_length.  If no chi_length variable has been set, it chooses a value equal
 to a fraction of the longest edge in the bounding polygon (the convex hull).
-The fraction defaults to 0.6 but can be changed using this command. 
+The fraction defaults to 0.6 but can be changed using this command.
 Choosing a value of 1.0 will reduce the resulting hull to the convex hull.
 Smaller values will produce increasingly concave hulls. See `concavehull`.
 The @ref{chi_shapes} command restores the fraction to 0.6 and undefines
@@ -14523,7 +14523,7 @@ the chi_length variable.
 @c ?set color
 Gnuplot assigns each element of a `plot` or `splot` command a new set of line
 properties taken from a predefined sequence.  The default is to distinguish
-successive lines by a change in color.  The alternative selected by 
+successive lines by a change in color.  The alternative selected by
 @ref{monochrome} uses a sequence of black lines distinguished by linewidth or
 dot/dash pattern.  The `set color` command exits this alternative monochrome
 mode and restores the previous set of default color lines.
@@ -16768,7 +16768,7 @@ or to individual plot titles.
      set key notitle
      set key nobox noopaque
      set key fixed right top vertical Right noreverse enhanced autotitle
-     set key noinvert samplen 4 spacing 1 width 0 height 0 
+     set key noinvert samplen 4 spacing 1 width 0 height 0
      set key maxcolumns 0 maxrows 0
 
 @end example
@@ -19085,7 +19085,7 @@ Syntax:
                  @{   rgbformulae <r>,<g>,<b>
                    | defined @{ ( <gray1> <color1> @{, <grayN> <colorN>@}... ) @}
                    | file '<filename>' @{datafile-modifiers@}
-                   | colormap <colormap-name> 
+                   | colormap <colormap-name>
                    | functions <R>,<G>,<B>
                  @}
                  @{ cubehelix @{start <val>@} @{cycles <val>@} @{saturation <val>@} @}
@@ -19872,7 +19872,7 @@ two-color 3D surface.
      set style line 102 lc "blue"
      set pm3d depthorder
      do for [i=0:N] @{
-         splot f(x,y) with pm3d fillcolor ls 101 zclip [* : zmax-(i*delta)] 
+         splot f(x,y) with pm3d fillcolor ls 101 zclip [* : zmax-(i*delta)]
          pause 0.2  # 1/5 second between animation frames
      @}
 
@@ -25844,7 +25844,7 @@ routines, for example gnuplot.toggle_visibility("fishplot_plot_2").
 @tmindex cgm
 
 
-The `cgm` terminal generates a Computer Graphics Metafile, Version 1. 
+The `cgm` terminal generates a Computer Graphics Metafile, Version 1.
 This file format is a subset of the ANSI X3.122-1986 standard entitled
 "Computer Graphics - Metafile for the Storage and Transfer of Picture
 Description Information".
@@ -25861,8 +25861,8 @@ Syntax:
 
 `solid` draws all curves with solid lines, overriding any dashed patterns;
 <mode> is `landscape`, `portrait`, or `default`;
-<plot_width> is the assumed width of the plot in points; 
-<line_width> is the line width in points (default 1); 
+<plot_width> is the assumed width of the plot in points;
+<line_width> is the line width in points (default 1);
 <fontname> is the name of a font (see list of fonts below)
 <fontsize> is the size of the font in points (default 12).
 
@@ -26529,7 +26529,7 @@ Note: someone please update this terminal to the 2012 DXF standard!"
 @tmindex dxy800a
 
 
-Note: legacy terminal. 
+Note: legacy terminal.
 This terminal driver supports the Roland DXY800A plotter.  It has no options."
 
 @node eepic, emf, dxy800a, complete_list_of_terminals
@@ -26582,7 +26582,7 @@ you must include \\usepackage@{graphicx@} in the preamble.
 `small` will use \\scriptsize symbols as point markers. Default is to use the"
 default math size. `tiny` uses \\scriptscriptstyle symbols.
 
-The default size of an eepic plot is 5x3 inches. You can change this using 
+The default size of an eepic plot is 5x3 inches. You can change this using
 the @ref{size} terminal option.
 
 <fontsize> is a number which specifies the font size inside the picture
@@ -26682,7 +26682,7 @@ Syntax:
 In @ref{monochrome} mode successive line types cycle through dash patterns.
 `linewidth <factor>` multiplies all line widths by this factor.
 `dashlength <factor>` is useful for thick lines.
-<fontname> is the name of a font; and 
+<fontname> is the name of a font; and
 `<fontsize>` is the size of the font in points.
 
 The nominal size of the output image defaults to 1024x768 in arbitrary
@@ -26824,7 +26824,7 @@ Do not use `print`---use instead `copy file /b lpt1:`.
 @tmindex excl
 
 
-Note: legacy terminal. 
+Note: legacy terminal.
 The `excl` terminal driver supports Talaris printers such as the EXCL Laser
 printer and the 1590.  It has no options."
 
@@ -26842,7 +26842,7 @@ printer and the 1590.  It has no options."
 
 The `fig` terminal device generates output in the Fig graphics language
 for import into the xfig interactive drawing tool.
-Notes: 
+Notes:
 @example
       The fig terminal was significantly revised in gnuplot version 5.3.
       Currently only version 3.2 of the fig file format is supported.
@@ -26873,7 +26873,7 @@ inches (default) or centimeters. The default is `size 5in,3in`.
 `small` is shorthand for `size 5in,3in` (3in,5in in portrait mode).
 `big` is shorthand for `size 8in,5in`.
 
-`pointsmax` sets the maximum number of vertices in a polyline; longer 
+`pointsmax` sets the maximum number of vertices in a polyline; longer
 polylines will be broken into segments.
 
 `font` sets the text font face to <fontname> and its size to <fontsize>
@@ -26923,7 +26923,7 @@ E.g.
 
 Syntax:
 @example
-      set terminal png 
+      set terminal png
              @{@{no@}enhanced@}
              @{@{no@}transparent@} @{@{no@}interlace@}
              @{@{no@}truecolor@} @{rounded|butt@}
@@ -27157,7 +27157,7 @@ One can also achieve the same thing by specifying x and y in the command
 
 
 Note: legacy terminal.
-The `grass` terminal driver gives `gnuplot` capabilities to users of the 
+The `grass` terminal driver gives `gnuplot` capabilities to users of the
 GRASS geographic information system.  Contact grassp-list@@moon.cecer.army.mil
 for more information.  Pages are written to the current frame of the GRASS
 Graphics Window.  There are no options."
@@ -27671,7 +27671,7 @@ Syntax:
                @{prologues <value>@}
                @{a4paper@}
                @{amstex@}
-               @{"<fontname> @{,<fontsize>@}"@} 
+               @{"<fontname> @{,<fontsize>@}"@}
 
 @end example
 
@@ -27709,7 +27709,7 @@ works as well.
 The option `psnfss` uses postscript fonts in combination with LaTeX. Since
 this option only makes sense, if LaTeX is being used, the `latex` option is selected
 automatically. This option includes the following packages for LaTeX:
-inputenc(latin1), fontenc(T1), mathptmx, helvet(scaled=09.2), courier, latexsym 
+inputenc(latin1), fontenc(T1), mathptmx, helvet(scaled=09.2), courier, latexsym
 and textcomp.
 
 The option `psnfss-version7` uses also postscript fonts in LaTeX (option `latex`
@@ -28373,7 +28373,7 @@ symbols, respectively. `pointscale` only applies to `gppoints`.
 
 `psarrows` draws `arrow`s using TeXdraw commands which are shorter but do not
 offer all options. `gparrows` selects drawing arrows using gnuplot's
-own routine for full functionality instead.  Similarly, `texpoints`, and 
+own routine for full functionality instead.  Similarly, `texpoints`, and
 `gppoints` select LaTeX symbols or gnuplot's point drawing routines."
 
 @node tgif, tkcanvas, texdraw, complete_list_of_terminals
@@ -28794,7 +28794,7 @@ The plot window remains open when the gnuplot terminal is changed with a
 `set term` command. The plot window can be closed with `set term windows close`.
 
 `gnuplot` supports different methods to create printed output on Windows,
-see `windows printing`. The windows terminal supports data exchange with 
+see `windows printing`. The windows terminal supports data exchange with
 other programs via clipboard and EMF files, see `graph-menu`. You can also
 use the `terminal emf` to create EMF files.
 
@@ -29041,7 +29041,7 @@ This file is located in the user's application data directory. Here's a sample
 
 @end example
 
-@c ^ <h3>Text window options</h3> 
+@c ^ <h3>Text window options</h3>
 
 These settings apply to the wgnuplot text-window only."
 
@@ -29262,14 +29262,14 @@ to have any effect, the default x11 font must be scalable. Thus the first
 example below will work as expected, but the second will not.
 
 @example
-   set term x11 enhanced font "arial,15" 
-   set title '@{/=20 Big@} Medium @{/=5 Small@}' 
+   set term x11 enhanced font "arial,15"
+   set title '@{/=20 Big@} Medium @{/=5 Small@}'
 
 @end example
 
 @example
-   set term x11 enhanced font "terminal-14" 
-   set title '@{/=20 Big@} Medium @{/=5 Small@}' 
+   set term x11 enhanced font "terminal-14"
+   set title '@{/=20 Big@} Medium @{/=5 Small@}'
 
 @end example
 
@@ -29394,7 +29394,7 @@ of the form
 So `set term x11 font "arial,15,italic"` will be translated to
 -*-arial-*-i-*-*-15-*-*-*-*-*-iso8859-1 (assuming default encoding).
 The <size>, <slant>, and <weight> specifications are all optional.
-If you do not specify <slant> or <weight> then you will get whatever font 
+If you do not specify <slant> or <weight> then you will get whatever font
 variant the font server offers first.
 You may set a default encoding via the corresponding X11 resource. E.g.
 @example
@@ -29613,7 +29613,7 @@ pixel on followed by six pixels off.  More elaborate on/off patterns can be
 specified with a four-digit value.  For example, '4441' is four on, four off,
 four on, one off.  The default values shown below are for monochrome displays
 or monochrome rendering on color or grayscale displays.
-Color displays default to dashed:off 
+Color displays default to dashed:off
 
 @example
  gnuplot*dashed:       off
