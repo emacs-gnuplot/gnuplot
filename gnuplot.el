@@ -321,7 +321,7 @@ Set VARIABLE to VALUE.  ARGS is optional args."
     (set variable value))
   (gnuplot--setup-comint-for-image-mode))
 
-(defcustom gnuplot-inline-image-mode nil
+(defcustom gnuplot-inline-image-mode 'inline
   "Whether to display Gnuplot output in Emacs.
 
 Possible values are nil, `inline' and `dedicated'.
