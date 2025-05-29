@@ -26418,16 +26418,11 @@ Syntax:
       set terminal dumb @{size <xchars>,<ychars>@} @{[no]feed@}
                         @{aspect <htic>@{,<vtic>@}@}
                         @{[no]enhanced@}
-@end example
-
-@end itemizeif
-@example
                         @{fillchar @{solid|"<char>"@}@}
                         @{[no]attributes@}
                         @{mono|ansi|ansi256|ansirgb@}
-@end example
 
-@end itemizeif
+@end example
 
 where <xchars> and <ychars> set the size of the text block. The default is
 79 by 24. The last newline is printed only if `feed` is enabled.
@@ -26470,7 +26465,6 @@ See also e.g. the description at
 @uref{https://en.wikipedia.org/wiki/ANSI_escape_code#Colors,https://en.wikipedia.org/wiki/ANSI_escape_code#Colors
 }
 
-@end itemizeif
 
 The `attributes` option enables bold and italic text on terminals or
 emulators that support the escape sequences
@@ -26816,7 +26810,6 @@ Preferred combinations are `medium normal` and `small draft`.
 
 With each of these drivers, a binary copy is required on a PC to print.
 Do not use `print`---use instead `copy file /b lpt1:`.
-@end itemizeif
 
 
 @node excl, fig, epson_180dpi, complete_list_of_terminals
@@ -27511,7 +27504,6 @@ the environmental variable GNUPLOT_LUA_DIR.
 All arguments will be provided to the selected script for further
 evaluation. E.g. 'set term lua tikz help' will cause the script itself
 to print additional help on options and choices for the script.
-@end itemizeif
 
 
 @node mf, mp, lua, complete_list_of_terminals
@@ -28273,7 +28265,6 @@ terminals.  It has no options."
 @c ?term km-tek40xx
 @cindex km-tek40xx
 
-@end itemizeif
 @c ?commands set terminal selanar
 @c ?set terminal selanar
 @c ?set term selanar
@@ -28281,7 +28272,6 @@ terminals.  It has no options."
 @c ?term selanar
 @cindex selanar
 
-@end itemizeif
 @c ?commands set terminal sixeltek
 @c ?set terminal sixeltek
 @c ?set term sixeltek
@@ -28313,7 +28303,6 @@ For use with xterm, xterm must be compiled/configured with
 
 Note that gnuplot also supports another sixel output terminal, `sixelgd`,
 that offers more options and features."
-@end itemizeif
 @c ?commands set terminal bitgraph
 @c ?set terminal bitgraph
 @c ?set term bitgraph
@@ -28321,7 +28310,6 @@ that offers more options and features."
 @c ?term bitgraph
 @cindex bitgraph
 
-@end itemizeif
 This family of terminal drivers supports a variety of VT-like terminals.
 `tek40xx` supports Tektronix 4010 and others as well as most TEK emulators.
 `vttek` supports VT-like tek40xx terminal emulators.
@@ -28858,7 +28846,6 @@ anti-aliasing, oversampling and full transparency support. It is now
 deprecated.
 The `GDI backend` which uses the classic GDI API is deprecated and has been
 disabled in this version.
-@end itemizeif
 
 `GDI+ backend` draws to the screen using the GDI+ Windows API. It supports
 full antialiasing, oversampling, transparency and custom dash patterns.
@@ -28888,7 +28875,6 @@ of an additional redraw after releasing the mouse button.
 
 `Line Styles...` allows customization of the line colors and styles.
 
-@end itemizeif
 `Update wgnuplot.ini` saves the current window locations, window sizes, text
 window font, text window font size, graph window font, graph window font
 size, background color to the initialization file `wgnuplot.ini`.
@@ -29052,9 +29038,8 @@ This file is located in the user's application data directory. Here's a sample
       Line3=255 0 0 0 2
       Line4=255 0 255 0 3
       Line5=0 0 128 0 4
-@end example
 
-@end itemizeif
+@end example
 
 @c ^ <h3>Text window options</h3> 
 
@@ -29092,7 +29077,6 @@ solid line in color mode, or a dashed line in monochrome mode.  The default
 line width is 1 pixel.  If `Linestyle` is negative, it specifies the width of
 a SOLID line in pixels.  Line1 and any linestyle used with the `points` style
 must be SOLID with unit width.
-@end itemizeif
 
 See `graph-menu`."
 
@@ -29476,14 +29460,9 @@ later by `set term x11 [no]raise [no]persist)`:
  `-raise`    raises plot window after each plot
  `-noraise`  does not raise plot window after each plot
  `-ctrlq   ` closes window on ctrl-q rather than q
-@end example
-
-@end itemizeif
-@example
  `-persist`  plot windows survive after main gnuplot program exits
-@end example
 
-@end itemizeif
+@end example
 
 @cindex X resources
 

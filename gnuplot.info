@@ -21732,10 +21732,10 @@ linefeed flag.
            set terminal dumb {size <xchars>,<ychars>} {[no]feed}
                              {aspect <htic>{,<vtic>}}
                              {[no]enhanced}
-
                              {fillchar {solid|"<char>"}}
                              {[no]attributes}
                              {mono|ansi|ansi256|ansirgb}
+
 
    where <xchars> and <ychars> set the size of the text block.  The
 default is 79 by 24.  The last newline is printed only if 'feed' is
@@ -23805,6 +23805,7 @@ sample 'wgnuplot.ini' file:
            Line4=255 0 255 0 3
            Line5=0 0 128 0 4
 
+
    These settings apply to the wgnuplot text-window only."
 
    The 'TextOrigin' and 'TextSize' entries specify the location and size
@@ -24177,8 +24178,8 @@ overridden later by 'set term x11 [no]raise [no]persist)':
       `-raise`    raises plot window after each plot
       `-noraise`  does not raise plot window after each plot
       `-ctrlq   ` closes window on ctrl-q rather than q
-
       `-persist`  plot windows survive after main gnuplot program exits
+
 
    The options are shown above in their command-line syntax.  When
 entered as resources in ".Xdefaults", they require a different syntax.
@@ -26537,21 +26538,21 @@ Node: printing919816
 Node: text-menu"920739
 Node: wgnuplot.mnu"921823
 Node: wgnuplot.ini923538
-Node: wxt926102
-Node: x11932480
-Node: x11_fonts937774
-Node: command-line_options_940728
-Node: color_resources_942946
-Node: grayscale_resources_944370
-Node: line_resources_945119
-Node: x11_pm3d_resources946875
-Node: x11_other_resources948209
-Node: xlib948864
-Node: Concept_Index949276
-Node: Command_Index1026056
-Node: Options_Index1029271
-Node: Function_Index1041469
-Node: Terminal_Index1048408
+Node: wxt926103
+Node: x11932481
+Node: x11_fonts937775
+Node: command-line_options_940729
+Node: color_resources_942947
+Node: grayscale_resources_944371
+Node: line_resources_945120
+Node: x11_pm3d_resources946876
+Node: x11_other_resources948210
+Node: xlib948865
+Node: Concept_Index949277
+Node: Command_Index1026057
+Node: Options_Index1029272
+Node: Function_Index1041470
+Node: Terminal_Index1048409
 
 End Tag Table
 
