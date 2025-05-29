@@ -630,7 +630,7 @@ appropriate sectioning and @node commands."
       (unless (eobp)
         (let* ((number (match-string 1))
                (word (match-string 2))
-               (node (substitute ?_ ?  word :test 'char-equal))
+               (node (apply #'string (append (substitute ?_ ?  word :test 'char-equal) nil)))
                (eol  (save-excursion (end-of-line) (point-marker))))
           ;; some node names appear twice.  make them unique.
           (while (member* node d2t-node-list :test 'string=)
@@ -754,7 +754,7 @@ These lines makes a itemized list."
     (while (re-search-forward "^#start" (point-max) "to_end")
       (replace-match "@itemize @bullet" t))
     (goto-char (point-min))
-    (while (re-search-forward "^#end" (point-max) "to_end")
+    (while (re-search-forward "^#end$" (point-max) "to_end")
       (replace-match "@end itemize" t))
     (goto-char (point-min))
     (while (re-search-forward "^#b " (point-max) "to_end")
