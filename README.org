@@ -31,9 +31,7 @@ or do =M-x list-packages= and search for =gnuplot= in the list.
 * Configuration
 
 =gnuplot-mode= is enabled automatically for =*.gp= files. The function
-=gnuplot-info-lookup-symbol= looks at the Gnuplot info file. For that function to
-work, a =gnuplot.info= file must be available in a directory in
-=Info-directory-list=.
+=gnuplot-info-lookup-symbol= looks at the Gnuplot info file.
 
 * Usage
 
@@ -81,9 +79,7 @@ By default gnuplot-mode will try to parse your commands as you type
 and suggest only relevant completion candidates on typing =M-TAB= or
 =TAB=. For example, with point after the =with= of a =plot= command,
 tab completion will suggest only plotting styles. This also enables
-more specific help topic lookup in the gnuplot info file, provided you
-have the right version of =gnuplot.info= installed (see the
-Installation section for instructions).
+more specific help topic lookup in the gnuplot info file.
 
 If the context-sensitivity annoys you, you can get simple
 non-context-sensitive completion back by toggling
