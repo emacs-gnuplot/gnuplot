@@ -214,7 +214,7 @@ These messages are shown after menu insertion of gnuplot commands."
   :group 'gnuplot-insertions
   :type 'boolean)
 
-(defcustom gnuplot-delay 0.01
+(defcustom gnuplot-delay 0.02
   "Amount of time to delay before sending a new line to gnuplot.
 This is needed so that the the line is not written in the gnuplot
 buffer in advance of its prompt.  Increase this number if the
@@ -1107,7 +1107,7 @@ called by this function after all of STRING is sent to gnuplot."
       (goto-char (point-max))
       ;; bruce asks: what is this next line for?
       (set-marker (process-mark gnuplot-process) (point-marker))
-      (sleep-for (* 20 gnuplot-delay))
+      (sleep-for (* 10 gnuplot-delay))
       (while list
         (insert (car list))
         (comint-send-input)
@@ -1376,19 +1376,15 @@ buffer."
   "Switch to the gnuplot program buffer or create one if none exists."
   (unless (and gnuplot-process (eq (process-status gnuplot-process) 'run)
                gnuplot-buffer (buffer-live-p gnuplot-buffer))
-    (message "Starting gnuplot plotting program...")
-    (let ((gnuplot-cmd (list #'make-comint gnuplot-process-name gnuplot-program)))
-      (when gnuplot-program-args
-        (setq gnuplot-cmd (append gnuplot-cmd '(nil) (split-string gnuplot-program-args))))
-      (setq gnuplot-buffer  (eval gnuplot-cmd t)
-            gnuplot-process (get-buffer-process gnuplot-buffer)))
+    (setq gnuplot-buffer (apply #'make-comint gnuplot-process-name gnuplot-program nil
+                                (and gnuplot-program-args (split-string gnuplot-program-args)))
+          gnuplot-process (get-buffer-process gnuplot-buffer))
     (set-process-query-on-exit-flag gnuplot-process nil)
     (with-current-buffer gnuplot-buffer
       (gnuplot-comint-mode)
       (when gnuplot-inline-image-mode
-        (sleep-for gnuplot-delay)
-        (gnuplot--setup-comint-for-image-mode)))
-    (message "Starting gnuplot plotting program...Done")))
+        (sleep-for (* 10 gnuplot-delay))
+        (gnuplot--setup-comint-for-image-mode)))))
 
 (defvar gnuplot-prompt-regexp
   (regexp-opt '("gnuplot> " "multiplot> "))
