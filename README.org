@@ -162,4 +162,3 @@ Regenerate gnuplot.texi and gnuplot-eldoc.el from the Gnuplot source.
 
 1. ~emacs -batch -l doc2texi.el -f d2t-doc-to-texi~ inside the gnuplot-*/docs/ directory
 2. ~makeinfo --no-split gnuplot.texi~ and ensure that it compiles cleanly
-3. ~install-info --dir=dir *.info~ to generate dir file
