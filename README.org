@@ -20,13 +20,14 @@ using gnuplot version 5.0 or above.
 
 * Installation
 
-The easiest way to install =gnuplot-mode= is to directly get it from [[https://elpa.nongnu.org/][NonGNU ELPA]]
-or [[http://melpa.org][MELPA]]. After configuring Emacs to use MELPA, you should be able to install
-gnuplot-mode by typing
+The easiest way to install =gnuplot= is to directly get it from [[https://elpa.nongnu.org/][NonGNU ELPA]] or
+[[http://melpa.org][MELPA]]. After configuring Emacs to use MELPA, you should be able to install
+=gnuplot= by typing
 
 : M-x install-package RET gnuplot RET
 
-or do =M-x list-packages= and search for =gnuplot= in the list.
+or do =M-x list-packages= and search for =gnuplot= in the list. Note that there is
+an alternative =gnuplot-mode= package on MELPA which is less featureful.
 
 * Configuration
 
