@@ -1,8 +1,4 @@
-*.aux
-*.dvi
 *.elc
-*.log
-*.pdf
 *.tar.*
 *~
 \#*\#

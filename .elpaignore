@@ -3,8 +3,7 @@
 .gitignore
 LICENSE
 Makefile
+doc2texi.el
 gnuplot-debug-context.el
 gnuplot-test-context.el
 gnuplot-tests.el
-gpelcard.tex
-doc2texi.el
