@@ -133,10 +133,6 @@ useful for functions included in `gnuplot-after-plot-hook'.")
 (defvar gnuplot-process nil
   "Variable holding the process handle.")
 
-(defvar gnuplot-process-frame nil
-  "The frame for displaying the gnuplot process.
-This is used when `gnuplot-display-process' is equal to `frame'.")
-
 (defvar gnuplot-comint-recent-buffer nil
   "The most recently plotted gnuplot script buffer.
 This is used by the function that plot from the comint buffer.  It is
@@ -216,6 +212,7 @@ to the empty string."
   :type '(radio (const :tag "double quote"  "\"")
                 (const :tag "single quote"  "\'")
                 (const :tag "none"          ""  )))
+
 (defcustom gnuplot-basic-offset 4
   "Number of columns to indent lines inside a do- or if-else-block.
 
@@ -226,7 +223,11 @@ beginning the continued command."
   :group 'gnuplot
   :type 'integer)
 
-(defvar gnuplot-info-frame nil)
+(defvar gnuplot--process-frame nil
+  "The frame for displaying the gnuplot process.
+This is used when `gnuplot-display-process' is equal to `frame'.")
+
+(defvar gnuplot--info-frame nil)
 
 ;; with info-look, there is no need to carry this list around -- it
 ;; can be generated on the fly appropriate to the currently installed
@@ -1019,10 +1020,10 @@ called by this function after all of STRING is sent to gnuplot."
 
   ;; Create a gnuplot frame if needed
   (when (and (equal gnuplot-display-process 'frame)
-             (not (frame-live-p gnuplot-process-frame)))
+             (not (frame-live-p gnuplot--process-frame)))
     (let ((frame (selected-frame)))
-      (setq gnuplot-process-frame (make-frame))
-      (select-frame gnuplot-process-frame)
+      (setq gnuplot--process-frame (make-frame))
+      (select-frame gnuplot--process-frame)
       (switch-to-buffer gnuplot-buffer)
       (delete-other-windows)
       (select-frame frame)))
@@ -1043,8 +1044,8 @@ called by this function after all of STRING is sent to gnuplot."
     (cond ((equal gnuplot-display-process 'window)
            (gnuplot--display-and-recenter-comint-buffer))
           ((equal gnuplot-display-process 'frame)
-           ;;(raise-frame gnuplot-process-frame)
-           (with-selected-frame gnuplot-process-frame
+           ;;(raise-frame gnuplot--process-frame)
+           (with-selected-frame gnuplot--process-frame
              (gnuplot--display-and-recenter-comint-buffer))))
 
     (setq gnuplot-recently-sent text)
@@ -1366,10 +1367,10 @@ gnuplot process buffer will be displayed in a window."
   (cond ((equal gnuplot-display-process 'window)
          (switch-to-buffer-other-window gnuplot-buffer))
         ((equal gnuplot-display-process 'frame)
-         (or (frame-live-p gnuplot-process-frame)
-             (setq gnuplot-process-frame (make-frame)))
-         (raise-frame gnuplot-process-frame)
-         (select-frame gnuplot-process-frame)
+         (or (frame-live-p gnuplot--process-frame)
+             (setq gnuplot--process-frame (make-frame)))
+         (raise-frame gnuplot--process-frame)
+         (select-frame gnuplot--process-frame)
          (switch-to-buffer gnuplot-buffer))
         (t
          (switch-to-buffer gnuplot-buffer))))
@@ -1819,10 +1820,10 @@ called."
                (- (/ (frame-height) 2) (window-height)))))))
 
     (frame
-     (unless (frame-live-p gnuplot-info-frame)
-       (setq gnuplot-info-frame (make-frame)))
-     (select-frame gnuplot-info-frame)
-     (raise-frame gnuplot-info-frame)
+     (unless (frame-live-p gnuplot--info-frame)
+       (setq gnuplot--info-frame (make-frame)))
+     (select-frame gnuplot--info-frame)
+     (raise-frame gnuplot--info-frame)
      (switch-to-buffer "*info*"))
 
     (t
