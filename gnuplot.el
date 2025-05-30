@@ -107,7 +107,7 @@
   :group 'gnuplot-hooks
   :type 'hook)
 
-(defcustom gnuplot-after-plot-hook (list #'gnuplot-trim-gnuplot-buffer)
+(defcustom gnuplot-after-plot-hook (list #'gnuplot-trim-comint-buffer)
   "Hook run after gnuplot plots something.
 This is the last thing done by the functions for plotting a line, a
 region, a buffer, or a file."
@@ -346,12 +346,12 @@ non-nil."
     (define-key map "\C-c\C-b"    #'gnuplot-send-buffer-to-gnuplot)
     (define-key map "\C-c\C-c"    #'comment-region) ; <RF>
     (define-key map "\C-c\C-o"    #'gnuplot-gui-set-options-and-insert)
-    (define-key map "\C-c\C-e"    #'gnuplot-show-gnuplot-buffer)
+    (define-key map "\C-c\C-e"    #'gnuplot-show-comint-buffer)
     (define-key map "\C-c\C-f"    #'gnuplot-send-file-to-gnuplot)
     (define-key map "\C-c\C-d"    #'gnuplot-info-lookup-symbol)
     (define-key map "\C-c\C-i"    #'gnuplot-insert-filename)
     (define-key map "\C-c\C-j"    #'gnuplot-forward-script-line)
-    (define-key map "\C-c\C-k"    #'gnuplot-kill-gnuplot-buffer)
+    (define-key map "\C-c\C-k"    #'gnuplot-kill-comint-buffer)
     (define-key map "\C-c\C-l"    #'gnuplot-send-line-to-gnuplot)
     (define-key map "\C-c\C-n"    #'gnuplot-negate-option)
     (define-key map "\C-c\C-r"    #'gnuplot-send-region-to-gnuplot)
@@ -414,13 +414,13 @@ non-nil."
     ["Info documentation on thing at point"
      gnuplot-info-at-point
      gnuplot-context-sensitive-mode]
-    ["Show gnuplot process buffer"      gnuplot-show-gnuplot-buffer t]
+    ["Show gnuplot process buffer"      gnuplot-show-comint-buffer t]
     ["Set arguments at point"           gnuplot-gui-set-options-and-insert t]
     ["Swap plot/splot/fit lists in GUI" gnuplot-gui-swap-simple-complete t]
     "---"
     ["Customize gnuplot"                gnuplot-customize t]
     "---"
-    ["Kill gnuplot"                     gnuplot-kill-gnuplot-buffer t])
+    ["Kill gnuplot"                     gnuplot-kill-comint-buffer t])
   "Menu for `gnuplot-mode'.")
 
 
@@ -1042,7 +1042,7 @@ the type of text being sent to gnuplot and is typically one of
 nil, `line', `region', `buffer', or `file'.  TEXT may be useful for
 functions in `gnuplot-after-plot-hook'.  `gnuplot-after-plot-hook' is
 called by this function after all of STRING is sent to gnuplot."
-  (gnuplot--make-gnuplot-buffer)         ; make sure a gnuplot buffer exists
+  (gnuplot--make-comint-buffer)         ; make sure a gnuplot buffer exists
   (setq gnuplot-comint-recent-buffer (current-buffer))
 
   ;; Create a gnuplot frame if needed
@@ -1070,16 +1070,16 @@ called by this function after all of STRING is sent to gnuplot."
         (goto-char (point-max))))
 
     (cond ((equal gnuplot-display-process 'window)
-           (gnuplot--display-and-recenter-gnuplot-buffer))
+           (gnuplot--display-and-recenter-comint-buffer))
           ((equal gnuplot-display-process 'frame)
            ;;(raise-frame gnuplot-process-frame)
            (with-selected-frame gnuplot-process-frame
-             (gnuplot--display-and-recenter-gnuplot-buffer))))
+             (gnuplot--display-and-recenter-comint-buffer))))
 
     (setq gnuplot-recently-sent text)
     (run-hooks 'gnuplot-after-plot-hook)))
 
-(defun gnuplot--display-and-recenter-gnuplot-buffer ()
+(defun gnuplot--display-and-recenter-comint-buffer ()
   "Make sure the gnuplot comint buffer is displayed.
 Move point to the end if necessary."
   (save-selected-window
@@ -1183,7 +1183,7 @@ This sets `gnuplot-recently-sent' to `file'."
   (let ((string (read-file-name "Name of file to send to gnuplot > " nil nil t)))
     (setq string (concat "load '" (expand-file-name string) "'\n"))
     (message "%S" string)
-    (gnuplot--make-gnuplot-buffer)       ; make sure a gnuplot buffer exists
+    (gnuplot--make-comint-buffer)       ; make sure a gnuplot buffer exists
     (gnuplot-send-string-to-gnuplot string 'file)))
 
 ;; suggested by <JS>
@@ -1232,7 +1232,7 @@ file visited by the script buffer."
   (when (buffer-live-p gnuplot-comint-recent-buffer)
     (pop-to-buffer gnuplot-comint-recent-buffer)))
 
-(defun gnuplot-trim-gnuplot-buffer ()
+(defun gnuplot-trim-comint-buffer ()
   "Trim lines from the beginning of the *gnuplot* buffer.
 This keeps that buffer from growing excessively in size.  Normally,
 this function is attached to `gnuplot-after-plot-hook'"
@@ -1277,7 +1277,7 @@ this function is attached to `gnuplot-after-plot-hook'"
     "---"
     ["Customize gnuplot"                        gnuplot-customize t]
     "---"
-    ["Kill gnuplot"                             gnuplot-kill-gnuplot-buffer t]))
+    ["Kill gnuplot"                             gnuplot-kill-comint-buffer t]))
 
 ;; Major mode `gnuplot-comint-mode' for the interaction buffer
 (define-derived-mode gnuplot-comint-mode comint-mode "Gnuplot interaction"
@@ -1324,7 +1324,7 @@ buffer."
 (defvar gnuplot-comint-mode-menu nil
   "Menu for `gnuplot-comint-mode'.")
 
-(defun gnuplot--make-gnuplot-buffer ()
+(defun gnuplot--make-comint-buffer ()
   "Switch to the gnuplot program buffer or create one if none exists."
   (unless (and gnuplot-process (eq (process-status gnuplot-process) 'run)
                gnuplot-buffer (buffer-live-p gnuplot-buffer))
@@ -1373,10 +1373,10 @@ STRING is the text as originally inserted in the comint buffer."
 This is very similar to `comint-delchar-or-maybe-eof'."
   (interactive "p")
   (if (eobp)
-      (gnuplot-kill-gnuplot-buffer)
+      (gnuplot-kill-comint-buffer)
     (delete-char arg)))
 
-(defun gnuplot-kill-gnuplot-buffer ()
+(defun gnuplot-kill-comint-buffer ()
   "Kill the gnuplot process and its display buffers."
   (interactive)
   (if (and gnuplot-process
@@ -1390,14 +1390,14 @@ This is very similar to `comint-delchar-or-maybe-eof'."
   (setq gnuplot-process nil
         gnuplot-buffer nil))
 
-(defun gnuplot-show-gnuplot-buffer ()
+(defun gnuplot-show-comint-buffer ()
   "Switch to the buffer containing the gnuplot process.
 When `gnuplot-display-process' is nil this will switch to
 the gnuplot process buffer.  When that variable is non-nil, the
 gnuplot process buffer will be displayed in a window."
   (interactive)
   (unless (and gnuplot-buffer (get-buffer gnuplot-buffer))
-    (gnuplot--make-gnuplot-buffer))
+    (gnuplot--make-comint-buffer))
   (cond ((equal gnuplot-display-process 'window)
          (switch-to-buffer-other-window gnuplot-buffer))
         ((equal gnuplot-display-process 'frame)
@@ -1995,7 +1995,7 @@ following in your .emacs file:
 (defun run-gnuplot ()
   "Run an inferior Gnuplot process."
   (interactive)
-  (gnuplot--make-gnuplot-buffer)
+  (gnuplot--make-comint-buffer)
   (pop-to-buffer gnuplot-buffer))
 
 ;;;###autoload
@@ -2007,7 +2007,7 @@ following in your .emacs file:
 (define-obsolete-function-alias 'gnuplot-close-down #'gnuplot--close-down "0.8.1")
 (define-obsolete-function-alias 'gnuplot-continuation-line-p #'gnuplot--continuation-line-p "0.8.1")
 (define-obsolete-function-alias 'gnuplot-discard-output #'gnuplot--discard-output "0.8.1")
-(define-obsolete-function-alias 'gnuplot-display-and-recenter-gnuplot-buffer #'gnuplot--display-and-recenter-gnuplot-buffer "0.8.1")
+(define-obsolete-function-alias 'gnuplot-display-and-recenter-gnuplot-buffer #'gnuplot--display-and-recenter-comint-buffer "0.8.1")
 (define-obsolete-function-alias 'gnuplot-end-of-command #'gnuplot--end-of-command "0.8.1")
 (define-obsolete-function-alias 'gnuplot-end-of-continuation #'gnuplot--end-of-continuation "0.8.1")
 (define-obsolete-function-alias 'gnuplot-in-comment #'gnuplot--in-comment "0.8.1")
@@ -2015,7 +2015,8 @@ following in your .emacs file:
 (define-obsolete-function-alias 'gnuplot-in-string-or-comment #'gnuplot--in-string-or-comment "0.8.1")
 (define-obsolete-function-alias 'gnuplot-inline-image-set-output #'gnuplot--inline-image-set-output "0.8.1")
 (define-obsolete-function-alias 'gnuplot-insert-inline-image-output #'gnuplot--insert-inline-image-output "0.8.1")
-(define-obsolete-function-alias 'gnuplot-make-gnuplot-buffer #'gnuplot--make-gnuplot-buffer "0.8.1")
+(define-obsolete-function-alias 'gnuplot-kill-gnuplot-buffer #'gnuplot-kill-comint-buffer "0.8.1")
+(define-obsolete-function-alias 'gnuplot-make-gnuplot-buffer #'gnuplot--make-comint-buffer "0.8.1")
 (define-obsolete-function-alias 'gnuplot-point-at-beginning-of-command #'gnuplot--point-at-beginning-of-command "0.8.1")
 (define-obsolete-function-alias 'gnuplot-point-at-beginning-of-continuation #'gnuplot--point-at-beginning-of-continuation "0.8.1")
 (define-obsolete-function-alias 'gnuplot-point-at-end-of-command #'gnuplot--point-at-end-of-command "0.8.1")
@@ -2025,8 +2026,10 @@ following in your .emacs file:
 (define-obsolete-function-alias 'gnuplot-set-keywords-list #'gnuplot--set-keywords-list "0.8.1")
 (define-obsolete-function-alias 'gnuplot-setup-comint-for-image-mode #'gnuplot--setup-comint-for-image-mode "0.8.1")
 (define-obsolete-function-alias 'gnuplot-setup-info-look #'gnuplot--setup-info-look "0.8.1")
+(define-obsolete-function-alias 'gnuplot-show-gnuplot-buffer #'gnuplot-show-comint-buffer "0.8.1")
 (define-obsolete-function-alias 'gnuplot-split-string #'gnuplot--split-string "0.8.1")
 (define-obsolete-function-alias 'gnuplot-syntax-propertize-extend-region #'gnuplot--syntax-propertize-extend-region "0.8.1")
+(define-obsolete-function-alias 'gnuplot-trim-gnuplot-buffer #'gnuplot-trim-comint-buffer "0.8.1")
 (make-obsolete-variable 'gnuplot-eldoc-mode "Toggle eldoc-mode" "0.8.1")
 (make-obsolete-variable 'gnuplot-tab-completion "Set tab-always-indent to 'complete" "0.8.1")
 

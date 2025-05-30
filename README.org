@@ -58,7 +58,7 @@ When =gnuplot-mode= is on, the following keybindings are available:
 | C-c C-o   | set arguments for command at point                   |
 | S-mouse-2 | set arguments for command under mouse cursor         |
 | C-c C-d   | read the gnuplot info file                           |
-| C-c C-e   | show-gnuplot-buffer                                  |
+| C-c C-e   | show gnuplot buffer                                  |
 | C-c C-k   | kill gnuplot process                                 |
 | C-c C-z   | customize gnuplot-mode                               |
 | M-tab     | complete keyword before point                        |
