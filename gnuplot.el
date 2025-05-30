@@ -117,17 +117,8 @@ region, a buffer, or a file."
   :group 'gnuplot-hooks
   :type 'hook)
 
-;; comint hook suggested by <DB>
-(defcustom gnuplot-comint-setup-hook nil
-  "Hook run after setting up the gnuplot buffer in comint mode.
-So the configuration can be customised by the user."
-  :group 'gnuplot-hooks
-  :type 'hook)
-
 (defcustom gnuplot-comint-mode-hook nil
-  "Hook run after setting up the gnuplot buffer in `gnuplot-comint-mode'.
-By default this runs the hook named `gnuplot-comint-setup-hook',
-for backward compatibility."
+  "Hook run after setting up the gnuplot buffer in `gnuplot-comint-mode'."
   :group 'gnuplot-hooks
   :type 'hook)
 
