@@ -1303,7 +1303,7 @@ buffer."
 (defun gnuplot--make-comint-buffer ()
   "Switch to the gnuplot program buffer or create one if none exists."
   (unless (and gnuplot-process (eq (process-status gnuplot-process) 'run)
-               gnuplot-buffer (buffer-live-p gnuplot-buffer))
+               (buffer-live-p gnuplot-buffer))
     (setq gnuplot-buffer (apply #'make-comint gnuplot-process-name gnuplot-program nil
                                 (and gnuplot-program-args (split-string gnuplot-program-args)))
           gnuplot-process (get-buffer-process gnuplot-buffer))
@@ -1417,8 +1417,7 @@ gnuplot process buffer will be displayed in a window."
 
 (defun gnuplot--setup-comint-for-image-mode ()
   "Setup comint for image."
-  (when (and gnuplot-buffer (buffer-live-p gnuplot-buffer)
-             (get-buffer-process gnuplot-buffer))
+  (when (and (buffer-live-p gnuplot-buffer) (get-buffer-process gnuplot-buffer))
     (with-current-buffer gnuplot-buffer
       (if gnuplot-inline-image-mode
           (progn
