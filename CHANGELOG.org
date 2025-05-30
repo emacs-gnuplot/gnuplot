@@ -1,6 +1,6 @@
 #+TITLE: Changelog for =gnuplot.el=
 
-* Development
+* Version 0.9 (2025-05-30)
 
 - Enable ~gnuplot-inline-image-mode~ by default.
 - Enable Eldoc messages by default and provide ~gnuplot-eldoc.el~.
