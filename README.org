@@ -6,8 +6,8 @@
 #+html: <a href="https://melpa.org/#/gnuplot"><img alt="MELPA" src="https://melpa.org/packages/gnuplot-badge.svg"/></a>
 #+html: <a href="https://stable.melpa.org/#/gnuplot"><img alt="MELPA Stable" src="https://stable.melpa.org/packages/gnuplot-badge.svg"/></a>
 
-This package allows running [[http://www.gnuplot.info/][gnuplot]] files from within the [[https://www.gnu.org/software/emacs/][GNU Emacs]]
-editor. It features:
+This package allows running [[http://www.gnuplot.info/][gnuplot]] files from within the [[https://www.gnu.org/software/emacs/][GNU Emacs]] editor. It
+features:
 
 - Syntax highlighting and indentation for gnuplot scripts.
 - Pull-down menus for common gnuplot-related tasks.
@@ -64,10 +64,9 @@ When =gnuplot-mode= is on, the following keybindings are available:
 | M-tab     | complete keyword before point                        |
 | tab       | indent current line                                  |
 
-
-With the exception of the commands for sending commands to Gnuplot,
-most of the above commands also work in the Gnuplot comint buffer, in
-addition to the following:
+With the exception of the commands for sending commands to Gnuplot, most of the
+above commands also work in the Gnuplot comint buffer, in addition to the
+following:
 
 | M-C-p   | plot the most recent script buffer line-by-line   |
 | M-C-f   | save the current script buffer and load that file |
@@ -75,56 +74,48 @@ addition to the following:
 
 ** Context-sensitive keyword completion
 
-By default gnuplot-mode will try to parse your commands as you type
-and suggest only relevant completion candidates on typing =M-TAB= or
-=TAB=. For example, with point after the =with= of a =plot= command,
-tab completion will suggest only plotting styles. This also enables
-more specific help topic lookup in the gnuplot info file.
+By default gnuplot-mode will try to parse your commands as you type and suggest
+only relevant completion candidates on typing =M-TAB= or =TAB=. For example, with
+point after the =with= of a =plot= command, tab completion will suggest only
+plotting styles. This also enables more specific help topic lookup in the
+gnuplot info file.
 
-If the context-sensitivity annoys you, you can get simple
-non-context-sensitive completion back by toggling
-=gnuplot-context-sensitive-mode=.
+If the context-sensitivity annoys you, you can get simple non-context-sensitive
+completion back by toggling =gnuplot-context-sensitive-mode=.
 
-By its nature, the completion code has to know a fair bit about the
-structure of the gnuplot language. If you use it with an old version
-of gnuplot (pre version 4) it will make mistakes. Most of gnuplot
-4.6's command language is parsed correctly except for the =set
-terminal= commands.
+By its nature, the completion code has to know a fair bit about the structure of
+the gnuplot language. If you use it with an old version of gnuplot (pre
+version 4) it will make mistakes. Most of gnuplot 4.6's command language is
+parsed correctly except for the =set terminal= commands.
 
 ** Eldoc mode
 
-~gnuplot-mode~ can show syntax hints in the modeline when ~eldoc-mode~
-is turned on and context sensitivity is enabled.
+~gnuplot-mode~ shows syntax hints in the modeline when ~eldoc-mode~ is turned on and
+context sensitivity is enabled. Both are enabled by default.
 
 ** Inline Images
 
-You can optionally have plots displayed inline in the Gnuplot comint
-process buffer. This is handy for trying things out without having to
-switch between Emacs and the Gnuplot display. Call
-=gnuplot-inline-display-mode= in a gnuplot-mode buffer to try it out. This
-feature is implemented using temporary =png= files, and is also somewhat
-experimental. It requires Gnuplot to have =png= support and a GNU Emacs
-with image support. Please report bugs.
-
-
+You can have plots displayed inline in the Gnuplot comint process buffer. This
+is handy for trying things out without having to switch between Emacs and the
+Gnuplot display. It requires Gnuplot to have =png= support and a GNU Emacs with
+image support. Call =gnuplot-external-display-mode= in a gnuplot-mode buffer to
+disable the feature.
 
 * FAQ / Remarks
 
 ** Usage on Windows
 
-Multiple users have reported issues when trying to work with
-=gnuplot.el= on Windows. Most notably, the gnuplot process hangs after
-sending a first line of input (this is a common Emacs issue on
-Windows, see [[https://www.gnu.org/software/emacs/manual/html_mono/efaq-w32.html#Sub_002dprocesses][here]]).
+Multiple users have reported issues when trying to work with =gnuplot.el= on
+Windows. Most notably, the gnuplot process hangs after sending a first line of
+input (this is a common Emacs issue on Windows, see [[https://www.gnu.org/software/emacs/manual/html_mono/efaq-w32.html#Sub_002dprocesses][here]]).
 
-A partial workaround was to use =pgnuplot.exe= as the
-=gnuplot-program=. However, =pgnuplot.exe= is not included with
-gnuplot since version 5.0.
+A partial workaround was to use =pgnuplot.exe= as the =gnuplot-program=. However,
+=pgnuplot.exe= is not included with gnuplot since version 5.0.
 
 You currently have two solutions:
 
-1. Experiment using the =gnuplot-program= and =gnuplot-program-args=
-   variables. For instance, setting
+1. Experiment using the =gnuplot-program= and =gnuplot-program-args= variables. For
+   instance, setting
 
    #+begin_src emacs-lisp
 (setq gnuplot-program "/path/to/cmdproxy.exe")
@@ -133,27 +124,28 @@ You currently have two solutions:
 
    has been reported to work (see [[https://github.com/emacs-gnuplot/gnuplot/pull/33/files][here]] for a reference).
 
-2. Use the simpler [[https://github.com/mkmcc/gnuplot-mode][gnuplot-mode]] package that sends the entire buffer
-   to gnuplot. Since no =comint= is involved, it should function
-   correctly, but you lose most features of the =gnuplot.el= package.
-   We would like to implement a send-buffer without comint as well
-   eventually.
+2. Use the simpler [[https://github.com/mkmcc/gnuplot-mode][gnuplot-mode]] package that sends the entire buffer to gnuplot.
+   Since no =comint= is involved, it should function correctly, but you lose most
+   features of the =gnuplot.el= package. We would like to implement a send-buffer
+   without comint as well eventually.
 
 More information on =gnuplot.el= and Windows can be found on these threads: [[https://github.com/emacs-gnuplot/gnuplot/issues/15][1]], [[https://github.com/emacs-gnuplot/gnuplot/pull/33][2]]
 
-
 ** Pause Command
 
-Gnuplot's =pause -1= command, which waits for the user to press a key,
-is problematic when running under Emacs. Sending =pause -1= to the
-running gnuplot process will make Emacs appear to freeze. (It isn't
-really crashed: typing =C-g= will unlock it and let you continue). The
-workaround for now is to make Gnuplot output a string before pausing,
-by doing =pause -1 "Hit return"= or similar.
+Gnuplot's =pause -1= command, which waits for the user to press a key, is
+problematic when running under Emacs. Sending =pause -1= to the running gnuplot
+process will make Emacs appear to freeze. (It isn't really crashed: typing =C-g=
+will unlock it and let you continue). The workaround for now is to make Gnuplot
+output a string before pausing, by doing =pause -1 "Hit return"= or similar.
 
 ** Issue with Unicode Character Display
 
-Some users have reported [[https://github.com/emacs-gnuplot/gnuplot/issues/39][issues when trying to display unicode characters]]. This issue is likely due to your distribution bundling gnuplot with [[https://unix.stackexchange.com/questions/496206/unicode-in-gnuplot-terminal/496245#496245][editline instead of readline]]. Recompiling the source with support for unicode should fix the issue until this issue is fixed upstream. Thanks to [[https://github.com/rolandog][rolandog]] for discovering this fix.
+Some users have reported [[https://github.com/emacs-gnuplot/gnuplot/issues/39][issues when trying to display unicode characters]]. This
+issue is likely due to your distribution bundling gnuplot with [[https://unix.stackexchange.com/questions/496206/unicode-in-gnuplot-terminal/496245#496245][editline instead
+of readline]]. Recompiling the source with support for unicode should fix the
+issue until this issue is fixed upstream. Thanks to [[https://github.com/rolandog][rolandog]] for discovering
+this fix.
 
 * Maintenance
 
