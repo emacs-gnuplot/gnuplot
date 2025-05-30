@@ -49,12 +49,10 @@
 ;; for some reason, call the function
 ;; `gnuplot-context-sensitive-mode', which behaves like a minor mode.
 ;;
-;; With `eldoc-mode' support, gnuplot-mode will show one-line syntax
-;; hints automatically in the echo area.  Whether eldoc-mode is active
-;; or not, you can always pop up a longer description of syntax using
-;; `gnuplot-help-function' (C-c C-/ or C-c M-h).  ElDoc uses an additional
-;; file of help strings, `gnuplot-eldoc.el', which is provided with this
-;; package.
+;; With `eldoc-mode' support, `gnuplot-mode' will show one-line syntax
+;; hints automatically in the echo area.  Whether `eldoc-mode' is
+;; active or not, you can always pop up a longer description of syntax
+;; using `gnuplot-help-function' (C-c C-/ or C-c M-h).
 ;;
 ;; Internal details
 ;; ================
@@ -2190,11 +2188,7 @@ summaries appear in the echo area as you type, toggle
 
 To choose whether to use this mode by default in Gnuplot buffers,
 customize the variable
-`gnuplot-use-context-sensitive-completion'.
-
-Note: help strings for eldoc-mode and \\[gnuplot-help-function]
-need to be provided in an Emacs-readable form by the Gnuplot
-distribution. See gnuplot-context.el for details."
+`gnuplot-use-context-sensitive-completion'."
   :keymap
   `((,(kbd "C-c C-/") . gnuplot-help-function)
     (,(kbd "C-c C-d") . gnuplot-info-at-point))

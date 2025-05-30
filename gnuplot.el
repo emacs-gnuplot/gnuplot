@@ -1871,22 +1871,12 @@ Report bugs at https://github.com/emacs-gnuplot/gnuplot/issues
 
                             ------O------
 
-Gnuplot-mode includes two different systems for keyword
-completion and documentation lookup: a newer one,
-`gnuplot-context-sensitive-mode' (enabled by default), and a
-older one which extracts keywords from gnuplot's Info file.  Both
-systems allow looking up documentation in the Info file.  The
-older system also depends having the info file properly installed
-to make a list of keywords.
-
-The info file should be installed by default with the Gnuplot
-distribution, or is available at the `gnuplot-mode' web page:
-https://github.com/emacs-gnuplot/gnuplot/
-
-With the new context-sensitive mode active, `gnuplot-mode' can also
-provide function/`eldoc-mode' syntax hints as you type.  This requires a
-separate file of strings, `gnuplot-eldoc.el', which is also
-provided by recent Gnuplot distributions.
+Gnuplot-mode includes two different systems for keyword completion and
+documentation lookup: a newer one, `gnuplot-context-sensitive-mode'
+(enabled by default), and a older one which extracts keywords from
+gnuplot's Info file.  Both systems allow looking up documentation in the
+Info file.  With the context-sensitive mode active, `gnuplot-mode' can
+also provide Eldoc syntax hints as you type.
 
                             ------O------
 
