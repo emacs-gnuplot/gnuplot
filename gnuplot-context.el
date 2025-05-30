@@ -253,9 +253,9 @@
                     (let ((str (match-string-no-properties 0)))
                       (forward-char (length str))
                       (gnuplot-context--token-make :id str
-                                          :type ',token-type
-                                          :start (match-beginning 0)
-                                          :end (match-end 0))))))
+                                                   :type ',token-type
+                                                   :start (match-beginning 0)
+                                                   :end (match-end 0))))))
               rules))))
 
 (defun gnuplot-context--tokenize (&optional completing-p)
@@ -319,7 +319,6 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
         (pop tokens))
 
     (nreverse tokens)))
-
 
 
 ;;;; The pattern and grammar compiler
@@ -409,7 +408,6 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 ;;      compiler inserts it at the beginning of compiled rules only
 ;;      for debugging purposes.
 ;;
-
 
 (eval-and-compile
   ;; Compile a single pattern into a list of instructions. Leaves
@@ -502,7 +500,6 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
            (let* ((pat1 (cdr pat)))
              (gnuplot-context--compile-pattern
               `(sequence ,@pat1 (many ,@pat1)))))
-
 
           ;; Optional (?)
           ((maybe)
@@ -1651,7 +1648,6 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
                    "zzeroaxis")
            (maybe linestyle-spec)])
 
-
 ;;; Other commands
          (cd-command
           ["cd" string])
@@ -1715,7 +1711,6 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
     (defmacro gnuplot-context--trace (&rest _) "No-op." '(progn nil))
     (defmacro gnuplot-context--debug (&rest _) "No-op." '(progn nil))))
 
-
 
 ;;;; Variables to be set via pattern matching
 (defvar gnuplot-context--completions nil
@@ -1754,7 +1749,7 @@ These have to be compiled from the Gnuplot source tree using
 
 ;;;; The pattern matching machine
 (defun gnuplot-context--match-pattern (instructions tokens completing-p
-                                           &optional start-symbol)
+                                                    &optional start-symbol)
   "Parse TOKENS, setting completions, info and ElDoc information.
 
 This function parses TOKENS by simulating a stack machine with
@@ -1794,11 +1789,11 @@ there."
             gnuplot-context--captures nil)
 
       (cl-flet ((advance
-              ()
-              (pop tokens)
-              (if (and (null tokens) (not completing-p))
-                  (gnuplot-context--scan-stack stack tokens)))
-             (fail () (setq fail t)))
+                  ()
+                  (pop tokens)
+                  (if (and (null tokens) (not completing-p))
+                      (gnuplot-context--scan-stack stack tokens)))
+                (fail () (setq fail t)))
 
         ;; Main loop
         (while t

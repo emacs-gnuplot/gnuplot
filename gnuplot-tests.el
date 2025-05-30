@@ -66,8 +66,8 @@ string-literal in multiple different contexts, as determined by
   `(ert-deftest ,name ()
      ,string
      ,@(cl-loop for context in gnuplot-string-test-contexts
-             collect
-             `(should (gnuplot-test-string-in-context ,string ,context)))))
+                collect
+                `(should (gnuplot-test-string-in-context ,string ,context)))))
 
 
 ;;;; Tests for double-quoted strings
@@ -201,11 +201,11 @@ comment
         (syntax-propertize (point-max))
         (goto-char (1+ start))
         (cl-flet ((in-comment-p (position)
-                             (nth 4 (syntax-ppss position))))
+                    (nth 4 (syntax-ppss position))))
           (and
            (not (in-comment-p start))
            (cl-loop for position from (1+ start) upto end
-                 always (in-comment-p position))
+                    always (in-comment-p position))
            (or (= end (point-max))
                (not (in-comment-p (1+ end))))))))))
 
@@ -219,8 +219,8 @@ string-literal in multiple different contexts, as determined by
   `(ert-deftest ,name ()
      ,comment
      ,@(cl-loop for context in gnuplot-comment-test-contexts
-             collect
-             `(should (gnuplot-test-comment-in-context ,comment ,context)))))
+                collect
+                `(should (gnuplot-test-comment-in-context ,comment ,context)))))
 
 (gnuplot-test-comment gnuplot-comment-simple
                       "# a simple one-line comment")

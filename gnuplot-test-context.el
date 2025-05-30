@@ -327,7 +327,6 @@
                 ("cntrparam levels 10")
                 ("cntrparam levels incremental 100,50")))
 
-
 
 ;;
 ;; test by parsing all the demos from the Gnuplot source tree

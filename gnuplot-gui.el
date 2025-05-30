@@ -131,7 +131,6 @@ the first entry in the list be a blank string."
       (if (> (point) end) (goto-char end))
       (buffer-substring-no-properties begin (point)))))
 
-
 
 ;;; data structures containing regarding options in Gnuplot 3.7
 
@@ -594,7 +593,6 @@ See the doc-string for `gnuplot-gui-all-types'.")
                   '(("INITIAL FILE"   'file   " " t)
                     ("UPDATED FILE"   'file   " " t))) ))
 
-
 (defcustom gnuplot-gui-plot-splot-fit-style 'simple
   "Control the complexity of the GUI display for plot, splot, and fit.
 The values are \\='simple, which causes a limited set of plot, splot, or
@@ -604,7 +602,6 @@ parsing values already in the script buffer."
   :group 'gnuplot-gui
   :type '(radio (const :tag "Simple listing"   simple)
                 (const :tag "Complete listing" complete)))
-
 
 (defconst gnuplot-gui-plot-simple-list
   '(("X RANGE"     'range (" " . " ") ":")
@@ -707,7 +704,6 @@ See the doc-string for `gnuplot-gui-all-types'.")
             (cons "fit"   (if (equal gnuplot-gui-plot-splot-fit-style 'complete)
                               gnuplot-gui-fit-full-list
                             gnuplot-gui-fit-simple-list))) )
-
 
 (defvar gnuplot-gui-test-type nil)
 (setq gnuplot-gui-test-type
@@ -820,8 +816,6 @@ This alist is formed at load time by appending together
   (message "Using %s lists for plot, splot, and fit."
            gnuplot-gui-plot-splot-fit-style) )
 
-
-
 
 ;;; user interface to the widget-y stuff
 
@@ -921,7 +915,6 @@ Note that \"cntrparam\" is not currently supported."
                "Argument popup will appear after insertions."
              "Argument popup will no longer appear after insertions.")))
 
-
 (defalias 'gnuplot-gui-y-n 'y-or-n-p)
 
 (defun gnuplot-gui-correct-command (word set term begin)
@@ -954,7 +947,6 @@ BEGIN is the beginning of the command."
                (delete-region (point) e)
                (insert "set "))))))
   (message nil))
-
 
 
 ;;; handle the actual arguments
@@ -1022,12 +1014,12 @@ arguments."
            ((cl-member symbol '(list list*) :test 'equal)
             (let* ((case-fold-search nil)
                    (match-cons (cl-member (concat "^" (car temp-list))
-                                        values :test 'string-match)))
+                                          values :test 'string-match)))
               (if (and (car match-cons) ; " " may be first elem. of list
                        (not (string= " " (car match-cons))))
                   (setq this-cons (cons tag (car match-cons))
                         arg-list (cl-remove (car temp-list) arg-list
-                                          :test 'string= :count 1)
+                                            :test 'string= :count 1)
                         temp-list nil)
                 (setq temp-list (cdr temp-list)))))
            ;; ---------------------------- tag (first number in list)
@@ -1048,16 +1040,16 @@ arguments."
                         (string-match "^[-0-9.]+$" (cadr temp-list)))
                    (setq this-cons (cons tag (cadr temp-list))
                          arg-list (cl-remove (car temp-list) arg-list
-                                           :test 'string= :count 1)
+                                             :test 'string= :count 1)
                          arg-list (cl-remove (cadr temp-list) arg-list
-                                           :test 'string= :count 1)
+                                             :test 'string= :count 1)
                          temp-list nil))
                   ;; --------------------- number without prefix
                   ((and (not prefix)
                         (string-match "^[-0-9.]+$" (car temp-list)))
                    (setq this-cons (cons tag (car temp-list))
                          arg-list (cl-remove (car temp-list) arg-list
-                                           :test 'string= :count 1)
+                                             :test 'string= :count 1)
                          temp-list nil))
                   (t
                    (setq temp-list (cdr temp-list)))))
@@ -1083,7 +1075,7 @@ arguments."
                       (cons tag (cons (match-string 1 (car temp-list))
                                       (match-string 2 (car temp-list))))
                       arg-list (cl-remove (car temp-list) arg-list
-                                        :test 'string= :count 1)
+                                          :test 'string= :count 1)
                       temp-list nil)
               (setq temp-list (cdr temp-list)) ))
            ;; ---------------------------- labels
@@ -1105,7 +1097,7 @@ arguments."
                     (setq list (cdr list)) )
                   (setq this-cons (cons tag return)
                         arg-list (cl-remove (car temp-list) arg-list
-                                          :test 'string= :count 1)
+                                            :test 'string= :count 1)
                         temp-list nil))
               (setq temp-list (cdr temp-list))) )
            ;; ---------------------------- string, file, format
@@ -1116,7 +1108,7 @@ arguments."
                               (car temp-list))
                 (setq this-cons (cons tag (match-string 0 (car temp-list)))
                       arg-list (cl-remove (car temp-list) arg-list
-                                        :test 'string= :count 1)
+                                          :test 'string= :count 1)
                       temp-list nil)
               (setq temp-list (cdr temp-list)) ))
            ;; ---------------------------- string*
@@ -1124,9 +1116,9 @@ arguments."
             (if (string= prefix (car temp-list))
                 (setq this-cons (cons tag (cadr temp-list))
                       arg-list (cl-remove (car temp-list) arg-list
-                                        :test 'string= :count 1)
+                                          :test 'string= :count 1)
                       arg-list (cl-remove (cadr temp-list) arg-list
-                                        :test 'string= :count 1)
+                                          :test 'string= :count 1)
                       temp-list nil)
               (setq temp-list (cdr temp-list)) ) )
            ;; ---------------------------- other or unknown
@@ -1135,7 +1127,6 @@ arguments."
         (setq gnuplot-gui-alist
               (append gnuplot-gui-alist (list this-cons))))
       (setq alist (cdr alist))) ))
-
 
 (defun gnuplot-gui-post-process-alist (type)
   "A few types need some additional processing.
@@ -1191,7 +1182,6 @@ into the buffer.  TYPE is the object whose arguments are being set."
                                            nil t nil t)))
   (gnuplot-gui-make-frame
    option (cdr (assoc option gnuplot-gui-all-types)) save-frame) )
-
 
 (defface gnuplot-gui-error-face '((((class color) (background light))
                                    (:foreground "grey30"))
@@ -1525,7 +1515,6 @@ prefix for the string."
                  :value "format")
   (widget-insert "\n"))
 
-
 ;; swiped from widget-color-complete
 (defun gnuplot-gui-file-completion (widget)
   "Complete the filename in WIDGET."
@@ -1633,7 +1622,6 @@ is non-nil if this is a \\='range widget."
   (if is-range (widget-insert "]"))
   (widget-insert " " (make-string (- 39 (current-column)) ?.)
                  " (numeric values)\n"))
-
 
 ;; suppress compiler warning
 ;;(eval-when-compile (defun gnuplot-info-lookup-symbol (sym mode)))

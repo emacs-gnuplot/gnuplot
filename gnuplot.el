@@ -43,7 +43,6 @@
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Acknowledgements:
 ;;    David Batty       <DB> (numerous corrections)
@@ -370,10 +369,10 @@ non-nil."
 
 (defvar gnuplot-display-options-menu
   (cl-flet ((make-image-setter (type)
-                            `[,(concat (upcase type) " images")
-                              (lambda () (interactive) (gnuplot-set-image-format ,type))
-                              :style toggle
-                              :selected (eq gnuplot-image-format ,type)]))
+              `[,(concat (upcase type) " images")
+                (lambda () (interactive) (gnuplot-set-image-format ,type))
+                :style toggle
+                :selected (eq gnuplot-image-format ,type)]))
     `("Display plot output"
       ["Externally" gnuplot-external-display-mode
        :style toggle
@@ -423,7 +422,6 @@ non-nil."
     "---"
     ["Kill gnuplot"                     gnuplot-kill-gnuplot-buffer t])
   "Menu for `gnuplot-mode'.")
-
 
 
 ;;; --- insertions variables and menus
@@ -514,8 +512,6 @@ create a `gnuplot-mode' buffer."
                                (function :tag "Callback")
                                (boolean  :tag "Enabled" t)))))
 
-
-
 (defcustom gnuplot-insertions-plot-options
   '("plot options"
     ["autoscale"  (gnuplot-insert "set autoscale ")          t]
@@ -541,7 +537,6 @@ create a `gnuplot-mode' buffer."
                        (vector (string   :tag "Name")
                                (function :tag "Callback")
                                (boolean  :tag "Enabled" t)))))
-
 
 (defcustom gnuplot-insertions-terminal
   '("terminal"
@@ -573,7 +568,6 @@ create a `gnuplot-mode' buffer."
                                (function :tag "Callback")
                                (boolean  :tag "Enabled" t)))))
 
-
 (defcustom gnuplot-insertions-x-axis
   '("x-axis"
     ["xdata"      (gnuplot-insert "set xdata ")              t]
@@ -596,7 +590,6 @@ create a `gnuplot-mode' buffer."
                                (function :tag "Callback")
                                (boolean  :tag "Enabled" t)))))
 
-
 (defcustom gnuplot-insertions-x2-axis
   '("x2-axis"
     ["x2data"     (gnuplot-insert "set xdata ")              t]
@@ -618,7 +611,6 @@ create a `gnuplot-mode' buffer."
                        (vector (string   :tag "Name")
                                (function :tag "Callback")
                                (boolean  :tag "Enabled" t)))))
-
 
 (defcustom gnuplot-insertions-y-axis
   '("y-axis"
@@ -664,8 +656,6 @@ create a `gnuplot-mode' buffer."
                                (function :tag "Callback")
                                (boolean  :tag "Enabled" t)))))
 
-
-
 (defcustom gnuplot-insertions-z-axis
   '("z-axis"
     ["zdata"      (gnuplot-insert "set zdata ")              t]
@@ -687,7 +677,6 @@ create a `gnuplot-mode' buffer."
                                (function :tag "Callback")
                                (boolean  :tag "Enabled" t)))))
 
-
 (defcustom gnuplot-insertions-parametric-plots
   '("parametric plots"
     ["parametric" (gnuplot-insert "set parametric")          t]
@@ -708,7 +697,6 @@ create a `gnuplot-mode' buffer."
                                (function :tag "Callback")
                                (boolean  :tag "Enabled" t)))))
 
-
 (defcustom gnuplot-insertions-polar-plots
   '("polar plots"
     ["polar"      (gnuplot-insert "set polar")               t]
@@ -725,7 +713,6 @@ create a `gnuplot-mode' buffer."
                        (vector (string   :tag "Name")
                                (function :tag "Callback")
                                (boolean  :tag "Enabled" t)))))
-
 
 (defcustom gnuplot-insertions-surface-plots
   '("surface plots"
@@ -748,7 +735,6 @@ create a `gnuplot-mode' buffer."
                        (vector (string   :tag "Name")
                                (function :tag "Callback")
                                (boolean  :tag "Enabled" t)))))
-
 
 (defvar gnuplot-insertions-bottom
   '("---"
@@ -923,7 +909,6 @@ These are highlighted using `font-lock-constant-face'.")
     (,(gnuplot--make-regexp gnuplot-keywords-misc)
      (0 'font-lock-constant-face))
     ("!.*$" (0 'font-lock-constant-face))))
-
 
 (defvar gnuplot-font-lock-defaults
   '(gnuplot-font-lock-keywords
@@ -1319,7 +1304,6 @@ buffer."
   ;; Set up completion, using completion-at-point
   (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point nil t)
 
-
   ;; Set up menu (see below)
   (easy-menu-define
     gnuplot-comint-mode-menu gnuplot-comint-mode-map "Menu used in gnuplot-comint-mode"
@@ -1405,7 +1389,6 @@ This is very similar to `comint-delchar-or-maybe-eof'."
         (kill-buffer gnuplot-buffer)))
   (setq gnuplot-process nil
         gnuplot-buffer nil))
-
 
 (defun gnuplot-show-gnuplot-buffer ()
   "Switch to the buffer containing the gnuplot process.
@@ -1545,7 +1528,6 @@ then removes itself from `comint-preoutput-filter-functions'."
                      #'gnuplot--discard-output t))))
   "")
 
-
 
 ;;; --- miscellaneous functions: insert file name, indentation, negation
 
@@ -1559,7 +1541,6 @@ Bound to \\[gnuplot-insert-filename]"
           (file-relative-name (read-file-name "Filename > " "")
                               default-directory)
           gnuplot-quote-character))
-
 
 ;; Adjust indentation for the line containing point
 (defun gnuplot-indent-line ()
@@ -1750,16 +1731,13 @@ Negatable options are defined in `gnuplot-keywords-negatable-options'."
                  (message "There is not a negatable set option on this line")))
         (message "There is not a set option on this line")))))
 
-
 (defun gnuplot-customize ()
   "Customize `gnuplot-mode'."
   (interactive)
   (customize-group "gnuplot"))
 
-
 
 ;;; --- help from the info file, keyword list + completion, insert function
-
 
 ;; set up stuff for info-look (as suggested by <SE>)
 ;; modified with suggestion from <MS>

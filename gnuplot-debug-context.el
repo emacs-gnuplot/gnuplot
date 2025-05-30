@@ -98,14 +98,14 @@
       (gnuplot-context--with-trace-buffer
        (insert "\n-- * capture groups: * --\n")
        (cl-loop for c on gnuplot-context--captures
-             do
-             (let ((name (caar c))
-                   (gnuplot-context--captures c))
-               (insert (format "%s\t%s\n"
-                               name
-                               (mapconcat 'gnuplot-context--token-id
-                                          (gnuplot-context--capture-group name)
-                                          " ")))))
+                do
+                (let ((name (caar c))
+                      (gnuplot-context--captures c))
+                  (insert (format "%s\t%s\n"
+                                  name
+                                  (mapconcat 'gnuplot-context--token-id
+                                             (gnuplot-context--capture-group name)
+                                             " ")))))
        (insert "-- end capture groups  --\n\n"))))
 
 (provide 'gnuplot-debug-context)
