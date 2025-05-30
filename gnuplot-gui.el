@@ -275,7 +275,7 @@ See the doc-string for `gnuplot-gui-all-types'.")
                   '(("POINTSIZE"        'number " ")
                     ("LINEWIDTH"        'number " ")
                     ("INTERVAL "        'number " ")))
-            (cons "vgagl"       ; for pm3d patch (also persist, raise in x11) <MT>
+            (cons "vgagl"       ; for pm3d patch (also persist, raise in x11)
                   '(("BACKGROUND"       'position  " " "background" 3)
                     ("INTERPOLATION"    'list " " "uniform" "interpolate")
                     ("DUMP"             'file " ")
@@ -439,7 +439,7 @@ See the doc-string for `gnuplot-gui-all-types'.")
             (cons "mx2tics" gnuplot-gui-mtics-list)
             (cons "my2tics" gnuplot-gui-mtics-list)
 
-                                        ; pm3d additions <MT>
+                                        ; pm3d additions
             (cons "mouse"
                   '(("DOUBLECLICK"     'number " " "doubleclick")
                     ("ZOOM"            'list   " " "zoomcoordinates" "nozoomcoordinates")

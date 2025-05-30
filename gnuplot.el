@@ -503,7 +503,7 @@ create a `gnuplot-mode' buffer."
     ["logscale"   (gnuplot-insert "set logscale ")           t]
     ["multiplot"  (gnuplot-insert "set multiplot")           t]
     ["missing"    (gnuplot-insert "set missing \"\"")        t]
-    ["palette"    (gnuplot-insert "set palette ")            t]         ; <MT>
+    ["palette"    (gnuplot-insert "set palette ")            t]
     ["pm3d"       (gnuplot-insert "set pm3d ")               t]
     ["offsets"    (gnuplot-insert "set offsets ")            t]
     ["output"     (gnuplot-insert "set output ")             t]
@@ -865,7 +865,7 @@ These are highlighted using `font-lock-constant-face'.")
 
 ;; Set up colorization for gnuplot.
 (defvar gnuplot-font-lock-keywords
-  `(; stuff in brackets, sugg. by <LB>
+  `(; stuff in brackets
     ("\\[\\([^]]+\\)\\]" (1 'font-lock-constant-face))
 
     ;; variable/function definitions
@@ -876,7 +876,7 @@ These are highlighted using `font-lock-constant-face'.")
     (,(gnuplot--make-regexp gnuplot-keywords-builtin-functions)
      (0 'font-lock-function-name-face))
 
-    ;; reserved words associated with plotting <AL>
+    ;; reserved words associated with plotting
     (,(gnuplot--make-regexp gnuplot-keywords-plotting)
      (0 'font-lock-type-face))
     (,(gnuplot--make-regexp gnuplot-keywords-plotting-styles)
@@ -1096,7 +1096,7 @@ This sets `gnuplot-recently-sent' to `line'."
          (let (start end)
            (save-excursion
              ;; go to start of continued command, or beginning of line
-             ;; if this is not a continuation of a previous line <JJO>
+             ;; if this is not a continuation of a previous line
              (gnuplot--beginning-of-continuation)
              (setq start (point))
              (end-of-line)
@@ -1127,7 +1127,7 @@ NUM is optional arg."
     (while (> num 0)
       (setq end (gnuplot-send-line-to-gnuplot))
       (goto-char end)
-      (backward-char 1)                         ; <AR>
+      (backward-char 1)
       (gnuplot-forward-script-line 1)
       (setq num (1- num)))))
 
@@ -1138,7 +1138,7 @@ NUM is optional arg."
   (gnuplot-send-line-to-gnuplot)
   (insert "\n"))
 
-(defun gnuplot-forward-script-line (&optional num) ; <SE>
+(defun gnuplot-forward-script-line (&optional num)
   "Move forward my NUM script lines.
 Blank lines and commented lines are not included in the NUM count."
   (interactive "p")
@@ -1168,7 +1168,6 @@ This sets `gnuplot-recently-sent' to `file'."
     (gnuplot--make-comint-buffer)       ; make sure a gnuplot buffer exists
     (gnuplot-send-string-to-gnuplot string 'file)))
 
-;; suggested by <JS>
 (defun gnuplot-plot-from-comint ()
   "Send the contents of a script to gnuplot from the process buffer.
 This inserts the contents of the most recently used gnuplot script
@@ -1344,7 +1343,7 @@ STRING is the text as originally inserted in the comint buffer."
 (defun gnuplot--close-down ()
   "Tidy up when deleting the gnuplot buffer."
   (if (and gnuplot-process
-           (eq (process-status gnuplot-process) 'run)) ; <SE>
+           (eq (process-status gnuplot-process) 'run))
       (kill-process gnuplot-process))
   (setq gnuplot-process nil
         gnuplot-buffer nil))
@@ -1361,7 +1360,7 @@ This is very similar to `comint-delchar-or-maybe-eof'."
   "Kill the gnuplot process and its display buffers."
   (interactive)
   (if (and gnuplot-process
-           (eq (process-status gnuplot-process) 'run))  ;; <SE>
+           (eq (process-status gnuplot-process) 'run))
       (kill-process gnuplot-process))
   (if (and gnuplot-buffer (get-buffer gnuplot-buffer))
       (progn
@@ -1720,8 +1719,6 @@ Negatable options are defined in `gnuplot-keywords-negatable-options'."
 
 ;;; --- help from the info file, keyword list + completion, insert function
 
-;; set up stuff for info-look (as suggested by <SE>)
-;; modified with suggestion from <MS>
 (defun gnuplot--setup-info-look ()
   "Setup info-look in the gnuplot buffer.
 Also set the variable `gnuplot--info-keywords'."
@@ -1829,7 +1826,7 @@ called."
     (window
      (switch-to-buffer-other-window "*info*")
      ;; Adjust window height only if the frame is split
-     ;; horizontally, so as not to mess up the minibuffer <jjo>
+     ;; horizontally, so as not to mess up the minibuffer
      ;; we can't use shrink-window-if-larger-than-buffer here
      ;; because it doesn't work with Info mode's narrowing
      (with-selected-window (get-buffer-window "*info*")
