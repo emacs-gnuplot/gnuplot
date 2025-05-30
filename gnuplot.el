@@ -722,28 +722,27 @@ opening an argument-setting popup.")
 
 (defun gnuplot--setup-menubar ()
   "Initial setup of gnuplot and insertions menus."
-  (if gnuplot-insertions-menu-flag      ; set up insertions menu
-      (progn
-        (setq gnuplot-insertions-top
-              '("insert set expression" "---"))
-        (setq gnuplot-insertions-menu
-              (append (list "Insertions")
-                      gnuplot-insertions-top
-                      (list gnuplot-insertions-adornments)
-                      (list gnuplot-insertions-plot-options)
-                      (list gnuplot-insertions-terminal)
-                      (list gnuplot-insertions-x-axis)
-                      (list gnuplot-insertions-y-axis)
-                      (list gnuplot-insertions-z-axis)
-                      (list gnuplot-insertions-x2-axis)
-                      (list gnuplot-insertions-y2-axis)
-                      (list gnuplot-insertions-parametric-plots)
-                      (list gnuplot-insertions-polar-plots)
-                      (list gnuplot-insertions-surface-plots)
-                      gnuplot-insertions-bottom))
-        (easy-menu-define gnuplot-mode-insertions-menu gnuplot-mode-map
-          "Insertions menu used in Gnuplot-mode"
-          gnuplot-insertions-menu)))
+  (when gnuplot-insertions-menu-flag
+    (setq gnuplot-insertions-top
+          '("insert set expression" "---"))
+    (setq gnuplot-insertions-menu
+          (append (list "Insertions")
+                  gnuplot-insertions-top
+                  (list gnuplot-insertions-adornments)
+                  (list gnuplot-insertions-plot-options)
+                  (list gnuplot-insertions-terminal)
+                  (list gnuplot-insertions-x-axis)
+                  (list gnuplot-insertions-y-axis)
+                  (list gnuplot-insertions-z-axis)
+                  (list gnuplot-insertions-x2-axis)
+                  (list gnuplot-insertions-y2-axis)
+                  (list gnuplot-insertions-parametric-plots)
+                  (list gnuplot-insertions-polar-plots)
+                  (list gnuplot-insertions-surface-plots)
+                  gnuplot-insertions-bottom))
+    (easy-menu-define gnuplot-mode-insertions-menu gnuplot-mode-map
+      "Insertions menu used in Gnuplot-mode"
+      gnuplot-insertions-menu))
   (easy-menu-define                     ; set up gnuplot menu
     gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
     gnuplot-menu))
@@ -1019,15 +1018,14 @@ called by this function after all of STRING is sent to gnuplot."
   (setq gnuplot-comint-recent-buffer (current-buffer))
 
   ;; Create a gnuplot frame if needed
-  (if (equal gnuplot-display-process 'frame)
-      (or (and gnuplot-process-frame
-               (frame-live-p gnuplot-process-frame))
-          (let ((frame (selected-frame)))
-            (setq gnuplot-process-frame (make-frame))
-            (select-frame gnuplot-process-frame)
-            (switch-to-buffer gnuplot-buffer)
-            (delete-other-windows)
-            (select-frame frame))))
+  (when (and (equal gnuplot-display-process 'frame)
+             (not (frame-live-p gnuplot-process-frame)))
+    (let ((frame (selected-frame)))
+      (setq gnuplot-process-frame (make-frame))
+      (select-frame gnuplot-process-frame)
+      (switch-to-buffer gnuplot-buffer)
+      (delete-other-windows)
+      (select-frame frame)))
 
   (let ((list (gnuplot--split-string string)))
     (with-current-buffer (get-buffer gnuplot-buffer)
@@ -1071,7 +1069,7 @@ useful for function in `gnuplot-after-plot-hook'."
   (let (string (txt (or text 'region)))
     (cond ((equal major-mode 'gnuplot-mode)
            (setq string (buffer-substring-no-properties begin end))
-           (if (string= (substring string -1) "\n") ()
+           (unless (equal (substring string -1) "\n")
              (setq string (concat string "\n")))
            (gnuplot-send-string-to-gnuplot string txt))
           (t
@@ -1097,9 +1095,9 @@ This sets `gnuplot-recently-sent' to `line'."
                (end-of-line 2))
              (beginning-of-line 2)
              (setq end (point)))
-           (if (not (string-match "\\`\\s-*\\'"
-                                  (buffer-substring-no-properties start end)))
-               (gnuplot-send-region-to-gnuplot start end 'line))
+           (unless (string-match "\\`\\s-*\\'"
+                                 (buffer-substring-no-properties start end))
+             (gnuplot-send-region-to-gnuplot start end 'line))
            end))
         (t
          (message "You can only send lines in gnuplot-mode buffers to gnuplot.")
@@ -1208,13 +1206,13 @@ file visited by the script buffer."
   "Trim lines from the beginning of the *gnuplot* buffer.
 This keeps that buffer from growing excessively in size.  Normally,
 this function is attached to `gnuplot-after-plot-hook'"
-  (if (> gnuplot-buffer-max-size 0)
-      (with-current-buffer gnuplot-buffer
-        (let ((gnuplot-lines (count-lines (point-min) (point-max))))
-          (dotimes (_n (- gnuplot-lines gnuplot-buffer-max-size))
-            (goto-char (point-min))
-            (delete-region (line-beginning-position) (1+ (line-end-position))))
-          (goto-char (point-max))))))
+  (when (> gnuplot-buffer-max-size 0)
+    (with-current-buffer gnuplot-buffer
+      (let ((gnuplot-lines (count-lines (point-min) (point-max))))
+        (dotimes (_n (- gnuplot-lines gnuplot-buffer-max-size))
+          (goto-char (point-min))
+          (delete-region (line-beginning-position) (1+ (line-end-position))))
+        (goto-char (point-max))))))
 
 
 ;;; --- functions controlling the gnuplot process
@@ -1318,18 +1316,15 @@ buffer."
   "Prevent the Gnuplot prompt from being deleted or overwritten.
 STRING is the text as originally inserted in the comint buffer."
   (save-excursion
-    (let ((b (progn
-               (goto-char (point-max))
-               (beginning-of-line)
-               (point)))
-          e)
-      (if (re-search-forward gnuplot-prompt-regexp (point-max) t)
-          (progn
-            (setq e (point))
-            (put-text-property b e 'rear-nonsticky '(read-only intangible face))
-            (put-text-property b e 'intangible t)
-            ;;(put-text-property b e 'read-only t)
-            )))))
+    (goto-char (point-max))
+    (beginning-of-line)
+    (let ((b (point)) e)
+      (when (re-search-forward gnuplot-prompt-regexp (point-max) t)
+        (setq e (point))
+        (put-text-property b e 'rear-nonsticky '(read-only intangible face))
+        (put-text-property b e 'intangible t)
+        ;;(put-text-property b e 'read-only t)
+        ))))
 
 (defun gnuplot--close-down ()
   "Tidy up when deleting the gnuplot buffer."
@@ -1353,11 +1348,10 @@ This is very similar to `comint-delchar-or-maybe-eof'."
   (if (and gnuplot-process
            (eq (process-status gnuplot-process) 'run))
       (kill-process gnuplot-process))
-  (if (and gnuplot-buffer (get-buffer gnuplot-buffer))
-      (progn
-        (if (one-window-p) ()
-          (delete-window (get-buffer-window gnuplot-buffer)))
-        (kill-buffer gnuplot-buffer)))
+  (when (and gnuplot-buffer (get-buffer gnuplot-buffer))
+    (if (one-window-p) ()
+      (delete-window (get-buffer-window gnuplot-buffer)))
+    (kill-buffer gnuplot-buffer))
   (setq gnuplot-process nil
         gnuplot-buffer nil))
 
@@ -1372,8 +1366,7 @@ gnuplot process buffer will be displayed in a window."
   (cond ((equal gnuplot-display-process 'window)
          (switch-to-buffer-other-window gnuplot-buffer))
         ((equal gnuplot-display-process 'frame)
-         (or (and gnuplot-process-frame
-                  (frame-live-p gnuplot-process-frame))
+         (or (frame-live-p gnuplot-process-frame)
              (setq gnuplot-process-frame (make-frame)))
          (raise-frame gnuplot-process-frame)
          (select-frame gnuplot-process-frame)
@@ -1627,7 +1620,7 @@ If specify POS, move POS before execution."
 (defun gnuplot--beginning-of-defun (&optional arg)
   "We also treat a block of continuation lines as a `defun'.
 ARG is optional arg."
-  (if (not arg) (setq arg 1))
+  (unless arg (setq arg 1))
   (if (> arg 0)
       (catch 'bob               ; go to beginning of ARGth prev. defun
         (dotimes (_n arg)
@@ -1826,8 +1819,7 @@ called."
                (- (/ (frame-height) 2) (window-height)))))))
 
     (frame
-     (unless (and gnuplot-info-frame
-                  (frame-live-p gnuplot-info-frame))
+     (unless (frame-live-p gnuplot-info-frame)
        (setq gnuplot-info-frame (make-frame)))
      (select-frame gnuplot-info-frame)
      (raise-frame gnuplot-info-frame)
@@ -1845,13 +1837,12 @@ shown."
   (interactive)
   (insert string)
   (let ((topic string) term)
-    (if (string-match
-         "\\(set\\|show\\)[ \t]+\\([^ \t]+\\)\\(\\s-+\\([^ \t]+\\)\\)?"
-         string)
-        (progn
-          (setq topic (downcase (match-string 2 string))
-                term            (match-string 4 string))
-          (if (string= topic "terminal") (setq topic (downcase term)))))
+    (when (string-match
+           "\\(set\\|show\\)[ \t]+\\([^ \t]+\\)\\(\\s-+\\([^ \t]+\\)\\)?"
+           string)
+      (setq topic (downcase (match-string 2 string))
+            term            (match-string 4 string))
+      (if (equal topic "terminal") (setq topic (downcase term))))
     (cond ((bound-and-true-p gnuplot-gui-popup-flag)
            (gnuplot-gui-set-options-and-insert))
           (gnuplot-insertions-show-help-flag

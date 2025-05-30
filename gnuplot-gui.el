@@ -1207,7 +1207,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
     (setq gnuplot-gui-current-frame (selected-frame)
           gnuplot-gui-current-buffer (current-buffer)
           gnuplot-gui-current-buffer-point (point-marker))
-    (unless (and gnuplot-gui-frame (frame-live-p gnuplot-gui-frame))
+    (unless (frame-live-p gnuplot-gui-frame)
       (setq gnuplot-gui-frame (make-frame gnuplot-gui-frame-parameters)))
     (select-frame gnuplot-gui-frame)
     ;;(set-frame-position gnuplot-gui-frame 150 150) ;; so herky-jerky
