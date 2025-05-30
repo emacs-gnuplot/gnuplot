@@ -2215,7 +2215,4 @@ distribution. See gnuplot-context.el for details."
     (remove-hook 'eldoc-documentation-functions #'gnuplot-eldoc-function 'local)))
 
 (provide 'gnuplot-context)
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
 ;;; gnuplot-context.el ends here

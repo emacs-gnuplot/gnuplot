@@ -249,8 +249,4 @@ mutliple # lines #")
 'comment' \
 \"containing strings\"")
 
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
-
 ;;; gnuplot-tests.el ends here

@@ -2015,7 +2015,4 @@ following in your .emacs file:
 (make-obsolete-variable 'gnuplot-tab-completion "Set tab-always-indent to 'complete" "0.8.1")
 
 (provide 'gnuplot)
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
 ;;; gnuplot.el ends here

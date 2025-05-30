@@ -440,9 +440,4 @@
   (add-to-list 'compilation-error-regexp-alist 'gnuplot-test-errors))
 
 (provide 'gnuplot-test-context)
-
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
-
 ;;; gnuplot-test-context.el ends here

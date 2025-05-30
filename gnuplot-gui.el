@@ -1637,7 +1637,4 @@ is non-nil if this is a \\='range widget."
                                            'gnuplot-mode))))
 
 (provide 'gnuplot-gui)
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
 ;;; gnuplot-gui.el ends here

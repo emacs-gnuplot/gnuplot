@@ -112,8 +112,4 @@
 
 (gnuplot-debug-on)
 
-;; Local Variables:
-;; indent-tabs-mode: nil
-;; End:
-
 ;;; gnuplot-debug-context.el ends here
