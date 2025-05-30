@@ -55,7 +55,6 @@
 ;;; Code:
 
 (require 'gnuplot)
-(require 'widget)
 (require 'wid-edit)
 (require 'cl-lib)
 

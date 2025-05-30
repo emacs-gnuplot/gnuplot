@@ -67,8 +67,6 @@
 
 (require 'cl-lib)
 (require 'comint)
-(require 'custom)
-(require 'easymenu)
 (require 'info)
 (require 'info-look)
 
@@ -77,11 +75,9 @@
   :prefix "gnuplot-"
   :group 'processes
   :group 'applications
-  :group 'local
   :link '(emacs-library-link :tag "Lisp File" "gnuplot.el")
-  :link '(url-link :tag "Homepage"
-                   "https://github.com/emacs-gnuplot/gnuplot/")
-  :link '(custom-manual "(gnuplot)Top")
+  :link '(url-link :tag "Homepage" "https://github.com/emacs-gnuplot/gnuplot/")
+  :link '(info-link :tag "Info Manual" "(gnuplot)")
   :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el"))
 
 (defgroup gnuplot-insertions nil
