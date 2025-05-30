@@ -58,12 +58,9 @@
 ;;    Holger Wenzel        suggested using `gnuplot-keywords-when'
 ;;    Wolfgang Zocher      pointed out problem with gnuplot-mode + speedbar
 ;;    Jon Oddie            indentation, inline images, context mode
+;;    Lars Hecking         gnuplot distribution and installation materials
 ;;    Maxime F. Treca      package update, XEmacs deprecation
 ;;    Daniel Mendler       package update, support for recent Emacs
-;;
-;;  and especially to Lars Hecking <LH> for including gnuplot-mode
-;;  with the gnuplot 3.7-beta distribution and for providing me with
-;;  installation materials
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Code:
