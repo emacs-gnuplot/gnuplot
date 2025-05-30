@@ -835,9 +835,9 @@ Note that \"cntrparam\" is not currently supported."
           (set nil) (term nil))
       (save-excursion
         ;; there can be more then one command per line
-        (if (re-search-forward termin end "to_limit")
-            (progn (backward-char (length (match-string 1)))
-                   (setq end (point-marker))))
+        (when (re-search-forward termin end "to_limit")
+          (backward-char (length (match-string 1)))
+          (setq end (point-marker)))
         (goto-char begin)
         (skip-syntax-forward "-" end)
         ;; various constructions are recognized here. at the end of this
@@ -882,7 +882,7 @@ Note that \"cntrparam\" is not currently supported."
                    (when (or
                           (and (equal gnuplot-gui-plot-splot-fit-style 'complete)
                                (cl-member word '("plot" "splot" "fit")
-                                          :test 'string=))
+                                          :test 'equal))
                           (equal word "test"))
                      (gnuplot-gui-set-frame-param 'height 32)
                      (gnuplot-gui-set-frame-param 'top    50))
@@ -890,7 +890,7 @@ Note that \"cntrparam\" is not currently supported."
                    (when (or
                           (and (equal gnuplot-gui-plot-splot-fit-style 'complete)
                                (cl-member word '("plot" "splot" "fit")
-                                          :test 'string=))
+                                          :test 'equal))
                           (equal word "test"))
                      (gnuplot-gui-set-frame-param 'height old-height)
                      (gnuplot-gui-set-frame-param 'top    old-top)) ))
@@ -956,21 +956,21 @@ bounding single quotes with double quotes, since double quotes are
 used in `gnuplot-gui-all-types'."
   (let (fixed-list quote quoted)    ; remove blanks
     (setq list (cl-remove "\\s-+" list :test 'string-match)
-          list (cl-remove ""      list :test 'string=))
+          list (cl-remove ""      list :test 'equal))
     (while list             ; concatinate parts of quoted string
       (if (not (string-match "^\\([\]\[()'\"]\\)" (car list)))
           (setq fixed-list (append fixed-list (list (car list))))
         (setq quote (match-string 1 (car list))
               quoted (car list))
-        (if (string= quote "[") (setq quote "]"))
-        (if (string= quote "(") (setq quote ")"))
+        (if (equal quote "[") (setq quote "]"))
+        (if (equal quote "(") (setq quote ")"))
         (while (and list
                     (or (equal (length quoted) 1)
                         (not (string-match (concat (regexp-quote quote) "$")
                                            quoted))))
           (setq quoted (concat quoted " " (cadr list))
                 list (cdr list)))
-        (if (string= quote "'")
+        (if (equal quote "'")
             (setq quoted (concat "\"" (substring quoted 1))
                   quoted (concat (substring quoted 0 -1) "\"")))
         (setq fixed-list (append fixed-list (list quoted))))
@@ -1012,10 +1012,10 @@ arguments."
                    (match-cons (cl-member (concat "^" (car temp-list))
                                           values :test 'string-match)))
               (if (and (car match-cons) ; " " may be first elem. of list
-                       (not (string= " " (car match-cons))))
+                       (not (equal " " (car match-cons))))
                   (setq this-cons (cons tag (car match-cons))
                         arg-list (cl-remove (car temp-list) arg-list
-                                            :test 'string= :count 1)
+                                            :test 'equal :count 1)
                         temp-list nil)
                 (setq temp-list (cdr temp-list)))))
            ;; ---------------------------- tag (first number in list)
@@ -1032,26 +1032,26 @@ arguments."
               (setq temp-list (cdr temp-list))) )
            ;; ---------------------------- number with prefix
            ((equal symbol 'number)
-            (cond ((and (string= prefix (car temp-list))
+            (cond ((and (equal prefix (car temp-list))
                         (string-match "^[-0-9.]+$" (cadr temp-list)))
                    (setq this-cons (cons tag (cadr temp-list))
                          arg-list (cl-remove (car temp-list) arg-list
-                                             :test 'string= :count 1)
+                                             :test 'equal :count 1)
                          arg-list (cl-remove (cadr temp-list) arg-list
-                                             :test 'string= :count 1)
+                                             :test 'equal :count 1)
                          temp-list nil))
                   ;; --------------------- number without prefix
                   ((and (not prefix)
                         (string-match "^[-0-9.]+$" (car temp-list)))
                    (setq this-cons (cons tag (car temp-list))
                          arg-list (cl-remove (car temp-list) arg-list
-                                             :test 'string= :count 1)
+                                             :test 'equal :count 1)
                          temp-list nil))
                   (t
                    (setq temp-list (cdr temp-list)))))
            ;; ---------------------------- pair with prefix
            ((equal symbol 'pair)
-            (if (and (string= prefix (car temp-list))
+            (if (and (equal prefix (car temp-list))
                      (string-match "^[-0-9.]+$" (cadr temp-list)))
                 (let ((this-car (cadr temp-list))
                       (this-cdr (if (string-match "^[-0-9.]+$" (cl-caddr temp-list))
@@ -1071,7 +1071,7 @@ arguments."
                       (cons tag (cons (match-string 1 (car temp-list))
                                       (match-string 2 (car temp-list))))
                       arg-list (cl-remove (car temp-list) arg-list
-                                          :test 'string= :count 1)
+                                          :test 'equal :count 1)
                       temp-list nil)
               (setq temp-list (cdr temp-list)) ))
            ;; ---------------------------- labels
@@ -1081,7 +1081,7 @@ arguments."
                                       ")") ; closing paren
                               (car temp-list))
                 (let* ((list (split-string (car temp-list) "[ \t(),]+"))
-                       (list (cl-remove "" list :test 'string=))
+                       (list (cl-remove "" list :test 'equal))
                        (return ()))
                   (while list
                     (if (string-match "['\"]\\([^'\"]*\\)['\"]" (car list))
@@ -1093,7 +1093,7 @@ arguments."
                     (setq list (cdr list)) )
                   (setq this-cons (cons tag return)
                         arg-list (cl-remove (car temp-list) arg-list
-                                            :test 'string= :count 1)
+                                            :test 'equal :count 1)
                         temp-list nil))
               (setq temp-list (cdr temp-list))) )
            ;; ---------------------------- string, file, format
@@ -1104,17 +1104,17 @@ arguments."
                               (car temp-list))
                 (setq this-cons (cons tag (match-string 0 (car temp-list)))
                       arg-list (cl-remove (car temp-list) arg-list
-                                          :test 'string= :count 1)
+                                          :test 'equal :count 1)
                       temp-list nil)
               (setq temp-list (cdr temp-list)) ))
            ;; ---------------------------- string*
            ((equal symbol 'string*)
-            (if (string= prefix (car temp-list))
+            (if (equal prefix (car temp-list))
                 (setq this-cons (cons tag (cadr temp-list))
                       arg-list (cl-remove (car temp-list) arg-list
-                                          :test 'string= :count 1)
+                                          :test 'equal :count 1)
                       arg-list (cl-remove (cadr temp-list) arg-list
-                                          :test 'string= :count 1)
+                                          :test 'equal :count 1)
                       temp-list nil)
               (setq temp-list (cdr temp-list)) ) )
            ;; ---------------------------- other or unknown
@@ -1325,7 +1325,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
                          (just-one-space))
                        (forward-sexp)))
                    (delete-horizontal-space)
-                   (if (string= "terminal" (widget-get widget :doc))
+                   (if (equal "terminal" (widget-get widget :doc))
                        (gnuplot-gui-set-options-and-insert)) ))
   (widget-insert "   ")
   (widget-create 'push-button :value "Reset"
@@ -1411,7 +1411,7 @@ menu.  STARRED is true if this a \\='list* widget."
                                  (concat (downcase (widget-get widget :tag)) " ")
                                "" )))
                     (setcdr (assoc (widget-get widget :tag) gnuplot-gui-alist)
-                            (if (string= (widget-value widget) " ") ""
+                            (if (equal (widget-value widget) " ") ""
                               (format "%s%s" lab (widget-value widget))) )))
                 (mapcar (lambda (x) (list 'item :value x))
                         list))))

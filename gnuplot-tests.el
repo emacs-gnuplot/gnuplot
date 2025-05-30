@@ -12,7 +12,7 @@
    'message
    :around
    (lambda (orig-message format-string &rest args)
-     (unless (string= format-string
+     (unless (equal format-string
                       "gnuplot-mode %s (gnuplot %s) -- report bugs with %S")
        (apply orig-message format-string args)))))
 
@@ -53,7 +53,7 @@ string by `scan-sexps'."
           (setq end (point))
           (insert epilogue))
         (syntax-propertize (point-max))
-        (string= (buffer-substring start (scan-sexps start 1))
+        (equal (buffer-substring start (scan-sexps start 1))
                  string)))))
 
 (defmacro gnuplot-test-string (name string)
