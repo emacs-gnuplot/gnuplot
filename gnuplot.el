@@ -32,10 +32,7 @@
 ;; versions (5.0 and up), but should also work fine with older
 ;; versions.
 ;;
-;; This version of gnuplot-mode has been tested mostly on GNU Emacs
-;; 25.
-;;
-;; Gnuplot-mode now includes context-sensitive support for keyword
+;; Gnuplot-mode includes context-sensitive support for keyword
 ;; completion and, optionally, eldoc-mode help text.  See the
 ;; commentary in gnuplot-context.el for more information.  If you
 ;; don't find it useful, it can be turned off by customizing
