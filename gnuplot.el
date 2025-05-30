@@ -275,21 +275,6 @@ suggestions."
                (gnuplot-context-sensitive-mode (if value 1 0))))))
   :link '(emacs-commentary-link "gnuplot-context"))
 
-(defcustom gnuplot-eldoc-mode t
-  "Non-nil if ElDoc mode should be enabled by default in Gnuplot buffers.
-ElDoc support requires `gnuplot-context-sensitive-mode' to be
-on."
-  :group 'gnuplot
-  :type 'boolean)
-
-(defcustom gnuplot-tab-completion nil
-  "Non-nil if TAB should perform completion in `gnuplot-mode' buffers.
-
-Setting this to non-nil sets the `tab-always-indent' variable to the
-symbol `complete' in `gnuplot-mode' buffers."
-  :group 'gnuplot
-  :type 'boolean)
-
 (defun gnuplot--set-display-mode (variable value &rest _args)
   "Customize :set function for `gnuplot-inline-image-mode'.
 Set VARIABLE to VALUE.  ARGS is optional args."
@@ -2065,6 +2050,8 @@ following in your .emacs file:
 (define-obsolete-function-alias 'gnuplot-setup-info-look #'gnuplot--setup-info-look "0.8.1")
 (define-obsolete-function-alias 'gnuplot-split-string #'gnuplot--split-string "0.8.1")
 (define-obsolete-function-alias 'gnuplot-syntax-propertize-extend-region #'gnuplot--syntax-propertize-extend-region "0.8.1")
+(make-obsolete-variable 'gnuplot-eldoc-mode "Toggle eldoc-mode" "0.8.1")
+(make-obsolete-variable 'gnuplot-tab-completion "Set tab-always-indent to 'complete" "0.8.1")
 
 (provide 'gnuplot)
 ;; Local Variables:

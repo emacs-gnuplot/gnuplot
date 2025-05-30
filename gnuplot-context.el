@@ -41,10 +41,9 @@
 ;;
 ;; Gnuplot's context sensitive mode is best controlled using Customize
 ;; (M-x customize-group gnuplot): simply enable the
-;; `gnuplot-context-sensitive-mode' setting.  You may also want to turn
-;; on `gnuplot-tab-completion' so that the TAB key does auto-completion
-;; on lines which are already indented.  (This just sets the Emacs
-;; variable `tab-always-indent' to `complete' in Gnuplot buffers).
+;; `gnuplot-context-sensitive-mode' setting.  You may also want to set
+;; the Emacs variable `tab-always-indent' to `complete' so that the
+;; TAB key does auto-completion on lines which are already indented.
 ;;
 ;; If you need to turn context sensitivity on or off from Lisp code
 ;; for some reason, call the function
@@ -53,18 +52,9 @@
 ;; With `eldoc-mode' support, gnuplot-mode will show one-line syntax
 ;; hints automatically in the echo area.  Whether eldoc-mode is active
 ;; or not, you can always pop up a longer description of syntax using
-;; `gnuplot-help-function' (C-c C-/ or C-c M-h).  ElDoc support also
-;; requires an additional file of help strings, `gnuplot-eldoc.el',
-;; which should be included in recent Gnuplot releases.  If it didn't
-;; come with your Gnuplot installation, you'll need to grab a recent
-;; source distribution of Gnuplot from http://gnuplot.info, and use
-;; the `doc2texi.el' program in the docs/ directory to create it.  So
-;; long as the file is on your Emacs load path somewhere it will be
-;; loaded automatically when needed.
-;;
-;; You can customize gnuplot-mode to turn on eldoc mode automatically
-;; using variable `gnuplot-eldoc-mode'.  Simply calling `eldoc-mode'
-;; will also work.
+;; `gnuplot-help-function' (C-c C-/ or C-c M-h).  ElDoc uses an additional
+;; file of help strings, `gnuplot-eldoc.el', which is provided with this
+;; package.
 ;;
 ;; Internal details
 ;; ================
@@ -231,7 +221,6 @@
 
 (require 'cl-lib)
 (require 'gnuplot)
-(require 'eldoc)
 (require 'info)
 (require 'info-look)
 
@@ -2193,9 +2182,7 @@ Key bindings:
 
 \\[completion-at-point] will complete the keyword at point based
 on its context in the command. To make keyword completion work on
-pressing TAB, set `tab-always-indent' to `complete', or customize
-`gnuplot-tab-completion' to make this automatic in gnuplot-mode
-buffers.
+pressing TAB, set `tab-always-indent' to `complete'.
 
 \\[gnuplot-info-at-point] will try to find the most relevant
 Gnuplot info node for the construction at point, prompting for a
@@ -2204,7 +2191,7 @@ node name if nothing is found.
 \\[gnuplot-help-function] will pop up a brief summary of the
 syntax at point in the minibuffer. To have one-line syntax
 summaries appear in the echo area as you type, toggle
-`eldoc-mode' or customize `gnuplot-eldoc-mode'.
+`eldoc-mode'.
 
 To choose whether to use this mode by default in Gnuplot buffers,
 customize the variable
@@ -2223,18 +2210,10 @@ distribution. See gnuplot-context.el for details."
       ;; Turn on
       (progn
         (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)
-
-        ;; Setup Eldoc
+        ;; Setup Eldoc and try to load Eldoc strings
         (add-hook 'eldoc-documentation-functions #'gnuplot-eldoc-function nil 'local)
-        (eldoc-add-command 'completion-at-point)     ; Check for eldoc after completion
-
-        ;; Try to load Eldoc strings
-        (when (and gnuplot-eldoc-mode (not gnuplot-eldoc-hash))
-          (load "gnuplot-eldoc" nil t))
-
-        ;; Set up tab-to-complete
-        (when gnuplot-tab-completion
-          (setq-local tab-always-indent 'complete)))
+        (unless gnuplot-eldoc-hash
+          (load "gnuplot-eldoc" nil t)))
 
     ;; Turn off
     (setq gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look)

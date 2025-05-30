@@ -83,8 +83,7 @@ more specific help topic lookup in the gnuplot info file.
 
 If the context-sensitivity annoys you, you can get simple
 non-context-sensitive completion back by toggling
-=gnuplot-context-sensitive-mode=. See also the variable
-=gnuplot-tab-completion=.
+=gnuplot-context-sensitive-mode=.
 
 By its nature, the completion code has to know a fair bit about the
 structure of the gnuplot language. If you use it with an old version
