@@ -2,8 +2,7 @@
 
 ;; Copyright (C) 2012-2013 Jon Oddie <jonxfield@gmail.com>
 
-;; Author:     Jon Oddie <jonxfield@gmail.com>
-;; URL:        https://github.com/emacs-gnuplot/gnuplot
+;; Author: Jon Oddie <jonxfield@gmail.com>
 
 ;; This file is not part of GNU Emacs.
 
@@ -62,20 +61,22 @@
 ;; features was to do a complete parse of the command line.  So that's
 ;; what this package does.  Instead of building a parse tree, it
 ;; matches up until the token at point, and then either makes a list
-;; of possible completions, or sets the variables `gnuplot-context--eldoc' and
-;; `gnuplot-context--info-at-point' based on where it is in the grammar at that
-;; point.
+;; of possible completions, or sets the variables
+;; `gnuplot-context--eldoc' and `gnuplot-context--info-at-point' based
+;; on where it is in the grammar at that point.
 ;;
 ;; The parsing/matching process happens in two phases: tokenizing
-;; (`gnuplot-context--tokenize') and matching (`gnuplot-context--match-pattern').  In
-;; order to be able to construct a full list of possible completions
-;; via backtracking, the matching algorithm simulates a simple stack
-;; machine with continuations.  At byte-compile time, the PEG-like
-;; grammar in S-expression notation (`gnuplot-grammar') is compiled
-;; down into a vector of "machine code" for the parsing machine (see
-;; `gnuplot-context--compile-pattern', `gnuplot-context--compile-grammar' and
-;; `gnuplot-context--compiled-grammar').  This is complicated, but it seems to
-;; work well enough, and it saves on the Emacs call stack.
+;; (`gnuplot-context--tokenize') and matching
+;; (`gnuplot-context--match-pattern').  In order to be able to
+;; construct a full list of possible completions via backtracking, the
+;; matching algorithm simulates a simple stack machine with
+;; continuations.  At byte-compile time, the PEG-like grammar in
+;; S-expression notation (`gnuplot-grammar') is compiled down into a
+;; vector of "machine code" for the parsing machine (see
+;; `gnuplot-context--compile-pattern',
+;; `gnuplot-context--compile-grammar' and
+;; `gnuplot-context--compiled-grammar').  This is complicated, but it
+;; seems to work well enough, and it saves on the Emacs call stack.
 ;;
 ;; Compiling the grammar does require increasing `max-lisp-eval-depth'
 ;; modestly.  This shouldn't cause any problems on modern machines, and
@@ -88,9 +89,9 @@
 ;; The pattern-matching language
 ;; =============================
 ;;
-;; The gnuplot-mode grammar (see `gnuplot-context--compiled-grammar') is a list
-;; of rules (RULE PATTERN), with each pattern written in S-expression
-;; notation as follows:
+;; The gnuplot-mode grammar (see `gnuplot-context--compiled-grammar')
+;; is a list of rules (RULE PATTERN), with each pattern written in
+;; S-expression notation as follows:
 ;;
 ;;    any
 ;;      Match any token

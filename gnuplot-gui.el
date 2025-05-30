@@ -2,8 +2,7 @@
 
 ;; Copyright (C) 1998-2000 Bruce Ravel
 
-;; Author:     Bruce Ravel <ravel@phys.washington.edu>
-;; URL:        https://github.com/emacs-gnuplot/gnuplot
+;; Author: Bruce Ravel <ravel@phys.washington.edu>
 
 ;; This file is not part of GNU Emacs.
 
