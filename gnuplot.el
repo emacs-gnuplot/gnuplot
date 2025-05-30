@@ -357,11 +357,9 @@ non-nil."
     (define-key map (kbd "C-M-x") #'gnuplot-send-line-to-gnuplot)
     (define-key map "\C-c\C-v"    #'gnuplot-send-line-and-forward)
     (define-key map "\C-c\C-z"    #'gnuplot-customize)
-    (define-key map "\C-i"        #'indent-for-tab-command)
-    (define-key map (kbd "}")     #'gnuplot-electric-insert)
+    (define-key map "}"           #'gnuplot-electric-insert)
     (define-key map "\M-\t"       #'completion-at-point)
     (define-key map [S-mouse-2]   #'gnuplot-gui-set-options-and-insert)
-
     map))
 
 (defvar gnuplot-mode-menu nil)
