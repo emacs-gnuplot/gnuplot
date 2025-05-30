@@ -2213,7 +2213,7 @@ distribution. See gnuplot-context.el for details."
         ;; Setup Eldoc and try to load Eldoc strings
         (add-hook 'eldoc-documentation-functions #'gnuplot-eldoc-function nil 'local)
         (unless gnuplot-eldoc-hash
-          (load "gnuplot-eldoc" nil t)))
+          (load "gnuplot-eldoc" t t)))
 
     ;; Turn off
     (setq gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look)
