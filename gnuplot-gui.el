@@ -1645,8 +1645,8 @@ is non-nil if this is a \\='range widget."
   "A link to an info file for the Gnuplot GUI."
   :action '(lambda (widget &optional event)
              (let ((gnuplot-info-display 'frame))
-               (if gnuplot-keywords-pending     ; <HW>
-                   (gnuplot-setup-info-look))
+               (when (eq gnuplot--info-keywords 'pending)
+                 (gnuplot--setup-info-look))
                (gnuplot-info-lookup-symbol (widget-value widget)
                                            'gnuplot-mode))))
 
