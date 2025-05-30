@@ -344,7 +344,6 @@ non-nil."
 (defvar gnuplot-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-b"    #'gnuplot-send-buffer-to-gnuplot)
-    (define-key map "\C-c\C-c"    #'comment-region) ; <RF>
     (define-key map "\C-c\C-o"    #'gnuplot-gui-set-options-and-insert)
     (define-key map "\C-c\C-e"    #'gnuplot-show-comint-buffer)
     (define-key map "\C-c\C-f"    #'gnuplot-send-file-to-gnuplot)
