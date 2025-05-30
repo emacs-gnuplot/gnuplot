@@ -2197,17 +2197,15 @@ customize the variable
     (message "Gnuplot context-sensitive mode works only in Gnuplot-mode buffers")
     (setq gnuplot-context-sensitive-mode nil))
   (if gnuplot-context-sensitive-mode
-      ;; Turn on
       (progn
-        (setq gnuplot-completion-at-point-function #'gnuplot-context-completion-at-point)
-        ;; Setup Eldoc and try to load Eldoc strings
+        (remove-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look t)
+        (add-hook 'completion-at-point-functions #'gnuplot-context-completion-at-point nil t)
         (add-hook 'eldoc-documentation-functions #'gnuplot-eldoc-function nil 'local)
         (unless gnuplot-eldoc-hash
           (load "gnuplot-eldoc" t t)))
-
-    ;; Turn off
-    (setq gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look)
-    (remove-hook 'eldoc-documentation-functions #'gnuplot-eldoc-function 'local)))
+    (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t)
+    (remove-hook 'completion-at-point-functions #'gnuplot-context-completion-at-point t)
+    (remove-hook 'eldoc-documentation-functions #'gnuplot-eldoc-function t)))
 
 (provide 'gnuplot-context)
 ;;; gnuplot-context.el ends here

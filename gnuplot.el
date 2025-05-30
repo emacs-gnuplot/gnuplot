@@ -237,6 +237,7 @@ This is used when `gnuplot-display-process' is equal to `frame'.")
 These are set by `gnuplot--set-keywords-list' from the values in
 `info-lookup-cache'.")
 
+(defvar gnuplot-context-sensitive-mode nil)
 (autoload 'gnuplot-context-sensitive-mode "gnuplot-context")
 (autoload 'gnuplot-gui-set-options-and-insert "gnuplot-gui" nil t)
 (autoload 'gnuplot-gui-swap-simple-complete "gnuplot-gui" nil t)
@@ -1272,8 +1273,7 @@ buffer."
             #'gnuplot--protect-prompt-fn
             nil t)
 
-  ;; Set up completion, using completion-at-point
-  (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point nil t)
+  (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t)
 
   ;; Set up menu (see below)
   (easy-menu-define
@@ -1752,16 +1752,6 @@ Return a list of keywords."
 ;; one using info-look and the new one (enabled by default) which
 ;; parses the command line to provide smarter completions.
 
-;; `gnuplot-completion-at-point-function' defines which one is
-;; used. `gnuplot-context-sensitive-mode' toggles between the two.
-
-(defvar gnuplot-completion-at-point-function #'gnuplot-completion-at-point-info-look
-  "Function to call to perform completion in Gnuplot buffers.")
-
-(defun gnuplot-completion-at-point ()
-  "Perform completion in Gnuplot buffers."
-  (funcall gnuplot-completion-at-point-function))
-
 ;; Older completion method using info-look
 (defun gnuplot-completion-at-point-info-look ()
   "Return completions of keyword preceding point.
@@ -1909,7 +1899,7 @@ a list:
   (setq-local beginning-of-defun-function #'gnuplot--beginning-of-defun)
   (setq-local end-of-defun-function #'gnuplot--end-of-continuation)
 
-  (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point nil t)
+  (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t)
 
   (set-syntax-table gnuplot-mode-syntax-table)
 
