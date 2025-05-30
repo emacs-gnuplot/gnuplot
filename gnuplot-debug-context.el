@@ -103,7 +103,7 @@
                    (gnuplot-context--captures c))
                (insert (format "%s\t%s\n"
                                name
-                               (mapconcat 'gnuplot-token-id
+                               (mapconcat 'gnuplot-context--token-id
                                           (gnuplot-context--capture-group name)
                                           " ")))))
        (insert "-- end capture groups  --\n\n"))))

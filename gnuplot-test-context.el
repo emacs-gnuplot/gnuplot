@@ -29,17 +29,17 @@
 (defun gnuplot-simplify-tokens (tokens)
   (mapcar
    (lambda (token)
-     (cl-case (gnuplot-token-type token)
+     (cl-case (gnuplot-context--token-type token)
        (number
-        (string-to-number (gnuplot-token-id token)))
+        (string-to-number (gnuplot-context--token-id token)))
 
        (string
-        (gnuplot-token-id token))
+        (gnuplot-context--token-id token))
 
        (end-of-command 'end-of-command)
 
        (otherwise
-        (intern (gnuplot-token-id token)))))
+        (intern (gnuplot-context--token-id token)))))
    tokens))
 
 ;; compile a single pattern to usable form

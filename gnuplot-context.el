@@ -227,7 +227,9 @@
 
 ;;;; The tokenizer.
 
-(cl-defstruct gnuplot-token
+(cl-defstruct (gnuplot-context--token
+               (:constructor gnuplot-context--token-make)
+               (:copier nil))
   start     ; Buffer start position
   end       ; Buffer end position
   id        ; Text
@@ -250,7 +252,7 @@
                   `((looking-at ,regexp)
                     (let ((str (match-string-no-properties 0)))
                       (forward-char (length str))
-                      (make-gnuplot-token :id str
+                      (gnuplot-context--token-make :id str
                                           :type ',token-type
                                           :start (match-beginning 0)
                                           :end (match-end 0))))))
@@ -258,7 +260,7 @@
 
 (defun gnuplot-context--tokenize (&optional completing-p)
   "Tokenize the Gnuplot command at point.
-Return a list of `gnuplot-token' objects.
+Return a list of `gnuplot-context--token' objects.
 
 If COMPLETING-P is non-nil, omits the token at point if it is a
 name; otherwise continues tokenizing up to the token at point.  FIXME."
@@ -294,7 +296,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
                   (let* ((bounds (bounds-of-thing-at-point 'sexp))
                          (to (or (cdr bounds) stop-point)))
                     (goto-char to)
-                    (make-gnuplot-token
+                    (gnuplot-context--token-make
                      :id (buffer-substring-no-properties from to)
                      :type 'string
                      :start from :end to)))
@@ -312,8 +314,8 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
     ;; in that position for completion.
     (if (and completing-p
              tokens
-             (eq (gnuplot-token-type (car tokens)) 'name)
-             (<= (point) (gnuplot-token-end (car tokens))))
+             (eq (gnuplot-context--token-type (car tokens)) 'name)
+             (<= (point) (gnuplot-context--token-end (car tokens))))
         (pop tokens))
 
     (nreverse tokens)))
@@ -333,15 +335,15 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 ;;      Match any token (fails only at end of command).
 ;;
 ;;    (literal LITERAL NO-COMPLETE)
-;;      Match token with `gnuplot-token-id' LITERAL or fail. If we
+;;      Match token with `gnuplot-context--token-id' LITERAL or fail. If we
 ;;      have reached the token before point, include LITERAL in the
 ;;      completion list unless NO-COMPLETE is non-`nil'.
 ;;
 ;;    (token-type TYPE)
-;;      Match a token with `gnuplot-token-type' TYPE, or fail.
+;;      Match a token with `gnuplot-context--token-type' TYPE, or fail.
 ;;
 ;;    (keyword REGEXP NAME)
-;;      Match any token whose `gnuplot-token-id' matches REGEXP. Use
+;;      Match any token whose `gnuplot-context--token-id' matches REGEXP. Use
 ;;      NAME for the completion list.
 ;;
 ;;    (jump OFFSET FIXED)
@@ -1804,7 +1806,7 @@ there."
                  (opcode (car inst))
                  (token (car tokens))
                  (end-of-tokens (null tokens)))
-            (gnuplot-context--trace "%s\t%s\t%s\n" pc inst (and token (gnuplot-token-id token)))
+            (gnuplot-context--trace "%s\t%s\t%s\n" pc inst (and token (gnuplot-context--token-id token)))
 
             (cl-case opcode
               ;; (literal LITERAL NO-COMPLETE)
@@ -1817,7 +1819,7 @@ there."
                           (push expect gnuplot-context--completions))
                         (fail))
 
-                       ((not (equal (gnuplot-token-id token) expect))
+                       ((not (equal (gnuplot-context--token-id token) expect))
                         (fail))
 
                        ;; otherwise succeed
@@ -1827,7 +1829,7 @@ there."
               ((token-type)
                (let ((expect (cadr inst)))
                  (if (or end-of-tokens
-                         (not (eq (gnuplot-token-type token) expect)))
+                         (not (eq (gnuplot-context--token-type token) expect)))
                      (fail)
                    (advance))))
 
@@ -1841,12 +1843,12 @@ there."
                         (push name gnuplot-context--completions)
                         (fail))
 
-                       ((not (string-match-p regexp (gnuplot-token-id token)))
+                       ((not (string-match-p regexp (gnuplot-context--token-id token)))
                         (fail))
 
                        ;; otherwise succeed
                        (t
-                        (setf (gnuplot-token-id token) name)
+                        (setf (gnuplot-context--token-id token) name)
                         (advance)))))
 
               ;; (any): match any token
@@ -1999,7 +2001,7 @@ there."
                    (setq gnuplot-context--info-at-point
                          (cond
                           ((eq info 'first-token)
-                           (gnuplot-token-id (car position)))
+                           (gnuplot-context--token-id (car position)))
                           ((functionp info) (funcall info))
                           (t info)))
                    (when gnuplot-context--info-at-point
@@ -2141,7 +2143,7 @@ clause."
         (3d-p (gnuplot-context--capture-group :splot-command))
         (column-description nil))
     (if with-style
-        (let ((with-style-string (gnuplot-token-id (car with-style))))
+        (let ((with-style-string (gnuplot-context--token-id (car with-style))))
           (setq column-description
                 (or (and 3d-p
                          (cdr (assoc with-style-string gnuplot-context--using-3d-eldoc)))
