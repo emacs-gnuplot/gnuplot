@@ -804,8 +804,6 @@ This alist is formed at load time by appending together
                                     gnuplot-gui-plot-splot-fit
                                     gnuplot-gui-test-type))
 
-
-;;;###autoload
 (defun gnuplot-gui-swap-simple-complete ()
   (interactive)
   (setq gnuplot-gui-plot-splot-fit-style
@@ -833,7 +831,6 @@ This alist is formed at load time by appending together
 (defun gnuplot-gui-set-frame-param (param value)
   (setcdr (assoc param gnuplot-gui-frame-parameters) value))
 
-;;;###autoload
 (defun gnuplot-gui-set-options-and-insert (&optional event)
   "Insert arguments using a GUI interface.
 Determine contents of current line and set up the appropriate GUI
@@ -917,7 +914,6 @@ Note that \"cntrparam\" is not currently supported."
                  (message
                   "%S is not a gnuplot command which takes options" w)))) ))))
 
-;;;###autoload
 (defun gnuplot-gui-toggle-popup ()
   (interactive)
   (setq gnuplot-gui-popup-flag (not gnuplot-gui-popup-flag))

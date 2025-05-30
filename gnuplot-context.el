@@ -2167,8 +2167,6 @@ command."
               ((looking-at "set\\s-+parametric") (throw 'result t))))
       nil)))
 
-
-;;;###autoload
 (define-minor-mode gnuplot-context-sensitive-mode
   "Use context-sensitive completion and help in `gnuplot-mode'.
 

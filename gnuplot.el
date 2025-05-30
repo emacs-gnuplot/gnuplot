@@ -81,8 +81,6 @@
 (require 'info)
 (require 'info-look)
 
-(declare-function 'eldoc-add-command "eldoc")
-
 (defgroup gnuplot nil
   "Gnuplot-mode for Emacs."
   :prefix "gnuplot-"
@@ -251,6 +249,11 @@ beginning the continued command."
 These are set by `gnuplot--set-keywords-list' from the values in
 `info-lookup-cache'.")
 
+(autoload 'gnuplot-context-sensitive-mode "gnuplot-context")
+(autoload 'gnuplot-gui-set-options-and-insert "gnuplot-gui" nil t)
+(autoload 'gnuplot-gui-swap-simple-complete "gnuplot-gui" nil t)
+(autoload 'gnuplot-gui-toggle-popup "gnuplot-gui" nil t)
+
 (defcustom gnuplot-use-context-sensitive-completion t
   "Non-nil if `gnuplot-context-sensitive-mode' should be enabled by default.
 
@@ -263,15 +266,14 @@ suggestions."
          (set sym value)
          (cond
           (value
-           (add-hook 'gnuplot-mode-hook 'gnuplot-context-sensitive-mode nil nil)
-           (add-hook 'gnuplot-comint-mode-hook 'gnuplot-context-sensitive-mode nil nil))
+           (add-hook 'gnuplot-mode-hook #'gnuplot-context-sensitive-mode nil nil)
+           (add-hook 'gnuplot-comint-mode-hook #'gnuplot-context-sensitive-mode nil nil))
           (t
-           (remove-hook 'gnuplot-mode-hook 'gnuplot-context-sensitive-mode)
-           (remove-hook 'gnuplot-comint-mode-hook 'gnuplot-context-sensitive-mode)))
+           (remove-hook 'gnuplot-mode-hook #'gnuplot-context-sensitive-mode)
+           (remove-hook 'gnuplot-comint-mode-hook #'gnuplot-context-sensitive-mode)))
          (dolist (buffer (buffer-list))
            (with-current-buffer buffer
-             (when (and (derived-mode-p 'gnuplot-mode 'gnuplot-comint-mode)
-                        (fboundp 'gnuplot-context-sensitive-mode))
+             (when (derived-mode-p 'gnuplot-mode 'gnuplot-comint-mode)
                (gnuplot-context-sensitive-mode (if value 1 0))))))
   :link '(emacs-commentary-link "gnuplot-context"))
 
@@ -344,7 +346,7 @@ non-nil."
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-c\C-b"    #'gnuplot-send-buffer-to-gnuplot)
     (define-key map "\C-c\C-c"    #'comment-region) ; <RF>
-    (define-key map "\C-c\C-o"    'gnuplot-gui-set-options-and-insert)
+    (define-key map "\C-c\C-o"    #'gnuplot-gui-set-options-and-insert)
     (define-key map "\C-c\C-e"    #'gnuplot-show-gnuplot-buffer)
     (define-key map "\C-c\C-f"    #'gnuplot-send-file-to-gnuplot)
     (define-key map "\C-c\C-d"    #'gnuplot-info-lookup-symbol)
@@ -360,7 +362,7 @@ non-nil."
     (define-key map "\C-i"        #'indent-for-tab-command)
     (define-key map (kbd "}")     #'gnuplot-electric-insert)
     (define-key map "\M-\t"       #'completion-at-point)
-    (define-key map [S-mouse-2]   'gnuplot-gui-set-options-and-insert)
+    (define-key map [S-mouse-2]   #'gnuplot-gui-set-options-and-insert)
 
     map))
 
@@ -1904,8 +1906,7 @@ shown."
           (setq topic (downcase (match-string 2 string))
                 term            (match-string 4 string))
           (if (string= topic "terminal") (setq topic (downcase term)))))
-    (cond ((and (bound-and-true-p gnuplot-gui-popup-flag)
-                (fboundp 'gnuplot-gui-set-options-and-insert))
+    (cond ((bound-and-true-p gnuplot-gui-popup-flag)
            (gnuplot-gui-set-options-and-insert))
           (gnuplot-insertions-show-help-flag
            (when (eq gnuplot--info-keywords 'pending)
@@ -2007,8 +2008,6 @@ and then starts `gnuplot-mode'.
 It is convenient to bind this function to a global key sequence.  For
 example, to make the F10 key open a gnuplot script buffer, put the
 following in your .emacs file:
-     (autoload \\='gnuplot-make-buffer \"gnuplot\"
-               \"open a buffer in gnuplot mode\" t)
      (global-set-key [(f10)] \\='gnuplot-make-buffer)"
   (interactive)
   (switch-to-buffer gnuplot-gnuplot-buffer)
