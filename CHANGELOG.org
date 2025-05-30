@@ -1,6 +1,19 @@
 #+TITLE: Changelog for =gnuplot.el=
 
-* Version 8.1 (Feb 18th 2023)
+* Development
+
+- Enable ~gnuplot-inline-image-mode~ by default.
+- Enable Eldoc messages by default and provide ~gnuplot-eldoc.el~.
+- Made many functions and variables private to ease refactoring in the future.
+- Remove ~gnuplot-prompt-face~ since Comint highlights the prompt by default.
+- Remove ~gnuplot-tab-completion~ option. Set ~tab-always-indent~ to ~complete~
+  instead.
+- Remove ~gnuplot-eldoc-mode~ option. Toggle ~eldoc-mode~ locally instead.
+- Unbind ~C-c C-c~. Use the default binding ~M-;~ instead.
+- Unbind ~M-RET~ for tab completion. Use the default ~M-TAB~ instead.
+- Fix compatibility with Emacs 30 and newer.
+
+* Version 0.8.1 (Feb 18th 2023)
 
 List of changes for =gnuplot.el= version 0.8.0 ranging from January 2021
 to February 2023.
@@ -13,7 +26,7 @@ to February 2023.
 
 - Lexical scoping and linting
 
-* Version 8.0 (Jan 3rd 2021)
+* Version 0.8.0 (Jan 3rd 2021)
 
 List of changes for =gnuplot.el= version 0.8.0 ranging from March 2014
 to January 2021.
@@ -54,18 +67,17 @@ to January 2021.
 - =comint-process-echoes= is now buffer-local.
 
 
-
-* Version 7.0 (Oct 20th 2012)
+* Version 0.7.0 (Oct 20th 2012)
 
 - Contextual completion & help, inline plots, some other stuff.
 
-* Version 6.0 (Dec 13th 2011)
+* Version 0.6.0 (Dec 13th 2011)
 
 - Changed numbering scheme to accommodate gnuplot packaging
   requirements.
 - Moved to github, updated contact info.
 
-* Version 5.0 (Sep 16th 2002)
+* Version 0.5.0 (Sep 16th 2002)
 
 - Wrote initial draft of gnuplot-gui.el, included it in insertions
   menu and in =gnuplot-insert=. Negate option function, bound to =C-c
@@ -151,7 +163,7 @@ to January 2021.
 
 - Fixed a problem with =C-c C-v= jumping forward 2 lines at a time
 
-* Version 4.0 (Dec 14th 1998)
+* Version 0.4.0 (Dec 14th 1998)
 
 - Use info-look for info interface. No change to gnuplot-mode user
   interface, but cleaner code. With info-look, the help funcion works
@@ -190,8 +202,7 @@ to January 2021.
   =gnuplot-insertion-menu-flag=, intelligent Makefile knows which
   info-look to compile
 
-
-* Verison 3.0 (Sep 15th 1998)
+* Version 0.3.0 (Sep 15th 1998)
 
 - Include insertions menu.
 
@@ -206,7 +217,7 @@ to January 2021.
   =gnuplot-mark-active= which caused an error to be raised by (mark)
   when the mark was inactive. Some changes to font-lock rules.
 
-* Version 2.0 (Sep 11th 1998)
+* Version 0.2.0 (Sep 11th 1998)
 
 - Added filename insertion, indentation, and colorization/completion
   in comint buffer.
@@ -214,6 +225,6 @@ to January 2021.
 - Made =indent-line-function= buffer-local (whoops!) and fixed some
   stuff in the installation script
 
-* Version 1.0 (Jun 25th 1998)
+* Version 0.1.0 (Jun 25th 1998)
 
 - Finished with initial release.
