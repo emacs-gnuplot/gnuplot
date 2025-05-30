@@ -2046,7 +2046,7 @@ there."
         (gnuplot-context--completions)))
 
 ;; Eldoc help
-(defun gnuplot-eldoc-function (&rest _)
+(defun gnuplot-context-eldoc-function (&rest _)
   "Return the ElDoc string for the Gnuplot construction at point."
   (gnuplot-context--parse-at-point nil)
   gnuplot-context--eldoc)
@@ -2200,12 +2200,12 @@ customize the variable
       (progn
         (remove-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look t)
         (add-hook 'completion-at-point-functions #'gnuplot-context-completion-at-point nil t)
-        (add-hook 'eldoc-documentation-functions #'gnuplot-eldoc-function nil 'local)
+        (add-hook 'eldoc-documentation-functions #'gnuplot-context-eldoc-function nil 'local)
         (unless gnuplot-eldoc-hash
           (load "gnuplot-eldoc" t t)))
     (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t)
     (remove-hook 'completion-at-point-functions #'gnuplot-context-completion-at-point t)
-    (remove-hook 'eldoc-documentation-functions #'gnuplot-eldoc-function t)))
+    (remove-hook 'eldoc-documentation-functions #'gnuplot-context-eldoc-function t)))
 
 (provide 'gnuplot-context)
 ;;; gnuplot-context.el ends here
