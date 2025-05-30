@@ -102,7 +102,7 @@ Gnuplot display. It requires Gnuplot to have =png= support and a GNU Emacs with
 image support. Call =gnuplot-external-display-mode= in a gnuplot-mode buffer to
 disable the feature.
 
-* FAQ / Remarks
+* Common issues
 
 ** Usage on Windows
 
@@ -150,7 +150,9 @@ this fix.
 
 * Maintenance
 
-Regenerate gnuplot.texi and gnuplot-eldoc.el from the Gnuplot source.
+Regenerate ~gnuplot.texi~ and ~gnuplot-eldoc.el~ from the Gnuplot source.
 
-1. ~emacs -batch -l doc2texi.el -f d2t-doc-to-texi~ inside the gnuplot-*/docs/ directory
-2. ~makeinfo --no-split gnuplot.texi~ and ensure that it compiles cleanly
+1. Run ~emacs -batch -l doc2texi.el -f d2t-doc-to-texi~ inside the ~gnuplot-*/docs/~
+   source directory.
+2. Run ~makeinfo --no-split gnuplot.texi~ and ensure that it compiles cleanly.
+3. Copy ~gnuplot-eldoc.el~ and ~gnuplot.texi~ to the package source.
