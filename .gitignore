@@ -3,12 +3,9 @@
 *.elc
 *.log
 *.pdf
-*.tar.gz
-*.tar.xz
-*/#*#
+*.tar.*
 *~
-.#*
-/#*#
+\#*\#
 /*-autoloads.el
 /*-pkg.el
 /gnuplot-*.*.*/
