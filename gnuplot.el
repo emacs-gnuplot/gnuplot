@@ -326,18 +326,6 @@ non-nil."
   :initialize #'custom-initialize-default
   :set #'gnuplot--set-display-mode)
 
-(defgroup gnuplot-faces nil
-  "Text faces used by `gnuplot-mode'."
-  :prefix "gnuplot-"
-  :group 'gnuplot)
-
-(defface gnuplot-prompt-face '((((class color))
-                                (:foreground "firebrick"))
-                               (t
-                                (:bold t :underline t)))
-  "Face used for the prompt in the gnuplot process buffer."
-  :group 'gnuplot-faces)
-
 
 ;;; --- key bindings and menus
 
@@ -1353,7 +1341,6 @@ STRING is the text as originally inserted in the comint buffer."
             (setq e (point))
             (put-text-property b e 'rear-nonsticky '(read-only intangible face))
             (put-text-property b e 'intangible t)
-            (put-text-property b e 'face 'gnuplot-prompt-face)
             ;;(put-text-property b e 'read-only t)
             )))))
 

@@ -1183,19 +1183,24 @@ into the buffer.  TYPE is the object whose arguments are being set."
   (gnuplot-gui-make-frame
    option (cdr (assoc option gnuplot-gui-all-types)) save-frame) )
 
+(defgroup gnuplot-gui-faces nil
+  "Text faces used by `gnuplot-gui'."
+  :prefix "gnuplot-gui-"
+  :group 'gnuplot-gui)
+
 (defface gnuplot-gui-error-face '((((class color) (background light))
                                    (:foreground "grey30"))
                                   (((class color) (background dark))
                                    (:foreground "grey70")))
   "Face used to display message about unknown widget types."
-  :group 'gnuplot-faces)
+  :group 'gnuplot-gui-faces)
 
 (defface gnuplot-gui-flat-text-face '((((class color) (background light))
                                        (:foreground "MediumBlue"))
                                       (((class color) (background dark))
                                        (:foreground "LightSteelBlue")))
   "Face used to display message about unknown widget types."
-  :group 'gnuplot-faces)
+  :group 'gnuplot-gui-faces)
 
 (defun gnuplot-gui-make-frame (item alist &optional save-frame)
   "Open the frame and populate it with widgets.
@@ -1375,7 +1380,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
                                  (t
                                   (:italic t)))
   "Face used for menu-buttons."
-  :group 'gnuplot-faces)
+  :group 'gnuplot-gui-faces)
 (defface gnuplot-gui-button-face '((((class color) (background light))
                                     (:bold t :foreground "sienna"))
                                    (((class color) (background dark))
@@ -1383,7 +1388,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
                                    (t
                                     (:italic t)))
   "Face used for push-buttons."
-  :group 'gnuplot-faces)
+  :group 'gnuplot-gui-faces)
 (defface gnuplot-gui-labels-face '((((class color) (background light))
                                     (:bold t :foreground "darkslateblue"))
                                    (((class color) (background dark))
@@ -1391,7 +1396,7 @@ SAVE-FRAME is non-nil when the widgets are being reset."
                                    (t
                                     (:italic t)))
   "Face used for insert and delete button in the labels widget."
-  :group 'gnuplot-faces)
+  :group 'gnuplot-gui-faces)
 
 (defun gnuplot-gui-menu-choice (item default list &optional starred)
   "Create a menu widget for the Gnuplot GUI.
