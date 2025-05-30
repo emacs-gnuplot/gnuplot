@@ -1,5 +1,10 @@
 #+TITLE: Changelog for =gnuplot.el=
 
+* Development
+
+- Minor code cleanup and updates.
+- Removed deprecated functions.
+
 * Version 0.9 (2025-05-30)
 
 - Enable ~gnuplot-inline-image-mode~ by default.
@@ -13,202 +18,146 @@
 - Unbind ~M-RET~ for tab completion. Use the default ~M-TAB~ instead.
 - Fix compatibility with Emacs 30 and newer.
 
-* Version 0.8.1 (Feb 18th 2023)
-
-List of changes for =gnuplot.el= version 0.8.0 ranging from January 2021
-to February 2023.
+* Version 0.8.1 (2023-02-18)
 
 - Fixed the =completion-at-point= function
-
 - Improve lazy loading of the gnuplot-gui library
-
 - Remove legacy code
-
 - Lexical scoping and linting
 
-* Version 0.8.0 (Jan 3rd 2021)
-
-List of changes for =gnuplot.el= version 0.8.0 ranging from March 2014
-to January 2021.
+* Version 0.8.0 (2021-01-03)
 
 - Changed project license to GPLv3.
-
 - Greatly simplify the compilation process.
-
 - Fix deprecated calls to the =cl= library.
-
 - Deprecated XEmacs support. Bump minimal GNU Emacs version to 24.3.
-
 - Add a =gnuplot-program-args= variable for passing additional
   arguments to the gnuplot program binary.
-
 - The =gnuplot-inline-image-mode= can now take three values: =nil=,
 =inline=, =dedicated=.
-
 - Add the =gnuplot-use-context-sensitive-completion= configuration
   option.
-
 - Removed the =gnuplot-bug-report= function.
-
 - The provided =gnuplot.info= manual file has been updated for gnuplot
   version 5.2.6.
-
 - Add the =gnuplot-program-args= customization option to pass
   additional arguments to the gnuplot process.
-
 - Use =syntax-proprietize-rules= in gnuplot buffers.
-
 - =gnuplot-context-sensitive-mode= is now a normal minor mode.
-
 - Enable =completion-at-point= in gnuplot =comint= buffers.
-
 - Remove the unused =dotemacs.el= file.
-
 - =comint-process-echoes= is now buffer-local.
 
-
-* Version 0.7.0 (Oct 20th 2012)
+* Version 0.7.0 (2021-10-20)
 
 - Contextual completion & help, inline plots, some other stuff.
 
-* Version 0.6.0 (Dec 13th 2011)
+* Version 0.6.0 (2011-12-13)
 
 - Changed numbering scheme to accommodate gnuplot packaging
   requirements.
 - Moved to github, updated contact info.
 
-* Version 0.5.0 (Sep 16th 2002)
+* Version 0.5.0 (2002-09-16)
 
 - Wrote initial draft of gnuplot-gui.el, included it in insertions
   menu and in =gnuplot-insert=. Negate option function, bound to =C-c
   C-n=.
-
 - =C-c C-h= with no response goes to Commands menu. Transparent toolbar
   icons. Replace kw-compl with a simple completion function. Put
   gnuplot-toolbar code in gnuplot.el.
-
 - Send file uses the load command. add =gnuplot-plot-from-comint= and
   =gnuplot-save-and-plot-from-comint= and keybindings in the comint
   buffer. do =(process-kill-without-query gnuplot-process nil)=.
   =gnuplot-negate-option= checks if set option has a negated form.
-
 - =gnuplot-kill-gnuplot-buffer= made more robust. fixed a bug in
   =gnuplot-plot-from-comint=. fixed description of gnuplot-faces
   group.
-
 - Update copyright information, update gpelcard
-
 - Change installation materials. Add some support for hidden3d. Use
   constants in types alists in gui. Various other minor improvements
   to the types alists.
-
 - Removed =gnuplot-which-highlight= variable and revamped how
   colorization gets turned on. This is a bit tricky since I want it to
   work with font-lock under emacs and xemacs and with hilit19.
-
 - Insert space at end of unique completion. add a few GUI types,
   rewrite some stuff in the GUI interface. primitive support for plot,
   splot, and fit. Fixed completion in file widget.
-
 - Add =pgnuplot.c= and Win9x install instructions to the distribution.
   Fixed a defface bug. Added =gnuplot-keywords-when= allowing deferral
   of parsing the info file.
-
 - Fixed font-locking of strings and comments. Figure out
   =gnuplot-version= number from startup message and set
   =gnuplot-echo-command-line-flag= accordingly. Added
   =gnuplot-program-version= variable. Check that font-lock is actually
   a feature.
-
 - Added =gnuplot-determine-gnuplot-version= so that the gnuplot
   version number and =comint-process-echos= actually get set
   correctly. Actually, the first time something is plotted, the
   echoing might not work, but the second time it will.
-
 - Once again changed how =comint-process-echos= gets set. Maybe I got
   it right this time? Also fixed certain situations where the info
   file did notget properly loaded (insertion with info toggle on and
   info button in GUI).
-
 - Do a more robust check for the gnuplot process before killing the
   gnuplot buffer.
-
 - Make =gnuplot-send-line-and-forward= skip over blank and comment
   lines.
-
 - Bound =C-c C-j= to =gnuplot-forward-script-line=.
-
 - Support for pm3d in gnuplot-gui and in plot options insertions menu.
   mentioned pm3d in gpelcard. gui support for x11 pm3d and vgagl
   terms. =gnuplot-negate-option= works with new syntax.
-
 - Add colorization and gui support for new commands in 3.8. gui
   support for emf term. gui support for new "set style" syntax. much
   better scheme for determining gnuplot version number + make better
   use of it.
-
 - Corrected a serious problem interacting with speedbar
-
 - Fixed problem with toolbar creation and speedbar clicking
-
 - Added font-lock bindings for words associated with plotting
-
 - Bind =C-c C-c= to =comment-region= and =C-c C-o= to the GUI, also
   make =C-c C-l= respect continuation lines. Added feature to trim
   length of gnuplot process buffer.
-
 - Yet again changed how =comint-process-echos= gets set. It really
   needs to be nil on NTEmacs 21.1 or comint gets stuck in an infinate
   loop.
-
 - Fixed a problem with =C-c C-v= jumping forward 2 lines at a time
 
-* Version 0.4.0 (Dec 14th 1998)
+* Version 0.4.0 (1998-12-14)
 
 - Use info-look for info interface. No change to gnuplot-mode user
   interface, but cleaner code. With info-look, the help funcion works
   regardless of the version number of gnuplot. Also,
   =gnuplot-keywords= (used for help, keyword-completion, and hilit19
   highlighting) is now generated automatically.
-
 - =info-look= leaves a couple of really useless buffers lying around
   so I cleaned them up. Also fixed font-lock rules so that things in
   quotes get highlighted correctly and the surrounding text is
   unhighlighted. Fixed up font-lock rules for plot and splot. Added
   =gnuplot-send-line-and-forward=.
-
 - Added toolbar for xemacs -- see file =gnuplot-toolbar.el=. Fixed
   error message in plot line function when line is empty. Option added
   to display the comint buffer showing the gnuplot process in a
   separate frame
-
 - Fixed highlighting in comint buffer. fixed frame behavior. added
   "[:]" to range insertions. added :link to defgroup.
-
 - Fixed some mismatched defcustoms. added a few lines to suppress some
   compile-time warnings.
-
 - Fixed behavior of filename insertion function. Added more :links to
   defgroup.
-
 - Added function =gnuplot-setup-info-look= and variable
   =gnuplot-info-hook= to handle various versions of the gnuplot info
   file.
-
 - Split up gnuplot-insertions-menu for ease of custimization, put
   menubar initialization in a function.
-
 - defcustom the insertions submenus, add
   =gnuplot-insertion-menu-flag=, intelligent Makefile knows which
   info-look to compile
 
-* Version 0.3.0 (Sep 15th 1998)
+* Version 0.3.0 (1998-09-15)
 
 - Include insertions menu.
-
 - Fixed bug finding info file if missing, fixed bug starting
   font-lock, fixed bug re overwriting files in installation script.
-
 - Added =(require info)= to =eval-and-compile= clause, Added
   =(kill-all-local-variables)= to =gnuplot-mode=, altered order of:
   =(provide gnuplot)= =(run-hooks gnuplot-load-hook)= at the end of
@@ -217,14 +166,13 @@ to January 2021.
   =gnuplot-mark-active= which caused an error to be raised by (mark)
   when the mark was inactive. Some changes to font-lock rules.
 
-* Version 0.2.0 (Sep 11th 1998)
+* Version 0.2.0 (1998-09-11)
 
 - Added filename insertion, indentation, and colorization/completion
   in comint buffer.
-
 - Made =indent-line-function= buffer-local (whoops!) and fixed some
   stuff in the installation script
 
-* Version 0.1.0 (Jun 25th 1998)
+* Version 0.1.0 (1998-06-25)
 
 - Finished with initial release.
