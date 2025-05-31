@@ -10,14 +10,11 @@ LOAD = -l gnuplot \
 
 default: compile
 
-prepare:
-	$(EMACS) --eval "(progn (package-refresh-contents) (package-install 'compat))"
+test:
+	$(EMACS) --batch -L . $(LOAD) -f ert-run-tests-batch-and-exit
 
-test: prepare
-	$(EMACS) --batch -L . -f package-initialize $(LOAD) -f ert-run-tests-batch-and-exit
-
-compile: prepare
-	$(EMACS) --batch -L . -f package-initialize -f batch-byte-compile gnuplot-*.el
+compile:
+	$(EMACS) --batch -L . -f batch-byte-compile gnuplot-*.el
 
 clean:
 	rm -f *.elc

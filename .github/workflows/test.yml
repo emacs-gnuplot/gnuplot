@@ -23,5 +23,7 @@ jobs:
         version: ${{ matrix.emacs-version }}
     - name: Install Gnuplot
       run: sudo apt update && sudo apt install gnuplot
+    - name: Install Compat
+      run: emacs --eval "(progn (package-refresh-contents) (package-install 'compat))"
     - name: Run tests
-      run: 'make && make test'
+      run: make && make test
