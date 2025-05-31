@@ -4,5 +4,4 @@
 \#*\#
 /*-autoloads.el
 /*-pkg.el
-/gnuplot-*.*.*/
-/gpelcard.ps
+/gnuplot-*/
