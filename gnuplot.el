@@ -1247,12 +1247,13 @@ this function is attached to `gnuplot-after-plot-hook'"
 This sets font-lock and keyword completion in the comint/gnuplot
 buffer."
   :interactive nil
+  :syntax-table gnuplot-mode-syntax-table
+  :abbrev-table gnuplot-mode-abbrev-table
 
   (setq-local font-lock-defaults gnuplot-font-lock-defaults
               parse-sexp-lookup-properties t
               syntax-propertize-function #'gnuplot--syntax-propertize)
 
-  (set-syntax-table gnuplot-mode-syntax-table)
   (add-hook 'kill-buffer-hook #'gnuplot--close-down nil t)
   (add-hook 'comint-output-filter-functions
             #'comint-postoutput-scroll-to-bottom
@@ -1889,7 +1890,6 @@ a list:
               font-lock-multiline t
               parse-sexp-lookup-properties t
               comint-process-echoes gnuplot-echo-command-line-flag)
-  (set-syntax-table gnuplot-mode-syntax-table)
   (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t)
   (add-hook 'syntax-propertize-extend-region-functions
             #'gnuplot--syntax-propertize-extend-region nil t)
