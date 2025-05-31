@@ -108,7 +108,7 @@ region, a buffer, or a file."
   :group 'gnuplot-hooks
   :type 'hook)
 
-(defvar-local gnuplot-recently-sent nil
+(defvar gnuplot-recently-sent nil
   "This is a record of the most recent kind of text sent to gnuplot.
 It takes as its value nil, `line', `region', `buffer', or `file'.  It is
 useful for functions included in `gnuplot-after-plot-hook'.")
@@ -1248,21 +1248,18 @@ This sets font-lock and keyword completion in the comint/gnuplot
 buffer."
   :interactive nil
 
+  (setq-local font-lock-defaults gnuplot-font-lock-defaults
+              parse-sexp-lookup-properties t
+              syntax-propertize-function #'gnuplot--syntax-propertize)
+
   (set-syntax-table gnuplot-mode-syntax-table)
-
-  (setq font-lock-defaults gnuplot-font-lock-defaults)
-  (setq-local parse-sexp-lookup-properties t)
-  (setq-local syntax-propertize-function #'gnuplot--syntax-propertize)
-
   (add-hook 'kill-buffer-hook #'gnuplot--close-down nil t)
-
   (add-hook 'comint-output-filter-functions
             #'comint-postoutput-scroll-to-bottom
             nil t)
   (add-hook 'comint-output-filter-functions
             #'gnuplot--protect-prompt-fn
             nil t)
-
   (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t)
 
   ;; Set up menu (see below)
@@ -1880,31 +1877,23 @@ a list:
      text.
  5.  The GUI handling of \"hidden3d\" is flaky and \"cntrparam\" is
      unsupported."
-  (setq-local comment-start "# ")
-  (setq-local comment-end "")
-  (setq-local comment-column 32)
-  (setq-local comment-start-skip "#[ \t]*")
-  (setq-local indent-line-function #'gnuplot-indent-line)
-
-  (setq-local beginning-of-defun-function #'gnuplot--beginning-of-defun)
-  (setq-local end-of-defun-function #'gnuplot--end-of-continuation)
-
-  (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t)
-
+  (setq-local comment-start "# "
+              comment-end ""
+              comment-column 32
+              comment-start-skip "#[ \t]*"
+              indent-line-function #'gnuplot-indent-line
+              beginning-of-defun-function #'gnuplot--beginning-of-defun
+              end-of-defun-function #'gnuplot--end-of-continuation
+              syntax-propertize-function #'gnuplot--syntax-propertize
+              font-lock-defaults gnuplot-font-lock-defaults
+              font-lock-multiline t
+              parse-sexp-lookup-properties t
+              comint-process-echoes gnuplot-echo-command-line-flag)
   (set-syntax-table gnuplot-mode-syntax-table)
-
-  ;; Add syntax-propertizing functions to search for strings and comments
-  (setq-local syntax-propertize-function #'gnuplot--syntax-propertize)
+  (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t)
   (add-hook 'syntax-propertize-extend-region-functions
             #'gnuplot--syntax-propertize-extend-region nil t)
-
-  ;; Set up font-lock
-  (setq font-lock-defaults gnuplot-font-lock-defaults)
-  (setq-local font-lock-multiline t)
-  (setq-local parse-sexp-lookup-properties t)
-
   (setq gnuplot--comint-recent-buffer (current-buffer))
-  (setq-local comint-process-echoes gnuplot-echo-command-line-flag)
   (gnuplot--setup-menubar))
 
 ;;;###autoload
