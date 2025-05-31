@@ -133,10 +133,10 @@ issue is likely due to your distribution bundling Gnuplot with [[https://unix.st
 of readline]]. Recompiling the source with support for Unicode fixes the issue
 until this issue is fixed upstream.
 
-* Maintenance
+* Maintenance of generated files
 
-Regenerate ~gnuplot.texi~ and ~gnuplot-eldoc.el~ from the Gnuplot source. The source
-can be pulled downloaded from here:
+The files ~gnuplot.texi~ and ~gnuplot-eldoc.el~ are generated from the Gnuplot
+source. The source can be pulled downloaded from here:
 
 - https://packages.debian.org/unstable/gnuplot
 - http://deb.debian.org/debian/pool/main/g/gnuplot/gnuplot_6.0.2+dfsg1.orig.tar.xz
