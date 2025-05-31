@@ -55,7 +55,6 @@
 
 (require 'gnuplot)
 (require 'wid-edit)
-(require 'cl-lib)
 
 
 ;;; customizable variables

@@ -8,7 +8,7 @@
 ;; Version:          0.9
 ;; Keywords:         data gnuplot plotting
 ;; URL:              https://github.com/emacs-gnuplot/gnuplot
-;; Package-Requires: ((emacs "28.1"))
+;; Package-Requires: ((emacs "28.1") (compat "30"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -65,6 +65,7 @@
 
 ;;; Code:
 
+(require 'compat)
 (require 'cl-lib)
 (require 'comint)
 (require 'info)
@@ -319,26 +320,24 @@ non-nil."
 
 ;;; --- key bindings and menus
 
-(defvar gnuplot-mode-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-b"    #'gnuplot-send-buffer-to-gnuplot)
-    (define-key map "\C-c\C-o"    #'gnuplot-gui-set-options-and-insert)
-    (define-key map "\C-c\C-e"    #'gnuplot-show-comint-buffer)
-    (define-key map "\C-c\C-f"    #'gnuplot-send-file-to-gnuplot)
-    (define-key map "\C-c\C-d"    #'gnuplot-info-lookup-symbol)
-    (define-key map "\C-c\C-i"    #'gnuplot-insert-filename)
-    (define-key map "\C-c\C-j"    #'gnuplot-forward-script-line)
-    (define-key map "\C-c\C-k"    #'gnuplot-kill-comint-buffer)
-    (define-key map "\C-c\C-l"    #'gnuplot-send-line-to-gnuplot)
-    (define-key map "\C-c\C-n"    #'gnuplot-negate-option)
-    (define-key map "\C-c\C-r"    #'gnuplot-send-region-to-gnuplot)
-    (define-key map (kbd "C-M-x") #'gnuplot-send-line-to-gnuplot)
-    (define-key map "\C-c\C-v"    #'gnuplot-send-line-and-forward)
-    (define-key map "\C-c\C-z"    #'gnuplot-customize)
-    (define-key map "}"           #'gnuplot-electric-insert)
-    (define-key map "\M-\t"       #'completion-at-point)
-    (define-key map [S-mouse-2]   #'gnuplot-gui-set-options-and-insert)
-    map))
+(defvar-keymap gnuplot-mode-map
+  "C-c C-b"     #'gnuplot-send-buffer-to-gnuplot
+  "C-c C-o"     #'gnuplot-gui-set-options-and-insert
+  "C-c C-e"     #'gnuplot-show-comint-buffer
+  "C-c C-f"     #'gnuplot-send-file-to-gnuplot
+  "C-c C-d"     #'gnuplot-info-lookup-symbol
+  "C-c C-i"     #'gnuplot-insert-filename
+  "C-c C-j"     #'gnuplot-forward-script-line
+  "C-c C-k"     #'gnuplot-kill-comint-buffer
+  "C-c C-l"     #'gnuplot-send-line-to-gnuplot
+  "C-c C-n"     #'gnuplot-negate-option
+  "C-c C-r"     #'gnuplot-send-region-to-gnuplot
+  "C-M-x"       #'gnuplot-send-line-to-gnuplot
+  "C-c C-v"     #'gnuplot-send-line-and-forward
+  "C-c C-z"     #'gnuplot-customize
+  "}"           #'gnuplot-electric-insert
+  "M-TAB"       #'completion-at-point
+  "S-<mouse-2>" #'gnuplot-gui-set-options-and-insert)
 
 (defvar gnuplot-mode-menu nil)
 

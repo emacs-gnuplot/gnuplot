@@ -218,10 +218,7 @@
 
 ;;; Code:
 
-(require 'cl-lib)
 (require 'gnuplot)
-(require 'info)
-(require 'info-look)
 
 
 ;;;; The tokenizer.
