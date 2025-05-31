@@ -2053,7 +2053,7 @@ there."
 
 (defun gnuplot-help-function ()
   "Pop up the extended documentation for the construction at point."
-  (interactive)
+  (interactive nil gnuplot-mode gnuplot-comint-mode)
   (gnuplot-context--parse-at-point nil)
   (if (and gnuplot-context--info-at-point gnuplot-eldoc-hash)
       (let ((eldoc
@@ -2063,7 +2063,7 @@ there."
 ;; Info lookup
 (defun gnuplot-info-at-point (&optional query)
   "Open the relevant gnuplot info page for the construction at point."
-  (interactive "P")
+  (interactive "P" gnuplot-mode gnuplot-comint-mode)
   (setq gnuplot-context--info-at-point nil)
   (unless query
     (gnuplot-context--parse-at-point nil))
@@ -2190,6 +2190,7 @@ summaries appear in the echo area as you type, toggle
 To choose whether to use this mode by default in Gnuplot buffers,
 customize the variable
 `gnuplot-use-context-sensitive-completion'."
+  :interactive (gnuplot-mode gnuplot-comint-mode)
   :keymap
   `((,(kbd "C-c C-/") . gnuplot-help-function)
     (,(kbd "C-c C-d") . gnuplot-info-at-point))

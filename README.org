@@ -15,7 +15,7 @@ features:
 - Context-sensitive completion.
 - Inline display of Gnuplot plots.
 
-It is recommended to use GNU Emacs 25 or above, and Gnuplot version 5.0 or
+It is recommended to use GNU Emacs 28 or above, and Gnuplot version 5.0 or
 above.
 
 * Installation

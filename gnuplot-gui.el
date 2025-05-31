@@ -796,7 +796,7 @@ This alist is formed at load time by appending together
                                     gnuplot-gui-test-type))
 
 (defun gnuplot-gui-swap-simple-complete ()
-  (interactive)
+  (interactive nil gnuplot-mode)
   (setq gnuplot-gui-plot-splot-fit-style
         (if (equal gnuplot-gui-plot-splot-fit-style 'complete)
             'simple 'complete))
@@ -825,7 +825,7 @@ This alist is formed at load time by appending together
 Determine contents of current line and set up the appropriate GUI
 frame.  Bound to \\[gnuplot-gui-set-options-and-insert]
 Note that \"cntrparam\" is not currently supported."
-  (interactive (list last-nonmenu-event))
+  (interactive (list last-nonmenu-event) gnuplot-mode)
   (save-excursion
     (if event (mouse-set-point event))
     (let ((begin  (gnuplot--point-at-beginning-of-command))
@@ -904,7 +904,7 @@ Note that \"cntrparam\" is not currently supported."
                   "%S is not a gnuplot command which takes options" w)))) ))))
 
 (defun gnuplot-gui-toggle-popup ()
-  (interactive)
+  (interactive nil gnuplot-mode)
   (setq gnuplot-gui-popup-flag (not gnuplot-gui-popup-flag))
   (message (if gnuplot-gui-popup-flag
                "Argument popup will appear after insertions."

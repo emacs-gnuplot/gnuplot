@@ -8,7 +8,7 @@
 ;; Version:          0.9
 ;; Keywords:         data gnuplot plotting
 ;; URL:              https://github.com/emacs-gnuplot/gnuplot
-;; Package-Requires: ((emacs "25.1"))
+;; Package-Requires: ((emacs "28.1"))
 
 ;; This file is not part of GNU Emacs.
 
@@ -133,11 +133,6 @@ useful for functions included in `gnuplot-after-plot-hook'.")
 (defvar gnuplot-process nil
   "Variable holding the process handle.")
 
-(defvar gnuplot-comint-recent-buffer nil
-  "The most recently plotted gnuplot script buffer.
-This is used by the function that plot from the comint buffer.  It is
-reset every time something is plotted from a script buffer.")
-
 (defcustom gnuplot-gnuplot-buffer "plot.gp"
   "The name of the gnuplot scratch buffer opened by `gnuplot-make-buffer'."
   :group 'gnuplot
@@ -223,6 +218,11 @@ beginning the continued command."
   :group 'gnuplot
   :type 'integer)
 
+(defvar gnuplot--comint-recent-buffer nil
+  "The most recently plotted gnuplot script buffer.
+This is used by the function that plot from the comint buffer.  It is
+reset every time something is plotted from a script buffer.")
+
 (defvar gnuplot--process-frame nil
   "The frame for displaying the gnuplot process.
 This is used when `gnuplot-display-process' is equal to `frame'.")
@@ -239,9 +239,9 @@ These are set by `gnuplot--set-keywords-list' from the values in
 
 (defvar gnuplot-context-sensitive-mode nil)
 (autoload 'gnuplot-context-sensitive-mode "gnuplot-context")
-(autoload 'gnuplot-gui-set-options-and-insert "gnuplot-gui" nil t)
-(autoload 'gnuplot-gui-swap-simple-complete "gnuplot-gui" nil t)
-(autoload 'gnuplot-gui-toggle-popup "gnuplot-gui" nil t)
+(autoload 'gnuplot-gui-set-options-and-insert "gnuplot-gui" nil '(gnuplot-mode))
+(autoload 'gnuplot-gui-swap-simple-complete "gnuplot-gui" nil '(gnuplot-mode))
+(autoload 'gnuplot-gui-toggle-popup "gnuplot-gui" nil '(gnuplot-mode))
 
 (defcustom gnuplot-use-context-sensitive-completion t
   "Non-nil if `gnuplot-context-sensitive-mode' should be enabled by default.
@@ -1017,7 +1017,7 @@ nil, `line', `region', `buffer', or `file'.  TEXT may be useful for
 functions in `gnuplot-after-plot-hook'.  `gnuplot-after-plot-hook' is
 called by this function after all of STRING is sent to gnuplot."
   (gnuplot--make-comint-buffer)         ; make sure a gnuplot buffer exists
-  (setq gnuplot-comint-recent-buffer (current-buffer))
+  (setq gnuplot--comint-recent-buffer (current-buffer))
 
   ;; Create a gnuplot frame if needed
   (when (and (equal gnuplot-display-process 'frame)
@@ -1067,43 +1067,35 @@ indicates the type of text being sent to gnuplot.  This will be
 `region' unless explicitly set by a function calling this one.  Other
 typical values are of nil, `line', `buffer', or `file'.  TEXT may be
 useful for function in `gnuplot-after-plot-hook'."
-  (interactive "r")
+  (interactive "r" gnuplot-mode)
   (let (string (txt (or text 'region)))
-    (cond ((equal major-mode 'gnuplot-mode)
-           (setq string (buffer-substring-no-properties begin end))
-           (unless (equal (substring string -1) "\n")
-             (setq string (concat string "\n")))
-           (gnuplot-send-string-to-gnuplot string txt))
-          (t
-           (message (concat "You can only send regions from "
-                            "gnuplot-mode buffers to gnuplot."))))))
+    (setq string (buffer-substring-no-properties begin end))
+    (unless (equal (substring string -1) "\n")
+      (setq string (concat string "\n")))
+    (gnuplot-send-string-to-gnuplot string txt)))
 
 (defun gnuplot-send-line-to-gnuplot ()
   "Sends the current line to the gnuplot program.
 Respects continuation lines.
 This sets `gnuplot-recently-sent' to `line'."
-  (interactive)
-  (cond ((equal major-mode 'gnuplot-mode)
-         (let (start end)
-           (save-excursion
-             ;; go to start of continued command, or beginning of line
-             ;; if this is not a continuation of a previous line
-             (gnuplot--beginning-of-continuation)
-             (setq start (point))
-             (end-of-line)
-             (while (save-excursion
-                      (backward-char)
-                      (looking-at "\\\\"))      ; go to end of last continuation line
-               (end-of-line 2))
-             (beginning-of-line 2)
-             (setq end (point)))
-           (unless (string-match "\\`\\s-*\\'"
-                                 (buffer-substring-no-properties start end))
-             (gnuplot-send-region-to-gnuplot start end 'line))
-           end))
-        (t
-         (message "You can only send lines in gnuplot-mode buffers to gnuplot.")
-         nil)))
+  (interactive nil gnuplot-mode)
+  (let (start end)
+    (save-excursion
+      ;; go to start of continued command, or beginning of line
+      ;; if this is not a continuation of a previous line
+      (gnuplot--beginning-of-continuation)
+      (setq start (point))
+      (end-of-line)
+      (while (save-excursion
+               (backward-char)
+               (looking-at "\\\\"))      ; go to end of last continuation line
+        (end-of-line 2))
+      (beginning-of-line 2)
+      (setq end (point)))
+    (unless (string-match "\\`\\s-*\\'"
+                          (buffer-substring-no-properties start end))
+      (gnuplot-send-region-to-gnuplot start end 'line))
+    end))
 
 ;; I chose a very easy to type but slightly non-mnemonic key-binding
 ;; for this (C-c C-v).  It seems like the kind of thing one would want
@@ -1113,7 +1105,7 @@ This sets `gnuplot-recently-sent' to `line'."
 You can use a numeric prefix to send more than one line.  Blank lines and
 lines with only comments are skipped when moving forward.
 NUM is optional arg."
-  (interactive "p")
+  (interactive "p" gnuplot-mode)
   (let (end)
     (while (> num 0)
       (setq end (gnuplot-send-line-to-gnuplot))
@@ -1124,7 +1116,7 @@ NUM is optional arg."
 
 (defun gnuplot-send-line-and-newline ()
   "Call `gnuplot-send-line-to-gnuplot' and insert a new line."
-  (interactive)
+  (interactive nil gnuplot-mode)
   (end-of-line)
   (gnuplot-send-line-to-gnuplot)
   (insert "\n"))
@@ -1132,7 +1124,7 @@ NUM is optional arg."
 (defun gnuplot-forward-script-line (&optional num)
   "Move forward my NUM script lines.
 Blank lines and commented lines are not included in the NUM count."
-  (interactive "p")
+  (interactive "p" gnuplot-mode)
   (while (> num 0)
     (and (not (eobp)) (forward-line 1))
     (while (and (not (eobp))
@@ -1144,10 +1136,8 @@ Blank lines and commented lines are not included in the NUM count."
 (defun gnuplot-send-buffer-to-gnuplot ()
   "Sends the entire buffer to the gnuplot program.
 This sets `gnuplot-recently-sent' to `buffer'."
-  (interactive)
-  (if (equal major-mode 'gnuplot-mode)
-      (gnuplot-send-region-to-gnuplot (point-min) (point-max) 'buffer)
-    (message "You can only send gnuplot-mode buffers to gnuplot.")))
+  (interactive nil gnuplot-mode)
+  (gnuplot-send-region-to-gnuplot (point-min) (point-max) 'buffer))
 
 (defun gnuplot-send-file-to-gnuplot ()
   "Sends a selected file to the gnuplot program using the \"load\" command.
@@ -1164,21 +1154,21 @@ This sets `gnuplot-recently-sent' to `file'."
 This inserts the contents of the most recently used gnuplot script
 into the process buffer and sends those lines to gnuplot.  It does
 this by copying the script line by line."
-  (interactive)
-  (if (not (buffer-live-p gnuplot-comint-recent-buffer))
-      (message "Script buffer has been deleted.")
-    (let (string list (buffer (current-buffer)))
-      (set-buffer gnuplot-comint-recent-buffer)
-      (setq string (buffer-substring-no-properties (point-min) (point-max))
-            string (concat string "\n")
-            list   (gnuplot--split-string string))
-      (set-buffer buffer)
-      (while list
-        (insert (car list))
-        (comint-send-input)
-        (sleep-for gnuplot-delay)
-        (setq list (cdr list)))
-      (comint-send-input))))
+  (interactive nil gnuplot-comint-mode)
+  (unless (buffer-live-p gnuplot--comint-recent-buffer)
+    (error "Script buffer has been deleted"))
+  (let (string list (buffer (current-buffer)))
+    (set-buffer gnuplot--comint-recent-buffer)
+    (setq string (buffer-substring-no-properties (point-min) (point-max))
+          string (concat string "\n")
+          list   (gnuplot--split-string string))
+    (set-buffer buffer)
+    (while list
+      (insert (car list))
+      (comint-send-input)
+      (sleep-for gnuplot-delay)
+      (setq list (cdr list)))
+    (comint-send-input)))
 
 (defun gnuplot-save-and-plot-from-comint ()
   "Send a current script to gnuplot from the process buffer.
@@ -1187,22 +1177,22 @@ This sends the most recently used gnuplot script to gnuplot using the
 file, prompting for a filename if one is not associated with the script
 buffer.  Then it sends a load command to gnuplot using the name of the
 file visited by the script buffer."
-  (interactive)
-  (if (not (buffer-live-p gnuplot-comint-recent-buffer))
-      (message "Script buffer has been deleted.")
-    (let (fname)
-      (with-current-buffer gnuplot-comint-recent-buffer
-        (save-buffer)
-        (setq fname (buffer-file-name)))
-      (goto-char (point-max))
-      (insert (format "load '%s'" fname))
-      (comint-send-input))))
+  (interactive nil gnuplot-comint-mode)
+  (unless (buffer-live-p gnuplot--comint-recent-buffer)
+    (error "Script buffer has been deleted"))
+  (let (fname)
+    (with-current-buffer gnuplot--comint-recent-buffer
+      (save-buffer)
+      (setq fname (buffer-file-name)))
+    (goto-char (point-max))
+    (insert (format "load '%s'" fname))
+    (comint-send-input)))
 
 (defun gnuplot-pop-to-recent-buffer ()
   "Switch to the most recently-plotted gnuplot script buffer."
   (interactive)
-  (when (buffer-live-p gnuplot-comint-recent-buffer)
-    (pop-to-buffer gnuplot-comint-recent-buffer)))
+  (when (buffer-live-p gnuplot--comint-recent-buffer)
+    (pop-to-buffer gnuplot--comint-recent-buffer)))
 
 (defun gnuplot-trim-comint-buffer ()
   "Trim lines from the beginning of the *gnuplot* buffer.
@@ -1223,9 +1213,9 @@ this function is attached to `gnuplot-after-plot-hook'"
 (defvar gnuplot-comint-menu
   `("Gnuplot"
     ["Plot most recent gnuplot buffer"          gnuplot-plot-from-comint
-     (buffer-live-p gnuplot-comint-recent-buffer)]
+     (buffer-live-p gnuplot--comint-recent-buffer)]
     ["Save and plot most recent gnuplot buffer"         gnuplot-save-and-plot-from-comint
-     (buffer-live-p gnuplot-comint-recent-buffer)]
+     (buffer-live-p gnuplot--comint-recent-buffer)]
     "---"
     ,gnuplot-display-options-menu
     ["Contextual completion and help"           gnuplot-context-sensitive-mode
@@ -1245,7 +1235,7 @@ this function is attached to `gnuplot-after-plot-hook'"
      gnuplot-info-at-point
      gnuplot-context-sensitive-mode]
     ["Switch to recent gnuplot script buffer"   gnuplot-pop-to-recent-buffer
-     (buffer-live-p gnuplot-comint-recent-buffer)]
+     (buffer-live-p gnuplot--comint-recent-buffer)]
     "---"
     ["Customize gnuplot"                        gnuplot-customize t]
     "---"
@@ -1257,6 +1247,7 @@ this function is attached to `gnuplot-after-plot-hook'"
 
 This sets font-lock and keyword completion in the comint/gnuplot
 buffer."
+  :interactive nil
 
   (set-syntax-table gnuplot-mode-syntax-table)
 
@@ -1338,7 +1329,7 @@ STRING is the text as originally inserted in the comint buffer."
 (defun gnuplot-delchar-or-maybe-eof (arg)
   "Delete ARG characters forward, or (if at eob) send an EOF to subprocess.
 This is very similar to `comint-delchar-or-maybe-eof'."
-  (interactive "p")
+  (interactive "p" gnuplot-comint-mode)
   (if (eobp)
       (gnuplot-kill-comint-buffer)
     (delete-char arg)))
@@ -1385,22 +1376,22 @@ gnuplot process buffer will be displayed in a window."
 
 (defun gnuplot-external-display-mode ()
   "Display image in external."
-  (interactive)
+  (interactive nil gnuplot-mode gnuplot-comint-mode)
   (gnuplot--set-display-mode 'gnuplot-inline-image-mode nil))
 
 (defun gnuplot-inline-display-mode ()
   "Display image in inline."
-  (interactive)
+  (interactive nil gnuplot-mode gnuplot-comint-mode)
   (gnuplot--set-display-mode 'gnuplot-inline-image-mode 'inline))
 
 (defun gnuplot-dedicated-display-mode ()
   "Display image in dedicated."
-  (interactive)
+  (interactive nil gnuplot-mode gnuplot-comint-mode)
   (gnuplot--set-display-mode 'gnuplot-inline-image-mode 'dedicated))
 
 (defun gnuplot-set-image-format (format)
   "Display image in FORMAT."
-  (interactive "sGnuplot image format: ")
+  (interactive "sGnuplot image format: " gnuplot-mode gnuplot-comint-mode)
   (gnuplot--set-display-mode 'gnuplot-image-format format)
   (unless gnuplot-inline-image-mode
     (message "Setting will take effect when plots are displayed in Emacs")))
@@ -1500,7 +1491,7 @@ then removes itself from `comint-preoutput-filter-functions'."
 This inserts a filename relative to the buffer's default directory.
 Uses completion and the value of `gnuplot-quote-character'.
 Bound to \\[gnuplot-insert-filename]"
-  (interactive)
+  (interactive nil gnuplot-mode gnuplot-comint-mode)
   (insert gnuplot-quote-character
           (file-relative-name (read-file-name "Filename > " "")
                               default-directory)
@@ -1511,7 +1502,7 @@ Bound to \\[gnuplot-insert-filename]"
   "Set indentation in gnuplot buffer.
 For most lines, set indentation to previous level of indentation.
 Add additional indentation for continuation lines."
-  (interactive)
+  (interactive nil gnuplot-mode)
   (let (indent)
     (if (gnuplot--in-string (line-beginning-position))
         ;; Continued strings begin at left margin
@@ -1552,7 +1543,7 @@ Add additional indentation for continuation lines."
 (defun gnuplot-electric-insert (BRACE)
   "Adjust indentation on inserting a close BRACE.
 The blink-paren fix is stolen from cc-mode"
-  (interactive "*p")
+  (interactive "*p" gnuplot-mode)
   (let ((old-blink-paren blink-paren-function)
         (blink-paren-function nil))
     (self-insert-command BRACE)
@@ -1679,7 +1670,7 @@ ARG is optional arg."
 This checks if the set option is one which has a negated form.
 
 Negatable options are defined in `gnuplot-keywords-negatable-options'."
-  (interactive)
+  (interactive nil gnuplot-mode gnuplot-comint-mode)
   (let ((begin (gnuplot--point-at-beginning-of-command))
         (end   (gnuplot--point-at-end-of-command))
         (regex gnuplot-negatable-options-regexp))
@@ -1697,7 +1688,7 @@ Negatable options are defined in `gnuplot-keywords-negatable-options'."
 
 (defun gnuplot-customize ()
   "Customize `gnuplot-mode'."
-  (interactive)
+  (interactive nil gnuplot-mode gnuplot-comint-mode)
   (customize-group "gnuplot"))
 
 
@@ -1779,7 +1770,8 @@ according to the value of `gnuplot-info-display'."
    (progn
      (when (eq gnuplot--info-keywords 'pending)
        (gnuplot--setup-info-look))
-     (info-lookup-interactive-arguments 'symbol)))
+     (info-lookup-interactive-arguments 'symbol))
+   gnuplot-mode gnuplot-comint-mode)
   (when (eq gnuplot--info-keywords 'pending)
     (gnuplot--setup-info-look))
   (unless symbol (setq symbol "Commands"))
@@ -1825,7 +1817,6 @@ Help is not shown if `gnuplot-insertions-show-help-flag' is nil.  The
 help shown is for STRING unless STRING begins with the word \"set\" or
 \"show\", in which case help is shown for the thing being set or
 shown."
-  (interactive)
   (insert string)
   (let ((topic string) term)
     (when (string-match
@@ -1843,7 +1834,7 @@ shown."
 
 (defun gnuplot-toggle-info-display ()
   "Toggle info display."
-  (interactive)
+  (interactive nil gnuplot-mode)
   (setq gnuplot-insertions-show-help-flag (not gnuplot-insertions-show-help-flag))
   (message (if gnuplot-insertions-show-help-flag
                "Help will be displayed after insertions."
@@ -1913,7 +1904,7 @@ a list:
   (setq-local font-lock-multiline t)
   (setq-local parse-sexp-lookup-properties t)
 
-  (setq gnuplot-comint-recent-buffer (current-buffer))
+  (setq gnuplot--comint-recent-buffer (current-buffer))
   (setq-local comint-process-echoes gnuplot-echo-command-line-flag)
   (gnuplot--setup-menubar))
 
@@ -1935,8 +1926,7 @@ following in your .emacs file:
 (defun run-gnuplot ()
   "Run an inferior Gnuplot process."
   (interactive)
-  (gnuplot--make-comint-buffer)
-  (pop-to-buffer gnuplot-buffer))
+  (gnuplot-show-comint-buffer))
 
 ;;;###autoload
 (add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode))
