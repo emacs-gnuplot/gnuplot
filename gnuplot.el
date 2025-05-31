@@ -341,7 +341,7 @@ non-nil."
 
 (defvar gnuplot-mode-menu nil)
 
-(defvar gnuplot-display-options-menu
+(defvar gnuplot--display-options-menu
   (cl-flet ((make-image-setter (type)
               `[,(concat (upcase type) " images")
                 (lambda () (interactive) (gnuplot-set-image-format ,type))
@@ -362,7 +362,7 @@ non-nil."
       ,@(mapcar #'make-image-setter (list "png" "jpeg" "svg"))
       ["Other image type..." gnuplot-set-image-format])))
 
-(defvar gnuplot-menu
+(defvar gnuplot--menu
   `("Gnuplot"
     ["Send line to gnuplot"             gnuplot-send-line-to-gnuplot   t]
     ["Send line & move forward"         gnuplot-send-line-and-forward (not (eobp))]
@@ -371,7 +371,7 @@ non-nil."
     ["Send buffer to gnuplot"           gnuplot-send-buffer-to-gnuplot t]
     ["Send file to gnuplot"             gnuplot-send-file-to-gnuplot t]
     "---"
-    ,gnuplot-display-options-menu
+    ,gnuplot--display-options-menu
     ["Contextual completion and help"   gnuplot-context-sensitive-mode
      :style toggle
      :selected gnuplot-context-sensitive-mode]
@@ -400,8 +400,8 @@ non-nil."
 
 ;;; --- insertions variables and menus
 
-(defvar gnuplot-mode-insertions-menu nil)
-(defvar gnuplot-insertions-menu nil
+(defvar gnuplot--mode-insertions-menu nil)
+(defvar gnuplot--insertions-menu nil
   "Menu for insertions in `gnuplot-mode'.
 
 The insertions menu is composed of several sub-menus.  The variables
@@ -444,7 +444,7 @@ adding the \"regis\" terminal type to the terminal sub-menu:
 
 (defvar gnuplot-insertions-top ()
   "Top part of insertions menu.
-See the document string for `gnuplot-insertions-menu'")
+See the document string for `gnuplot--insertions-menu'")
 
 (defcustom gnuplot-insertions-menu-flag t
   "Non-nil means to place the insertion menu in the menubar.
@@ -475,7 +475,7 @@ create a `gnuplot-mode' buffer."
     ["zeroaxis"    (gnuplot-insert "set zeroaxis")        t])
 
   "Adornments submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -501,7 +501,7 @@ create a `gnuplot-mode' buffer."
     ["output"     (gnuplot-insert "set output ")             t]
     ["zero"       (gnuplot-insert "set zero ")               t])
   "Plot options submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -531,7 +531,7 @@ create a `gnuplot-mode' buffer."
     ["vttek"      (gnuplot-insert "set terminal vttek")      t]
     ["x11"        (gnuplot-insert "set terminal x11")        t])
   "Terminal submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -553,7 +553,7 @@ create a `gnuplot-mode' buffer."
     ["xdtics"     (gnuplot-insert "set xdtics ")             t]
     ["xmtics"     (gnuplot-insert "set xmtics ")             t])
   "X-axis submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -575,7 +575,7 @@ create a `gnuplot-mode' buffer."
     ["x2dtics"    (gnuplot-insert "set xdtics ")             t]
     ["x2mtics"    (gnuplot-insert "set xmtics ")             t])
   "X2-axis submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -597,7 +597,7 @@ create a `gnuplot-mode' buffer."
     ["ydtics"     (gnuplot-insert "set ydtics ")             t]
     ["mytics"     (gnuplot-insert "set mytics ")             t])
   "Y-axis submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -619,7 +619,7 @@ create a `gnuplot-mode' buffer."
     ["y2mtics"    (gnuplot-insert "set ymtics ")             t]
     ["y2dtics"    (gnuplot-insert "set ydtics ")             t])
   "Y2-axis submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -640,7 +640,7 @@ create a `gnuplot-mode' buffer."
     ["zdtics"     (gnuplot-insert "set zdtics ")             t]
     ["zmtics"     (gnuplot-insert "set zmtics ")             t])
   "Z-axis submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -660,7 +660,7 @@ create a `gnuplot-mode' buffer."
     ["urange"     (gnuplot-insert "set urange [:]")          t]
     ["vrange"     (gnuplot-insert "set vrange [:]")          t])
   "Parametric plots submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -677,7 +677,7 @@ create a `gnuplot-mode' buffer."
     ["angles"     (gnuplot-insert "set angles ")             t]
     ["rrange"     (gnuplot-insert "set rrange [:]")          t])
   "Polar plots submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -699,7 +699,7 @@ create a `gnuplot-mode' buffer."
     ["surface"    (gnuplot-insert "set surface ")            t]
     ["view"       (gnuplot-insert "set view ")               t])
   "Surface plots submenu in the insertions menu.
-See the document string for `gnuplot-insertions-menu'
+See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
@@ -726,7 +726,7 @@ opening an argument-setting popup.")
   (when gnuplot-insertions-menu-flag
     (setq gnuplot-insertions-top
           '("insert set expression" "---"))
-    (setq gnuplot-insertions-menu
+    (setq gnuplot--insertions-menu
           (append (list "Insertions")
                   gnuplot-insertions-top
                   (list gnuplot-insertions-adornments)
@@ -741,12 +741,12 @@ opening an argument-setting popup.")
                   (list gnuplot-insertions-polar-plots)
                   (list gnuplot-insertions-surface-plots)
                   gnuplot-insertions-bottom))
-    (easy-menu-define gnuplot-mode-insertions-menu gnuplot-mode-map
+    (easy-menu-define gnuplot--mode-insertions-menu gnuplot-mode-map
       "Insertions menu used in Gnuplot-mode"
-      gnuplot-insertions-menu))
+      gnuplot--insertions-menu))
   (easy-menu-define                     ; set up gnuplot menu
     gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
-    gnuplot-menu))
+    gnuplot--menu))
 
 (defun gnuplot--mark-active ()
   "Return non-nil if the mark is active and it is not equal to point."
@@ -795,7 +795,7 @@ characters.")
   `(regexp-opt ,list 'words))
 
 ;; Lists of gnuplot keywords for syntax coloring etc.
-(defvar gnuplot-keywords-builtin-functions
+(defvar gnuplot--keywords-builtin-functions
   '("abs" "acosh" "acos" "arg" "asinh" "asin" "atan" "atanh" "atan2" "besj1"
     "besj0" "besy1" "besy0" "ceil" "column" "cosh" "cos" "erfc" "erf" "exp"
     "floor" "gamma" "ibeta" "igamma" "imag" "int" "inverf" "invnorm" "lgamma"
@@ -809,7 +809,7 @@ characters.")
 
 These are highlighted using `font-lock-function-name-face'.")
 
-(defvar gnuplot-keywords-plotting
+(defvar gnuplot--keywords-plotting
   '("axes" "every" "index" "lw" "lt" "ls" "linestyle" "linetype" "linewidth"
     "notitle" "pt" "ps" "pointsize" "pointtype" "smooth" "thru" "title" "using"
     "with" "noautoscale" "volatile" "matrix" "nonuniform" "binary" "fillstyle"
@@ -818,9 +818,9 @@ These are highlighted using `font-lock-function-name-face'.")
 
 These are highlighted using `font-lock-type-face'.
 This list does not include plotting styles -- for that, see
-`gnuplot-keywords-plotting-styles'")
+`gnuplot--keywords-plotting-styles'")
 
-(defvar gnuplot-keywords-plotting-styles
+(defvar gnuplot--keywords-plotting-styles
   '("boxerrorbars" "boxes" "boxxyerrorbars" "candlesticks" "dots" "errorbars"
     "financebars" "fsteps" "histeps" "impulses" "lines" "linespoints" "points"
     "steps" "vector" "xerrorbars" "xyerrorbars" "yerrorbars" "vectors"
@@ -831,7 +831,7 @@ This list does not include plotting styles -- for that, see
 
 These are highlighted using `font-lock-function-name-face'.")
 
-(defvar gnuplot-keywords-misc
+(defvar gnuplot--keywords-misc
   '("bind" "cd" "clear" "exit" "fit" "help" "history" "load" "pause" "print"
     "pwd" "quit" "replot" "save" "set" "show" "unset" "if" "else" "do" "update"
     "undefine" "test" "system" "raise" "lower" "eval" "shell" "reset" "reread"
@@ -840,7 +840,7 @@ These are highlighted using `font-lock-function-name-face'.")
 
 These are highlighted using `font-lock-constant-face'.")
 
-(defvar gnuplot-keywords-negatable-options
+(defvar gnuplot--keywords-negatable-options
   '("arrow" "autoscale" "border" "clabel" "clip" "contour" "dgrid3d" "grid"
     "hidden3d" "historysize" "key" "label" "linestyle" "logscale" "mouse"
     "multiplot" "mx2tics" "mxtics" "my2tics" "mytics" "mztics" "offsets" "polar"
@@ -852,7 +852,7 @@ These are highlighted using `font-lock-constant-face'.")
   "List of gnuplot options which can be negated using `gnuplot-negate-option'.")
 
 (defvar gnuplot-negatable-options-regexp
-  (gnuplot--make-regexp gnuplot-keywords-negatable-options))
+  (gnuplot--make-regexp gnuplot--keywords-negatable-options))
 
 ;; Set up colorization for gnuplot.
 (defvar gnuplot-font-lock-keywords
@@ -864,13 +864,13 @@ These are highlighted using `font-lock-constant-face'.")
      (1 'font-lock-variable-name-face))
 
     ;; built-in function names
-    (,(gnuplot--make-regexp gnuplot-keywords-builtin-functions)
+    (,(gnuplot--make-regexp gnuplot--keywords-builtin-functions)
      (0 'font-lock-function-name-face))
 
     ;; reserved words associated with plotting
-    (,(gnuplot--make-regexp gnuplot-keywords-plotting)
+    (,(gnuplot--make-regexp gnuplot--keywords-plotting)
      (0 'font-lock-type-face))
-    (,(gnuplot--make-regexp gnuplot-keywords-plotting-styles)
+    (,(gnuplot--make-regexp gnuplot--keywords-plotting-styles)
      (0 'font-lock-function-name-face))
 
     ;; (s)plot -- also thing (s)plotted
@@ -879,7 +879,7 @@ These are highlighted using `font-lock-constant-face'.")
     ;;  (1 'font-lock-variable-name-face))
 
     ;; other common commands
-    (,(gnuplot--make-regexp gnuplot-keywords-misc)
+    (,(gnuplot--make-regexp gnuplot--keywords-misc)
      (0 'font-lock-constant-face))
     ("!.*$" (0 'font-lock-constant-face))))
 
@@ -1209,14 +1209,14 @@ this function is attached to `gnuplot-after-plot-hook'"
 ;;; --- functions controlling the gnuplot process
 
 ;; Menu for the comint-mode buffer
-(defvar gnuplot-comint-menu
+(defvar gnuplot--comint-menu
   `("Gnuplot"
     ["Plot most recent gnuplot buffer"          gnuplot-plot-from-comint
      (buffer-live-p gnuplot--comint-recent-buffer)]
     ["Save and plot most recent gnuplot buffer"         gnuplot-save-and-plot-from-comint
      (buffer-live-p gnuplot--comint-recent-buffer)]
     "---"
-    ,gnuplot-display-options-menu
+    ,gnuplot--display-options-menu
     ["Contextual completion and help"           gnuplot-context-sensitive-mode
      :style toggle
      :selected gnuplot-context-sensitive-mode]
@@ -1268,7 +1268,7 @@ buffer."
   ;; Set up menu (see below)
   (easy-menu-define
     gnuplot-comint-mode-menu gnuplot-comint-mode-map "Menu used in gnuplot-comint-mode"
-    gnuplot-comint-menu))
+    gnuplot--comint-menu))
 
 ;; Key bindings for gnuplot-comint-mode
 (define-key gnuplot-comint-mode-map "\M-\C-p"   #'gnuplot-plot-from-comint)
@@ -1299,7 +1299,7 @@ buffer."
         (sleep-for (* 10 gnuplot-delay))
         (gnuplot--setup-comint-for-image-mode)))))
 
-(defvar gnuplot-prompt-regexp
+(defvar gnuplot--prompt-regexp
   (regexp-opt '("gnuplot> " "multiplot> "))
   "Regexp for recognizing the GNUPLOT prompt.")
 
@@ -1310,7 +1310,7 @@ STRING is the text as originally inserted in the comint buffer."
     (goto-char (point-max))
     (beginning-of-line)
     (let ((b (point)) e)
-      (when (re-search-forward gnuplot-prompt-regexp (point-max) t)
+      (when (re-search-forward gnuplot--prompt-regexp (point-max) t)
         (setq e (point))
         (put-text-property b e 'rear-nonsticky '(read-only intangible face))
         (put-text-property b e 'intangible t)
@@ -1368,7 +1368,7 @@ gnuplot process buffer will be displayed in a window."
 
 ;;; Support for displaying plotted images within Emacs
 
-(defvar gnuplot-inline-image-filename nil
+(defvar gnuplot--inline-image-filename nil
   "Name of the current Gnuplot output file.")
 
 (defvar gnuplot-image-buffer-name "*gnuplot output*")
@@ -1411,9 +1411,9 @@ gnuplot process buffer will be displayed in a window."
                      #'gnuplot--insert-inline-image-output t)))))
 
 (defun gnuplot--inline-image-set-output ()
-  "Set Gnuplot's output file to `gnuplot-inline-image-filename'."
+  "Set Gnuplot's output file to `gnuplot--inline-image-filename'."
   (let ((tmp (make-temp-file "gnuplot")))
-    (setq gnuplot-inline-image-filename tmp)
+    (setq gnuplot--inline-image-filename tmp)
     (gnuplot-send-hiding-output (format "set output '%s'\n" tmp))))
 
 (defvar gnuplot--inhibit-filter nil)
@@ -1423,17 +1423,17 @@ gnuplot process buffer will be displayed in a window."
 
 Called via `comint-preoutput-filter-functions' hook when
 `gnuplot-inline-image-mode' is enabled.  Checks the status of the
-file `gnuplot-inline-image-filename'; if it exists and has
+file `gnuplot--inline-image-filename'; if it exists and has
 nonzero size, inserts it as an inline image, stores a new
-temporary filename in `gnuplot-inline-image-filename', and
+temporary filename in `gnuplot--inline-image-filename', and
 updates Gnuplot with the appropriate \"set output\" command."
   (unless gnuplot--inhibit-filter        ; Prevent recursively entering this filter
     (let ((gnuplot--inhibit-filter t))   ; (causing an infinite loop)
       (save-excursion
         (goto-char (point-max))
         (beginning-of-line)
-        (when (looking-at gnuplot-prompt-regexp)
-          (let* ((filename gnuplot-inline-image-filename)
+        (when (looking-at gnuplot--prompt-regexp)
+          (let* ((filename gnuplot--inline-image-filename)
                  (size (nth 7 (file-attributes filename))))
             (when (and size (> size 0))
               (gnuplot-send-hiding-output "set output\n") ; Flush output file
@@ -1458,7 +1458,7 @@ updates Gnuplot with the appropriate \"set output\" command."
                      (gnuplot--inline-image-set-output))))))))))))
 
 ;;; Send commands to GNUPLOT silently & without generating an extra prompt
-(defvar gnuplot-hidden-output-buffer " *gnuplot output*")
+(defvar gnuplot-hidden-output-buffer " *gnuplot hidden*")
 
 (defun gnuplot-send-hiding-output (string)
   "Send STRING to the running Gnuplot process invisibly."
@@ -1476,7 +1476,7 @@ then removes itself from `comint-preoutput-filter-functions'."
   (with-current-buffer
       (get-buffer-create gnuplot-hidden-output-buffer)
     (insert string)
-    (when (looking-back gnuplot-prompt-regexp (point-min))
+    (when (looking-back gnuplot--prompt-regexp (point-min))
       (with-current-buffer gnuplot-buffer
         (remove-hook 'comint-preoutput-filter-functions
                      #'gnuplot--discard-output t))))
@@ -1668,7 +1668,7 @@ ARG is optional arg."
   "Append \"no\" to or remove \"no\" from the set option on the current line.
 This checks if the set option is one which has a negated form.
 
-Negatable options are defined in `gnuplot-keywords-negatable-options'."
+Negatable options are defined in `gnuplot--keywords-negatable-options'."
   (interactive nil gnuplot-mode gnuplot-comint-mode)
   (let ((begin (gnuplot--point-at-beginning-of-command))
         (end   (gnuplot--point-at-end-of-command))
@@ -1853,11 +1853,11 @@ Report bugs at https://github.com/emacs-gnuplot/gnuplot/issues
                             ------O------
 
 Gnuplot-mode includes two different systems for keyword completion and
-documentation lookup: a newer one, `gnuplot-context-sensitive-mode'
-(enabled by default), and a older one which extracts keywords from
-gnuplot's Info file.  Both systems allow looking up documentation in the
-Info file.  With the context-sensitive mode active, `gnuplot-mode' can
-also provide Eldoc syntax hints as you type.
+documentation lookup: a newer one, `gnuplot-context-sensitive-mode' ,
+which is enabled by default, and a older one which extracts keywords
+from gnuplot's Info file.  Both systems allow looking up documentation
+in the Info file.  With the context-sensitive mode active,
+`gnuplot-mode' can also provide Eldoc syntax hints as you type.
 
                             ------O------
 
