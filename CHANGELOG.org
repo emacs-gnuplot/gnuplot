@@ -2,7 +2,10 @@
 
 * Development
 
-- Minor code cleanup and updates.
+- Add =interactive= mode specifications to commands, such that only relevant
+  commands are shown in =M-X=.
+- Require Emacs 28.
+- Code cleanup and updates.
 - Removed deprecated functions.
 
 * Version 0.9 (2025-05-30)
