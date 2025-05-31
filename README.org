@@ -135,7 +135,11 @@ until this issue is fixed upstream.
 
 * Maintenance
 
-Regenerate ~gnuplot.texi~ and ~gnuplot-eldoc.el~ from the Gnuplot source.
+Regenerate ~gnuplot.texi~ and ~gnuplot-eldoc.el~ from the Gnuplot source. The source
+can be pulled downloaded from here:
+
+- https://packages.debian.org/unstable/gnuplot
+- http://deb.debian.org/debian/pool/main/g/gnuplot/gnuplot_6.0.2+dfsg1.orig.tar.xz
 
 1. Run ~emacs -batch -l doc2texi.el -f d2t-doc-to-texi~ inside the ~gnuplot-*/docs/~
    source directory.
