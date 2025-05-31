@@ -14,7 +14,7 @@ test:
 	$(EMACS) -batch -L . $(LOAD) -f ert-run-tests-batch-and-exit
 
 compile:
-	$(EMACS) -batch -L . -f batch-byte-compile *.el
+	$(EMACS) -batch -L . -f batch-byte-compile gnuplot-*.el
 
 clean:
 	rm -f *.elc
