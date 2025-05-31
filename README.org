@@ -137,22 +137,5 @@ until this issue is fixed upstream.
 
 The files ~gnuplot.texi~ and ~gnuplot-eldoc.el~ are generated from the Gnuplot
 source, which can be obtained from https://packages.debian.org/unstable/gnuplot.
-
-#+begin_src bash
-# Download and extract the Gnuplot source
-[ -e gnuplot-source.tar.xz ] || curl -o gnuplot-source.tar.xz http://deb.debian.org/debian/pool/main/g/gnuplot/gnuplot_6.0.2+dfsg1.orig.tar.xz
-rm -rf gnuplot-source/
-mkdir gnuplot-source
-tar --strip-components=1 -C gnuplot-source -xf gnuplot-source.tar.xz
-
-# Run doc2texi.el inside the gnuplot-source/docs directory
-cp doc2texi.el gnuplot-source/docs
-cd gnuplot-source/docs
-emacs -batch -l doc2texi.el -f d2t-doc-to-texi
-
-# Make sure that the info file compiles cleanly
-makeinfo --no-split gnuplot.texi
-
-# Copy the updated gnuplot-eldoc.el and gnuplot.texi to the package directory
-cp gnuplot.texi gnuplot-eldoc.el ../..
-#+end_src
+Run ~make~ inside the ~admin~ directory to download the source and regenerate the
+files.

@@ -1,20 +1,18 @@
-EMACS ?= emacs
-
 LOAD = -l gnuplot \
 	-l gnuplot-context \
 	-l gnuplot-debug-context \
 	-l gnuplot-gui \
-	-l gnuplot-tests
+	-l gnuplot-test
 
-.PHONY: all default clean
+.PHONY: all default clean regen test
 
 default: compile
 
 test:
-	$(EMACS) --batch -L . -f package-initialize $(LOAD) -f ert-run-tests-batch-and-exit
+	emacs --batch -L test -L . -f package-initialize $(LOAD) -f ert-run-tests-batch-and-exit
 
 compile:
-	$(EMACS) --batch -L . -f package-initialize -f batch-byte-compile gnuplot-*.el
+	emacs --batch -L test -L . -f package-initialize -f batch-byte-compile gnuplot-*.el test/gnuplot-*.el
 
 clean:
-	rm -f *.elc
+	rm -f *.elc */*.elc

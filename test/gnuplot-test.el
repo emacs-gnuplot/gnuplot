@@ -249,4 +249,4 @@ mutliple # lines #")
 'comment' \
 \"containing strings\"")
 
-;;; gnuplot-tests.el ends here
+;;; gnuplot-test.el ends here

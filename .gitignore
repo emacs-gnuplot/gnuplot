@@ -1,7 +1,7 @@
 *.elc
 *.tar.*
 *~
-\#*\#
 /*-autoloads.el
 /*-pkg.el
-/gnuplot-*/
+/admin/*/
+\#*\#
