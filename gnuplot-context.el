@@ -219,6 +219,7 @@
 ;;; Code:
 
 (require 'gnuplot)
+(require 'gnuplot-eldoc)
 
 
 ;;;; The tokenizer.
@@ -1737,12 +1738,6 @@ token list just after the end of the capture group.")
 Set by `gnuplot-context--match-pattern'.  See also
 `gnuplot-context-info-at-point'.")
 
-(defvar gnuplot-eldoc-hash nil
-  "ElDoc strings for `gnuplot-mode'.
-
-These have to be compiled from the Gnuplot source tree using
-`doc2texi.el'.")
-
 
 ;;;; The pattern matching machine
 (defun gnuplot-context--match-pattern (instructions tokens completing-p
@@ -1998,7 +1993,7 @@ there."
                           (t info)))
                    (when gnuplot-context--info-at-point
                      (gnuplot-context--trace "\tset info to \"%s\"\n" gnuplot-context--info-at-point)
-                     (when (and (not gnuplot-context--eldoc) gnuplot-eldoc-hash)
+                     (unless gnuplot-context--eldoc
                        (let ((eldoc
                               (car (gethash gnuplot-context--info-at-point gnuplot-eldoc-hash))))
                          (when eldoc
@@ -2053,7 +2048,7 @@ there."
   "Pop up the extended documentation for the construction at point."
   (interactive nil gnuplot-mode gnuplot-comint-mode)
   (gnuplot-context--parse-at-point nil)
-  (if (and gnuplot-context--info-at-point gnuplot-eldoc-hash)
+  (if gnuplot-context--info-at-point
       (let ((eldoc
              (cadr (gethash gnuplot-context--info-at-point gnuplot-eldoc-hash))))
         (if eldoc (message eldoc)))))
@@ -2199,9 +2194,7 @@ customize the variable
       (progn
         (remove-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look t)
         (add-hook 'completion-at-point-functions #'gnuplot-context-completion-at-point nil t)
-        (add-hook 'eldoc-documentation-functions #'gnuplot-context-eldoc-function nil 'local)
-        (unless gnuplot-eldoc-hash
-          (load "gnuplot-eldoc" t t)))
+        (add-hook 'eldoc-documentation-functions #'gnuplot-context-eldoc-function nil 'local))
     (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t)
     (remove-hook 'completion-at-point-functions #'gnuplot-context-completion-at-point t)
     (remove-hook 'eldoc-documentation-functions #'gnuplot-context-eldoc-function t)))

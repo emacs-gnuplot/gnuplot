@@ -700,7 +700,7 @@ Dumps the resulting data into gnuplot-eldoc.el"
           (insert d2t-gnuplot-license)
           (insert
            (format
-            "\n\n%S\n%S"
+            "\n\n%S\n%S\n(provide 'gnuplot-eldoc)\n;; gnuplot-eldoc.el ends here\n"
             '(eval-when-compile (defvar gnuplot-eldoc-hash nil))
             `(setq gnuplot-eldoc-hash
                    (let ((tbl (make-hash-table :test 'equal))
