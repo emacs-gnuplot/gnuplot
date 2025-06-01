@@ -802,7 +802,7 @@ These are highlighted using `font-lock-constant-face'.")
 
   "List of gnuplot options which can be negated using `gnuplot-negate-option'.")
 
-(defvar gnuplot-negatable-options-regexp
+(defvar gnuplot--negatable-options-regexp
   (gnuplot--make-regexp gnuplot--keywords-negatable-options))
 
 ;; Set up colorization for gnuplot.
@@ -1616,7 +1616,7 @@ Negatable options are defined in `gnuplot--keywords-negatable-options'."
   (interactive nil gnuplot-mode gnuplot-comint-mode)
   (let ((begin (gnuplot--point-at-beginning-of-command))
         (end   (gnuplot--point-at-end-of-command))
-        (regex gnuplot-negatable-options-regexp))
+        (regex gnuplot--negatable-options-regexp))
     (save-excursion
       (goto-char begin)
       (skip-syntax-forward "-" end)
