@@ -400,7 +400,6 @@ non-nil."
 
 ;;; --- insertions variables and menus
 
-(defvar gnuplot--mode-insertions-menu nil)
 (defvar gnuplot--insertions-menu nil
   "Menu for insertions in `gnuplot-mode'.
 
@@ -442,7 +441,8 @@ adding the \"regis\" terminal type to the terminal sub-menu:
                       (gnuplot-insert \"set terminal regis\")
                        t]))))")
 
-(defvar gnuplot-insertions-top ()
+(defvar gnuplot-insertions-top
+  '("insert set expression" "---")
   "Top part of insertions menu.
 See the document string for `gnuplot--insertions-menu'")
 
@@ -723,30 +723,29 @@ opening an argument-setting popup.")
 
 (defun gnuplot--setup-menubar ()
   "Initial setup of gnuplot and insertions menus."
-  (when gnuplot-insertions-menu-flag
-    (setq gnuplot-insertions-top
-          '("insert set expression" "---"))
-    (setq gnuplot--insertions-menu
-          (append (list "Insertions")
-                  gnuplot-insertions-top
-                  (list gnuplot-insertions-adornments)
-                  (list gnuplot-insertions-plot-options)
-                  (list gnuplot-insertions-terminal)
-                  (list gnuplot-insertions-x-axis)
-                  (list gnuplot-insertions-y-axis)
-                  (list gnuplot-insertions-z-axis)
-                  (list gnuplot-insertions-x2-axis)
-                  (list gnuplot-insertions-y2-axis)
-                  (list gnuplot-insertions-parametric-plots)
-                  (list gnuplot-insertions-polar-plots)
-                  (list gnuplot-insertions-surface-plots)
-                  gnuplot-insertions-bottom))
-    (easy-menu-define gnuplot--mode-insertions-menu gnuplot-mode-map
-      "Insertions menu used in Gnuplot-mode"
-      gnuplot--insertions-menu))
-  (easy-menu-define                     ; set up gnuplot menu
-    gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
-    gnuplot--menu))
+  (unless gnuplot-mode-menu
+    (when gnuplot-insertions-menu-flag
+      (let ((insertions-menu
+             `("Insertions"
+               ,@gnuplot-insertions-top
+               ,gnuplot-insertions-adornments
+               ,gnuplot-insertions-plot-options
+               ,gnuplot-insertions-terminal
+               ,gnuplot-insertions-x-axis
+               ,gnuplot-insertions-y-axis
+               ,gnuplot-insertions-z-axis
+               ,gnuplot-insertions-x2-axis
+               ,gnuplot-insertions-y2-axis
+               ,gnuplot-insertions-parametric-plots
+               ,gnuplot-insertions-polar-plots
+               ,gnuplot-insertions-surface-plots
+               ,@gnuplot-insertions-bottom)))
+        (easy-menu-define gnuplot--insertions-menu gnuplot-mode-map
+          "Insertions menu used in Gnuplot-mode"
+          insertions-menu)))
+    (easy-menu-define                     ; set up gnuplot menu
+      gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
+      gnuplot--menu)))
 
 (defun gnuplot--mark-active ()
   "Return non-nil if the mark is active and it is not equal to point."
