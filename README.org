@@ -29,6 +29,14 @@ The easiest way to install =gnuplot= is to directly get it from [[https://elpa.n
 or do =M-x list-packages= and search for =gnuplot= in the list. Note that there is a
 different [[https://github.com/mkmcc/gnuplot-mode][gnuplot-mode]] package on MELPA which is less featureful.
 
+It is recommended to configure =read-extended-command-predicate= in your Emacs
+configuration, such that =M-x= only completes commands which are relevant to the
+current mode, such that =gnuplot-*= commands are only shown in Gnuplot buffers.
+
+#+begin_src emacs-lisp
+(setq read-extended-command-predicate #'command-completion-default-include-p)
+#+end_src
+
 * Usage
 
 =gnuplot-mode= is enabled automatically for =*.gp= files. These functions are useful
