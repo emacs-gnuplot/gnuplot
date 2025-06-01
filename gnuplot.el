@@ -81,11 +81,6 @@
   :link '(info-link :tag "Info Manual" "(gnuplot)")
   :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el"))
 
-(defgroup gnuplot-insertions nil
-  "Insert commands into gnuplot-scripts from a pull-down menu."
-  :prefix "gnuplot-insertions-"
-  :group 'gnuplot)
-
 (defgroup gnuplot-hooks nil
   "Hook variables used by `gnuplot-mode'."
   :prefix "gnuplot-"
@@ -174,12 +169,6 @@ the process buffer, try toggling it.  Also see the document string for
 `comint-process-echos'.  If you change this, kill the gnuplot process
 and start it again."
   :group 'gnuplot
-  :type 'boolean)
-
-(defcustom gnuplot-insertions-show-help-flag nil
-  "Non-nil means to display certain help messages automatically.
-These messages are shown after menu insertion of gnuplot commands."
-  :group 'gnuplot-insertions
   :type 'boolean)
 
 (defcustom gnuplot-delay 0.02
@@ -400,6 +389,11 @@ non-nil."
 
 ;;; --- insertions variables and menus
 
+(defgroup gnuplot-insertions nil
+  "Insert commands into gnuplot-scripts from a pull-down menu."
+  :prefix "gnuplot-insertions-"
+  :group 'gnuplot)
+
 (defvar gnuplot--insertions-menu nil
   "Menu for insertions in `gnuplot-mode'.
 
@@ -441,18 +435,22 @@ adding the \"regis\" terminal type to the terminal sub-menu:
                       (gnuplot-insert \"set terminal regis\")
                        t]))))")
 
-(defvar gnuplot-insertions-top
-  '("insert set expression" "---")
-  "Top part of insertions menu.
-See the document string for `gnuplot--insertions-menu'")
+(defcustom gnuplot-insertions-show-help-flag nil
+  "Non-nil means to display certain help messages automatically.
+These messages are shown after menu insertion of gnuplot commands."
+  :type 'boolean)
 
 (defcustom gnuplot-insertions-menu-flag t
   "Non-nil means to place the insertion menu in the menubar.
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type 'boolean)
+
+(defvar gnuplot-insertions-top
+  '("insert set expression" "---")
+  "Top part of insertions menu.
+See the document string for `gnuplot--insertions-menu'")
 
 (defcustom gnuplot-insertions-adornments ; this is icky...
   '("adornments"
@@ -479,7 +477,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -505,7 +502,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -535,7 +531,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -557,7 +552,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -579,7 +573,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -601,7 +594,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -623,7 +615,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -644,7 +635,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -664,7 +654,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -681,7 +670,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -703,7 +691,6 @@ See the document string for `gnuplot--insertions-menu'
 Changing this will not effect a change in any currently existing
 `gnuplot-mode' buffer.  You will see the change the next time you
 create a `gnuplot-mode' buffer."
-  :group 'gnuplot-insertions
   :type '(list (string :tag "Title")
                (repeat :inline t
                        (vector (string   :tag "Name")
@@ -756,6 +743,7 @@ opening an argument-setting popup.")
 
 ;;; --- syntax colorization, syntax table
 
+(defvar gnuplot-mode-abbrev-table)
 (defvar gnuplot-mode-syntax-table
   (let ((table (make-syntax-table)))
     (modify-syntax-entry ?* "." table)
