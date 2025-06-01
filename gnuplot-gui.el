@@ -67,7 +67,6 @@
 (defcustom gnuplot-gui-popup-flag nil
   "Non-nil means to open arguments pop-ups automatically.
 This would be done after menu insertion of Gnuplot commands."
-  :group 'gnuplot-gui
   :type 'boolean)
 
 (defvar gnuplot-gui-frame nil
@@ -83,7 +82,6 @@ This would be done after menu insertion of Gnuplot commands."
     (menu-bar-lines . 0)
     (unsplittable . t))
   "Frame parameters for the input run-time display frame in Emacs."
-  :group 'gnuplot-gui
   :type '(repeat (sexp :tag "Parameter:")))
 
 (defcustom gnuplot-gui-fontname-list
@@ -93,7 +91,6 @@ These *must* be quoted, like so \"\\\"Helvetica\\\"\".  This allows
 for fonts with names like \"\\\"Arial Bold Italic\\\"\" to be treated
 as single entries in the menu-buttons.  And it is really important that
 the first entry in the list be a blank string."
-  :group 'gnuplot-gui
   :type '(repeat (string :tag "Font name:")))
 
 ;; some global variables
@@ -593,7 +590,6 @@ The values are \\='simple, which causes a limited set of plot, splot, or
 fit options to be displayed, and \\='complete, which attempts to display
 all options.  The \\='complete setting is prone to making errors when
 parsing values already in the script buffer."
-  :group 'gnuplot-gui
   :type '(radio (const :tag "Simple listing"   simple)
                 (const :tag "Complete listing" complete)))
 
@@ -1186,15 +1182,13 @@ into the buffer.  TYPE is the object whose arguments are being set."
                                    (:foreground "grey30"))
                                   (((class color) (background dark))
                                    (:foreground "grey70")))
-  "Face used to display message about unknown widget types."
-  :group 'gnuplot-gui-faces)
+  "Face used to display message about unknown widget types.")
 
 (defface gnuplot-gui-flat-text-face '((((class color) (background light))
                                        (:foreground "MediumBlue"))
                                       (((class color) (background dark))
                                        (:foreground "LightSteelBlue")))
-  "Face used to display message about unknown widget types."
-  :group 'gnuplot-gui-faces)
+  "Face used to display message about unknown widget types.")
 
 (defun gnuplot-gui-make-frame (item alist &optional save-frame)
   "Open the frame and populate it with widgets.
@@ -1373,24 +1367,21 @@ SAVE-FRAME is non-nil when the widgets are being reset."
                                   (:bold t :foreground "seagreen"))
                                  (t
                                   (:italic t)))
-  "Face used for menu-buttons."
-  :group 'gnuplot-gui-faces)
+  "Face used for menu-buttons.")
 (defface gnuplot-gui-button-face '((((class color) (background light))
                                     (:bold t :foreground "sienna"))
                                    (((class color) (background dark))
                                     (:bold t :foreground "tan"))
                                    (t
                                     (:italic t)))
-  "Face used for push-buttons."
-  :group 'gnuplot-gui-faces)
+  "Face used for push-buttons.")
 (defface gnuplot-gui-labels-face '((((class color) (background light))
                                     (:bold t :foreground "darkslateblue"))
                                    (((class color) (background dark))
                                     (:bold t :foreground "lightslateblue"))
                                    (t
                                     (:italic t)))
-  "Face used for insert and delete button in the labels widget."
-  :group 'gnuplot-gui-faces)
+  "Face used for insert and delete button in the labels widget.")
 
 (defun gnuplot-gui-menu-choice (item default list &optional starred)
   "Create a menu widget for the Gnuplot GUI.
