@@ -1786,24 +1786,22 @@ shown."
   "Initial setup of gnuplot and insertions menus."
   (unless gnuplot-mode-menu
     (when gnuplot-insertions-menu-flag
-      (let ((insertions-menu
-             `("Insertions"
-               ,@gnuplot-insertions-top
-               ,gnuplot-insertions-adornments
-               ,gnuplot-insertions-plot-options
-               ,gnuplot-insertions-terminal
-               ,gnuplot-insertions-x-axis
-               ,gnuplot-insertions-y-axis
-               ,gnuplot-insertions-z-axis
-               ,gnuplot-insertions-x2-axis
-               ,gnuplot-insertions-y2-axis
-               ,gnuplot-insertions-parametric-plots
-               ,gnuplot-insertions-polar-plots
-               ,gnuplot-insertions-surface-plots
-               ,@gnuplot-insertions-bottom)))
-        (easy-menu-define gnuplot--insertions-menu gnuplot-mode-map
-          "Insertions menu used in Gnuplot-mode"
-          insertions-menu)))
+      (easy-menu-define gnuplot--insertions-menu gnuplot-mode-map
+        "Insertions menu used in Gnuplot-mode"
+        `("Insertions"
+          ,@gnuplot-insertions-top
+          ,gnuplot-insertions-adornments
+          ,gnuplot-insertions-plot-options
+          ,gnuplot-insertions-terminal
+          ,gnuplot-insertions-x-axis
+          ,gnuplot-insertions-y-axis
+          ,gnuplot-insertions-z-axis
+          ,gnuplot-insertions-x2-axis
+          ,gnuplot-insertions-y2-axis
+          ,gnuplot-insertions-parametric-plots
+          ,gnuplot-insertions-polar-plots
+          ,gnuplot-insertions-surface-plots
+          ,@gnuplot-insertions-bottom)))
     (easy-menu-define                     ; set up gnuplot menu
       gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
       gnuplot--menu)))
