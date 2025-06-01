@@ -35,8 +35,8 @@ In order to customize Gnuplot, use =M-x gnuplot-customize= or set the respective
 customizable variables in your user configuration.
 
 It is recommended to configure =read-extended-command-predicate= in your Emacs
-configuration, such that =M-x= only completes commands which are relevant to the
-current mode, such that =gnuplot-*= commands are only shown in Gnuplot buffers.
+configuration, such that =M-x= only completes commands relevant for the current
+mode. For example =gnuplot-*= commands are only shown in Gnuplot buffers.
 Alternatively press the key =M-X= instead of =M-x= if you want relevant commands
 only.
 
