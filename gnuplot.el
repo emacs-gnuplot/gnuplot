@@ -81,57 +81,20 @@
   :link '(info-link :tag "Info Manual" "(gnuplot)")
   :link '(emacs-commentary-link :tag "Commentary" "gnuplot.el"))
 
-(defgroup gnuplot-hooks nil
-  "Hook variables used by `gnuplot-mode'."
-  :prefix "gnuplot-"
-  :group 'gnuplot)
-
-(defcustom gnuplot-mode-hook nil
-  "Hook run when `gnuplot-mode' is entered."
-  :group 'gnuplot-hooks
-  :type 'hook)
-
-(defcustom gnuplot-after-plot-hook (list #'gnuplot-trim-comint-buffer)
-  "Hook run after gnuplot plots something.
-This is the last thing done by the functions for plotting a line, a
-region, a buffer, or a file."
-  :group 'gnuplot-hooks
-  :type 'hook)
-
-(defcustom gnuplot-comint-mode-hook nil
-  "Hook run after setting up the gnuplot buffer in `gnuplot-comint-mode'."
-  :group 'gnuplot-hooks
-  :type 'hook)
-
-(defvar gnuplot-recently-sent nil
-  "This is a record of the most recent kind of text sent to gnuplot.
-It takes as its value nil, `line', `region', `buffer', or `file'.  It is
-useful for functions included in `gnuplot-after-plot-hook'.")
-
 (defcustom gnuplot-program "gnuplot"
   "The name of the gnuplot executable."
-  :group 'gnuplot
   :type 'string)
 
 (defcustom gnuplot-program-args nil
   "Whitespace-separated flags to pass to the gnuplot executable."
-  :group 'gnuplot
   :type 'string)
 
 (defcustom gnuplot-process-name "gnuplot"
   "Name given to the gnuplot buffer and process."
-  :group 'gnuplot
   :type 'string)
-
-(defvar gnuplot-buffer nil
-  "The name of the buffer displaying the gnuplot process.")
-
-(defvar gnuplot-process nil
-  "Variable holding the process handle.")
 
 (defcustom gnuplot-gnuplot-buffer "plot.gp"
   "The name of the gnuplot scratch buffer opened by `gnuplot-make-buffer'."
-  :group 'gnuplot
   :type 'string)
 
 (defcustom gnuplot-display-process 'window
@@ -140,7 +103,6 @@ The values are
    \\='frame    display gnuplot process in a separate frame
    \\='window   display gnuplot process in this frame but in another window
    nil       `gnuplot-process' is in the current frame but not displayed"
-  :group 'gnuplot
   :type '(radio (const :tag "Separate frame"  frame)
                 (const :tag "Separate window" window)
                 (const :tag "Not displayed"   nil)))
@@ -151,7 +113,6 @@ The values are
    \\='frame    display info file in a separate frame
    \\='window   display info file in another window
    nil       display info file in the current window"
-  :group 'gnuplot
   :type '(radio (const :tag "Separate frame"  frame)
                 (const :tag "Separate window" window)
                 (const :tag "This window"     nil)))
@@ -168,7 +129,6 @@ the `gnuplot-mode' buffer are not appearing at the gnuplot prompt in
 the process buffer, try toggling it.  Also see the document string for
 `comint-process-echos'.  If you change this, kill the gnuplot process
 and start it again."
-  :group 'gnuplot
   :type 'boolean)
 
 (defcustom gnuplot-delay 0.02
@@ -176,7 +136,6 @@ and start it again."
 This is needed so that the the line is not written in the gnuplot
 buffer in advance of its prompt.  Increase this number if the
 prompts and lines are displayed out of order."
-  :group 'gnuplot
   :type 'number)
 
 (defcustom gnuplot-buffer-max-size 1000
@@ -185,7 +144,6 @@ Each time text is written in the gnuplot process buffer, lines are
 trimmed from the beginning of the buffer so that the buffer is this
 many lines long.  The lines are deleted after the most recent lines
 were interpretted by gnuplot.  Setting to 0 turns off this feature."
-  :group 'gnuplot
   :type 'integer)
 
 (defcustom gnuplot-quote-character "\'"
@@ -193,7 +151,6 @@ were interpretted by gnuplot.  Setting to 0 turns off this feature."
 Gnuplot can use single or double quotes.  If you prefer to have the
 filename insertion function never insert quotes for you, set this
 to the empty string."
-  :group 'gnuplot
   :type '(radio (const :tag "double quote"  "\"")
                 (const :tag "single quote"  "\'")
                 (const :tag "none"          ""  )))
@@ -205,27 +162,7 @@ This applies only to new-style do- and if-statements using
 braces.  Commands continued over a linebreak using a backslash
 are always indented to line up with the second word on the line
 beginning the continued command."
-  :group 'gnuplot
   :type 'integer)
-
-(defvar gnuplot--comint-recent-buffer nil
-  "The most recently plotted gnuplot script buffer.
-This is used by the function that plot from the comint buffer.  It is
-reset every time something is plotted from a script buffer.")
-
-(defvar gnuplot--process-frame nil
-  "The frame for displaying the gnuplot process.
-This is used when `gnuplot-display-process' is equal to `frame'.")
-
-(defvar gnuplot--info-frame nil)
-
-;; with info-look, there is no need to carry this list around -- it
-;; can be generated on the fly appropriate to the currently installed
-;; version of gnuplot.info
-(defvar gnuplot--info-keywords 'pending
-  "A list of keywords used in GNUPLOT.
-These are set by `gnuplot--set-keywords-list' from the values in
-`info-lookup-cache'.")
 
 (defvar gnuplot-context-sensitive-mode nil)
 (autoload 'gnuplot-context-sensitive-mode "gnuplot-context")
@@ -239,7 +176,6 @@ These are set by `gnuplot--set-keywords-list' from the values in
 In context-sensitive mode, `gnuplot-mode' parses the current
 command line to provide smarter completion and documentation
 suggestions."
-  :group 'gnuplot
   :type 'boolean
   :set (lambda (sym value)
          (set sym value)
@@ -284,7 +220,6 @@ separate dedicated buffer if it is `dedicated'.
 Use Customize to set this variable, or the commands
 `gnuplot-external-display-mode', `gnuplot-inline-display-mode',
 and `gnuplot-dedicated-display-mode'."
-  :group 'gnuplot
   :type '(radio
           (const :tag "No" nil)
           (const :tag "In Comint buffer" inline)
@@ -301,90 +236,41 @@ This will be sent directly to Gnuplot as a command of the form
 
 This only has an effect when `gnuplot-inline-image-mode' is
 non-nil."
-  :group 'gnuplot
   :type 'string
   :initialize #'custom-initialize-default
   :set #'gnuplot--set-display-mode)
 
+(defcustom gnuplot-image-buffer-name "*gnuplot output*"
+  "Buffer name for dedicated gnuplot image output."
+  :type 'string)
+
+(defcustom gnuplot-hidden-output-buffer " *gnuplot hidden*"
+  "Buffer name for hidden gnuplot output.
+Send commands to GNUPLOT silently & without generating an extra prompt."
+  :type 'string)
+
 
-;;; --- key bindings and menus
+;;; customizable hooks
 
-(defvar-keymap gnuplot-mode-map
-  "C-c C-b"     #'gnuplot-send-buffer-to-gnuplot
-  "C-c C-o"     #'gnuplot-gui-set-options-and-insert
-  "C-c C-e"     #'gnuplot-show-comint-buffer
-  "C-c C-f"     #'gnuplot-send-file-to-gnuplot
-  "C-c C-d"     #'gnuplot-info-lookup-symbol
-  "C-c C-i"     #'gnuplot-insert-filename
-  "C-c C-j"     #'gnuplot-forward-script-line
-  "C-c C-k"     #'gnuplot-kill-comint-buffer
-  "C-c C-l"     #'gnuplot-send-line-to-gnuplot
-  "C-c C-n"     #'gnuplot-negate-option
-  "C-c C-r"     #'gnuplot-send-region-to-gnuplot
-  "C-M-x"       #'gnuplot-send-line-to-gnuplot
-  "C-c C-v"     #'gnuplot-send-line-and-forward
-  "C-c C-z"     #'gnuplot-customize
-  "}"           #'gnuplot-electric-insert
-  "M-TAB"       #'completion-at-point
-  "S-<mouse-2>" #'gnuplot-gui-set-options-and-insert)
+(defgroup gnuplot-hooks nil
+  "Hook variables used by `gnuplot-mode'."
+  :prefix "gnuplot-"
+  :group 'gnuplot)
 
-(defvar gnuplot-mode-menu nil)
+(defcustom gnuplot-mode-hook nil
+  "Hook run when `gnuplot-mode' is entered."
+  :type 'hook)
 
-(defvar gnuplot--display-options-menu
-  (cl-flet ((make-image-setter (type)
-              `[,(concat (upcase type) " images")
-                (lambda () (interactive) (gnuplot-set-image-format ,type))
-                :style toggle
-                :selected (eq gnuplot-image-format ,type)]))
-    `("Display plot output"
-      ["Externally" gnuplot-external-display-mode
-       :style toggle
-       :selected (null gnuplot-inline-image-mode)]
-      ["In Comint buffer" gnuplot-inline-display-mode
-       :active (display-images-p)
-       :style toggle
-       :selected (eq gnuplot-inline-image-mode 'comint)]
-      ["In dedicated buffer" gnuplot-dedicated-display-mode
-       :style toggle
-       :selected (eq gnuplot-inline-image-mode 'dedicated)]
-      "---"
-      ,@(mapcar #'make-image-setter (list "png" "jpeg" "svg"))
-      ["Other image type..." gnuplot-set-image-format])))
+(defcustom gnuplot-after-plot-hook (list #'gnuplot-trim-comint-buffer)
+  "Hook run after gnuplot plots something.
+This is the last thing done by the functions for plotting a line, a
+region, a buffer, or a file."
+  :type 'hook)
 
-(defvar gnuplot--menu
-  `("Gnuplot"
-    ["Send line to gnuplot"             gnuplot-send-line-to-gnuplot   t]
-    ["Send line & move forward"         gnuplot-send-line-and-forward (not (eobp))]
-    ["Send region to gnuplot"           gnuplot-send-region-to-gnuplot
-     (gnuplot--mark-active)]
-    ["Send buffer to gnuplot"           gnuplot-send-buffer-to-gnuplot t]
-    ["Send file to gnuplot"             gnuplot-send-file-to-gnuplot t]
-    "---"
-    ,gnuplot--display-options-menu
-    ["Contextual completion and help"   gnuplot-context-sensitive-mode
-     :style toggle
-     :selected gnuplot-context-sensitive-mode]
-    ["Echo area help (eldoc-mode)" eldoc-mode
-     :active gnuplot-context-sensitive-mode
-     :style toggle
-     :selected eldoc-mode]
-    "---"
-    ["Insert filename at point"         gnuplot-insert-filename t]
-    ["Negate set option"                gnuplot-negate-option t]
-    ["Keyword help"                     gnuplot-info-lookup-symbol]
-    ["Quick help for thing at point"    gnuplot-help-function
-     gnuplot-context-sensitive-mode]
-    ["Info documentation on thing at point"
-     gnuplot-info-at-point
-     gnuplot-context-sensitive-mode]
-    ["Show gnuplot process buffer"      gnuplot-show-comint-buffer t]
-    ["Set arguments at point"           gnuplot-gui-set-options-and-insert t]
-    ["Swap plot/splot/fit lists in GUI" gnuplot-gui-swap-simple-complete t]
-    "---"
-    ["Customize gnuplot"                gnuplot-customize t]
-    "---"
-    ["Kill gnuplot"                     gnuplot-kill-comint-buffer t])
-  "Menu for `gnuplot-mode'.")
+(defcustom gnuplot-comint-mode-hook nil
+  "Hook run after setting up the gnuplot buffer in `gnuplot-comint-mode'."
+  :type 'hook)
+
 
 
 ;;; --- insertions variables and menus
@@ -739,6 +625,116 @@ opening an argument-setting popup.")
   (condition-case nil
       (and (mark) (/= (mark) (point)))
     (error nil)))
+
+(defvar gnuplot-recently-sent nil
+  "This is a record of the most recent kind of text sent to gnuplot.
+It takes as its value nil, `line', `region', `buffer', or `file'.  It is
+useful for functions included in `gnuplot-after-plot-hook'.")
+
+(defvar gnuplot-buffer nil
+  "The name of the buffer displaying the gnuplot process.")
+
+(defvar gnuplot-process nil
+  "Variable holding the process handle.")
+
+(defvar gnuplot--comint-recent-buffer nil
+  "The most recently plotted gnuplot script buffer.
+This is used by the function that plot from the comint buffer.  It is
+reset every time something is plotted from a script buffer.")
+
+(defvar gnuplot--process-frame nil
+  "The frame for displaying the gnuplot process.
+This is used when `gnuplot-display-process' is equal to `frame'.")
+
+(defvar gnuplot--info-frame nil)
+
+;; with info-look, there is no need to carry this list around -- it
+;; can be generated on the fly appropriate to the currently installed
+;; version of gnuplot.info
+(defvar gnuplot--info-keywords 'pending
+  "A list of keywords used in GNUPLOT.
+These are set by `gnuplot--set-keywords-list' from the values in
+`info-lookup-cache'.")
+
+
+;;; --- key bindings and menus
+
+(defvar-keymap gnuplot-mode-map
+  "C-c C-b"     #'gnuplot-send-buffer-to-gnuplot
+  "C-c C-o"     #'gnuplot-gui-set-options-and-insert
+  "C-c C-e"     #'gnuplot-show-comint-buffer
+  "C-c C-f"     #'gnuplot-send-file-to-gnuplot
+  "C-c C-d"     #'gnuplot-info-lookup-symbol
+  "C-c C-i"     #'gnuplot-insert-filename
+  "C-c C-j"     #'gnuplot-forward-script-line
+  "C-c C-k"     #'gnuplot-kill-comint-buffer
+  "C-c C-l"     #'gnuplot-send-line-to-gnuplot
+  "C-c C-n"     #'gnuplot-negate-option
+  "C-c C-r"     #'gnuplot-send-region-to-gnuplot
+  "C-M-x"       #'gnuplot-send-line-to-gnuplot
+  "C-c C-v"     #'gnuplot-send-line-and-forward
+  "C-c C-z"     #'gnuplot-customize
+  "}"           #'gnuplot-electric-insert
+  "M-TAB"       #'completion-at-point
+  "S-<mouse-2>" #'gnuplot-gui-set-options-and-insert)
+
+(defvar gnuplot-mode-menu nil)
+
+(defvar gnuplot--display-options-menu
+  (cl-flet ((make-image-setter (type)
+              `[,(concat (upcase type) " images")
+                (lambda () (interactive) (gnuplot-set-image-format ,type))
+                :style toggle
+                :selected (eq gnuplot-image-format ,type)]))
+    `("Display plot output"
+      ["Externally" gnuplot-external-display-mode
+       :style toggle
+       :selected (null gnuplot-inline-image-mode)]
+      ["In Comint buffer" gnuplot-inline-display-mode
+       :active (display-images-p)
+       :style toggle
+       :selected (eq gnuplot-inline-image-mode 'comint)]
+      ["In dedicated buffer" gnuplot-dedicated-display-mode
+       :style toggle
+       :selected (eq gnuplot-inline-image-mode 'dedicated)]
+      "---"
+      ,@(mapcar #'make-image-setter (list "png" "jpeg" "svg"))
+      ["Other image type..." gnuplot-set-image-format])))
+
+(defvar gnuplot--menu
+  `("Gnuplot"
+    ["Send line to gnuplot"             gnuplot-send-line-to-gnuplot   t]
+    ["Send line & move forward"         gnuplot-send-line-and-forward (not (eobp))]
+    ["Send region to gnuplot"           gnuplot-send-region-to-gnuplot
+     (gnuplot--mark-active)]
+    ["Send buffer to gnuplot"           gnuplot-send-buffer-to-gnuplot t]
+    ["Send file to gnuplot"             gnuplot-send-file-to-gnuplot t]
+    "---"
+    ,gnuplot--display-options-menu
+    ["Contextual completion and help"   gnuplot-context-sensitive-mode
+     :style toggle
+     :selected gnuplot-context-sensitive-mode]
+    ["Echo area help (eldoc-mode)" eldoc-mode
+     :active gnuplot-context-sensitive-mode
+     :style toggle
+     :selected eldoc-mode]
+    "---"
+    ["Insert filename at point"         gnuplot-insert-filename t]
+    ["Negate set option"                gnuplot-negate-option t]
+    ["Keyword help"                     gnuplot-info-lookup-symbol]
+    ["Quick help for thing at point"    gnuplot-help-function
+     gnuplot-context-sensitive-mode]
+    ["Info documentation on thing at point"
+     gnuplot-info-at-point
+     gnuplot-context-sensitive-mode]
+    ["Show gnuplot process buffer"      gnuplot-show-comint-buffer t]
+    ["Set arguments at point"           gnuplot-gui-set-options-and-insert t]
+    ["Swap plot/splot/fit lists in GUI" gnuplot-gui-swap-simple-complete t]
+    "---"
+    ["Customize gnuplot"                gnuplot-customize t]
+    "---"
+    ["Kill gnuplot"                     gnuplot-kill-comint-buffer t])
+  "Menu for `gnuplot-mode'.")
 
 
 ;;; --- syntax colorization, syntax table
@@ -1356,8 +1352,6 @@ gnuplot process buffer will be displayed in a window."
 (defvar gnuplot--inline-image-filename nil
   "Name of the current Gnuplot output file.")
 
-(defvar gnuplot-image-buffer-name "*gnuplot output*")
-
 (defun gnuplot-external-display-mode ()
   "Display image in external."
   (interactive nil gnuplot-mode gnuplot-comint-mode)
@@ -1441,9 +1435,6 @@ updates Gnuplot with the appropriate \"set output\" command."
                      (ignore-errors (normal-mode))
                      (display-buffer (current-buffer))
                      (gnuplot--inline-image-set-output))))))))))))
-
-;;; Send commands to GNUPLOT silently & without generating an extra prompt
-(defvar gnuplot-hidden-output-buffer " *gnuplot hidden*")
 
 (defun gnuplot-send-hiding-output (string)
   "Send STRING to the running Gnuplot process invisibly."
