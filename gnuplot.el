@@ -690,10 +690,10 @@ These are set by `gnuplot--set-keywords-list' from the values in
     ["Insert filename at point"         gnuplot-insert-filename t]
     ["Negate set option"                gnuplot-negate-option t]
     ["Keyword help"                     gnuplot-info-lookup-symbol]
-    ["Quick help for thing at point"    gnuplot-help-function
+    ["Quick help for thing at point"    gnuplot-context-help-at-point
      gnuplot-context-sensitive-mode]
     ["Info documentation on thing at point"
-     gnuplot-info-at-point
+     gnuplot-context-info-at-point
      gnuplot-context-sensitive-mode]
     ["Show gnuplot process buffer"      gnuplot-show-comint-buffer t]
     ["Set arguments at point"           gnuplot-gui-set-options-and-insert t]
@@ -1179,10 +1179,10 @@ this function is attached to `gnuplot-after-plot-hook'"
     ["Insert filename at point"                         gnuplot-insert-filename t]
     ["Negate set option"                        gnuplot-negate-option t]
     ["Keyword help"                             gnuplot-info-lookup-symbol]
-    ["Quick help for thing at point"            gnuplot-help-function
+    ["Quick help for thing at point"            gnuplot-context-help-at-point
      gnuplot-context-sensitive-mode]
     ["Info documentation on thing at point"
-     gnuplot-info-at-point
+     gnuplot-context-info-at-point
      gnuplot-context-sensitive-mode]
     ["Switch to recent gnuplot script buffer"   gnuplot-pop-to-recent-buffer
      (buffer-live-p gnuplot--comint-recent-buffer)]

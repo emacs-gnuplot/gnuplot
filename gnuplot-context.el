@@ -51,7 +51,7 @@
 ;; With `eldoc-mode' support, `gnuplot-mode' will show one-line syntax
 ;; hints automatically in the echo area.  Whether `eldoc-mode' is
 ;; active or not, you can always pop up a longer description of syntax
-;; using `gnuplot-help-function' (C-c C-/ or C-c M-h).
+;; using `gnuplot-context-help-at-point' (C-c C-/ or C-c M-h).
 ;;
 ;; Internal details
 ;; ================
@@ -1734,7 +1734,8 @@ token list just after the end of the capture group.")
 (defvar gnuplot-context--eldoc nil
   "ElDoc documentation string for the Gnuplot construction at point.
 
-Set by `gnuplot-context--match-pattern'.  See also `gnuplot-info-at-point'.")
+Set by `gnuplot-context--match-pattern'.  See also
+`gnuplot-context-info-at-point'.")
 
 (defvar gnuplot-eldoc-hash nil
   "ElDoc strings for `gnuplot-mode'.
@@ -2048,7 +2049,7 @@ there."
   (gnuplot-context--parse-at-point nil)
   gnuplot-context--eldoc)
 
-(defun gnuplot-help-function ()
+(defun gnuplot-context-help-at-point ()
   "Pop up the extended documentation for the construction at point."
   (interactive nil gnuplot-mode gnuplot-comint-mode)
   (gnuplot-context--parse-at-point nil)
@@ -2058,7 +2059,7 @@ there."
         (if eldoc (message eldoc)))))
 
 ;; Info lookup
-(defun gnuplot-info-at-point (&optional query)
+(defun gnuplot-context-info-at-point (&optional query)
   "Open the relevant gnuplot info page for the construction at point."
   (interactive "P" gnuplot-mode gnuplot-comint-mode)
   (setq gnuplot-context--info-at-point nil)
@@ -2175,11 +2176,11 @@ Key bindings:
 on its context in the command. To make keyword completion work on
 pressing TAB, set `tab-always-indent' to `complete'.
 
-\\[gnuplot-info-at-point] will try to find the most relevant
+\\[gnuplot-context-info-at-point] will try to find the most relevant
 Gnuplot info node for the construction at point, prompting for a
 node name if nothing is found.
 
-\\[gnuplot-help-function] will pop up a brief summary of the
+\\[gnuplot-context-help-at-point] will pop up a brief summary of the
 syntax at point in the minibuffer. To have one-line syntax
 summaries appear in the echo area as you type, toggle
 `eldoc-mode'.
@@ -2189,8 +2190,8 @@ customize the variable
 `gnuplot-use-context-sensitive-completion'."
   :interactive (gnuplot-mode gnuplot-comint-mode)
   :keymap
-  `((,(kbd "C-c C-/") . gnuplot-help-function)
-    (,(kbd "C-c C-d") . gnuplot-info-at-point))
+  `((,(kbd "C-c C-/") . gnuplot-context-help-at-point)
+    (,(kbd "C-c C-d") . gnuplot-context-info-at-point))
   (unless (derived-mode-p 'gnuplot-mode 'gnuplot-comint-mode)
     (message "Gnuplot context-sensitive mode works only in Gnuplot-mode buffers")
     (setq gnuplot-context-sensitive-mode nil))
