@@ -58,30 +58,30 @@ as entry points:
 
 When =gnuplot-mode= is on, the following keybindings are available:
 
-| C-c C-l   | send current line to gnuplot                         |
-| C-c C-v   | send current line to gnuplot and move forward 1 line |
-| C-c C-r   | send current region to gnuplot                       |
-| C-c C-b   | send entire buffer to gnuplot                        |
-| C-c C-f   | send a file to gnuplot                               |
-| C-c C-i   | insert filename at point                             |
-| C-c C-n   | negate set option on current line                    |
-| C-c C-c   | comment region                                       |
-| C-c C-o   | set arguments for command at point                   |
-| S-mouse-2 | set arguments for command under mouse cursor         |
-| C-c C-d   | read the gnuplot info manual                         |
-| C-c C-e   | show gnuplot buffer                                  |
-| C-c C-k   | kill gnuplot process                                 |
-| C-c C-z   | customize gnuplot-mode                               |
-| M-tab     | complete keyword before point                        |
-| tab       | indent current line                                  |
+| =C-c C-l=     | send current line to gnuplot                         |
+| =C-c C-v=     | send current line to gnuplot and move forward 1 line |
+| =C-c C-r=     | send current region to gnuplot                       |
+| =C-c C-b=     | send entire buffer to gnuplot                        |
+| =C-c C-f=     | send a file to gnuplot                               |
+| =C-c C-i=     | insert filename at point                             |
+| =C-c C-n=     | negate set option on current line                    |
+| =C-c C-c=     | comment region                                       |
+| =C-c C-o=     | set arguments for command at point                   |
+| =S-<mouse-2>= | set arguments for command under mouse cursor         |
+| =C-c C-d=     | read the gnuplot info manual                         |
+| =C-c C-e=     | show gnuplot buffer                                  |
+| =C-c C-k=     | kill gnuplot process                                 |
+| =C-c C-z=     | customize gnuplot-mode                               |
+| =M-TAB=       | complete keyword before point                        |
+| =TAB=         | indent current line                                  |
 
 With the exception of the commands for sending commands to Gnuplot, most of the
 above commands also work in the Gnuplot comint buffer, in addition to the
 following:
 
-| M-C-p   | plot the most recent script buffer line-by-line   |
-| M-C-f   | save the current script buffer and load that file |
-| C-c C-e | pop back to most recent script buffer             |
+| =M-C-p=   | plot the most recent script buffer line-by-line   |
+| =M-C-f=   | save the current script buffer and load that file |
+| =C-c C-e= | pop back to most recent script buffer             |
 
 ** Context-sensitive keyword completion
 
@@ -125,8 +125,8 @@ two solutions:
    instance the following setting has been reported to work (see [[https://github.com/emacs-gnuplot/gnuplot/pull/33/files][here]]).
 
    #+begin_src emacs-lisp
-(setq gnuplot-program "/path/to/cmdproxy.exe")
-(setq gnuplot-program-args "/C /path/to/gnuplot.exe")
+(setq gnuplot-program "/path/to/cmdproxy.exe"
+      gnuplot-program-args "/C /path/to/gnuplot.exe")
    #+end_src
 
 2. Try the simpler [[https://github.com/mkmcc/gnuplot-mode][gnuplot-mode]] package that sends the entire buffer to Gnuplot.
