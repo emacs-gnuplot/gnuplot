@@ -1783,6 +1783,38 @@ shown."
                "Help will be displayed after insertions."
              "Help no longer displayed after insertions.")))
 
+(defun gnuplot--setup-menubar ()
+  "Initial setup of gnuplot and insertions menus."
+  (unless gnuplot-mode-menu
+    (when gnuplot-insertions-menu-flag
+      (let ((insertions-menu
+             `("Insertions"
+               ,@gnuplot-insertions-top
+               ,gnuplot-insertions-adornments
+               ,gnuplot-insertions-plot-options
+               ,gnuplot-insertions-terminal
+               ,gnuplot-insertions-x-axis
+               ,gnuplot-insertions-y-axis
+               ,gnuplot-insertions-z-axis
+               ,gnuplot-insertions-x2-axis
+               ,gnuplot-insertions-y2-axis
+               ,gnuplot-insertions-parametric-plots
+               ,gnuplot-insertions-polar-plots
+               ,gnuplot-insertions-surface-plots
+               ,@gnuplot-insertions-bottom)))
+        (easy-menu-define gnuplot--insertions-menu gnuplot-mode-map
+          "Insertions menu used in Gnuplot-mode"
+          insertions-menu)))
+    (easy-menu-define                     ; set up gnuplot menu
+      gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
+      gnuplot--menu)))
+
+(defun gnuplot--mark-active ()
+  "Return non-nil if the mark is active and it is not equal to point."
+  (condition-case nil
+      (and (mark) (/= (mark) (point)))
+    (error nil)))
+
 
 ;;; --- autoloaded functions: gnuplot-mode and gnuplot-make-buffer
 
@@ -1841,38 +1873,6 @@ a list:
             #'gnuplot--syntax-propertize-extend-region nil t)
   (setq gnuplot--comint-recent-buffer (current-buffer))
   (gnuplot--setup-menubar))
-
-(defun gnuplot--setup-menubar ()
-  "Initial setup of gnuplot and insertions menus."
-  (unless gnuplot-mode-menu
-    (when gnuplot-insertions-menu-flag
-      (let ((insertions-menu
-             `("Insertions"
-               ,@gnuplot-insertions-top
-               ,gnuplot-insertions-adornments
-               ,gnuplot-insertions-plot-options
-               ,gnuplot-insertions-terminal
-               ,gnuplot-insertions-x-axis
-               ,gnuplot-insertions-y-axis
-               ,gnuplot-insertions-z-axis
-               ,gnuplot-insertions-x2-axis
-               ,gnuplot-insertions-y2-axis
-               ,gnuplot-insertions-parametric-plots
-               ,gnuplot-insertions-polar-plots
-               ,gnuplot-insertions-surface-plots
-               ,@gnuplot-insertions-bottom)))
-        (easy-menu-define gnuplot--insertions-menu gnuplot-mode-map
-          "Insertions menu used in Gnuplot-mode"
-          insertions-menu)))
-    (easy-menu-define                     ; set up gnuplot menu
-      gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
-      gnuplot--menu)))
-
-(defun gnuplot--mark-active ()
-  "Return non-nil if the mark is active and it is not equal to point."
-  (condition-case nil
-      (and (mark) (/= (mark) (point)))
-    (error nil)))
 
 ;;;###autoload
 (defun gnuplot-make-buffer ()
