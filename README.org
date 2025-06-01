@@ -95,9 +95,9 @@ If the context-sensitivity annoys you, you can get simple non-context-sensitive
 completion back by toggling =gnuplot-context-sensitive-mode=.
 
 By its nature, the completion code has to know a fair bit about the structure of
-the gnuplot language. If you use it with an old version of gnuplot (pre
-version 4) it will make mistakes. Most of gnuplot 4.6's command language is
-parsed correctly except for the =set terminal= commands.
+the gnuplot language. If you use it with an outdated version of gnuplot it will
+make mistakes. Most of gnuplot 4.6's command language is parsed correctly except
+for the =set terminal= commands.
 
 ** Eldoc mode
 
@@ -106,9 +106,9 @@ context sensitivity is enabled. Both are enabled by default.
 
 ** Inline Images
 
-You can have plots displayed inline in the Gnuplot Comint process buffer. This
-is handy for trying things out without having to switch between Emacs and the
-Gnuplot display. It requires Gnuplot and Emacs to have =png= support. Call
+Plots are displayed inline in the Gnuplot Comint process buffer. This is handy
+for trying things out without having to switch between Emacs and the Gnuplot
+display. It requires Gnuplot and Emacs to have =png= support. Call
 =gnuplot-external-display-mode= in a gnuplot-mode buffer to disable the feature.
 
 * Common issues
