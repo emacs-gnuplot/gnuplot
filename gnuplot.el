@@ -240,7 +240,7 @@ non-nil."
   :initialize #'custom-initialize-default
   :set #'gnuplot--set-display-mode)
 
-(defcustom gnuplot-image-buffer-name "*gnuplot output*"
+(defcustom gnuplot-image-buffer "*gnuplot image*"
   "Buffer name for dedicated gnuplot image output."
   :type 'string)
 
@@ -1395,8 +1395,7 @@ updates Gnuplot with the appropriate \"set output\" command."
                       (insert "\n")
                       (gnuplot--inline-image-set-output))))
                 (dedicated
-                 (with-current-buffer
-                     (get-buffer-create gnuplot-image-buffer-name)
+                 (with-current-buffer (get-buffer-create gnuplot-image-buffer)
                    (let ((inhibit-read-only t))
                      (erase-buffer)
                      (insert-file-contents filename)
