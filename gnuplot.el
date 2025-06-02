@@ -37,11 +37,9 @@
 ;; commentary in gnuplot-context.el for more information.  If you
 ;; don't find it useful, it can be turned off by customizing
 ;; `gnuplot-context-sensitive-mode'.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Acknowledgements:
+
 ;;    David Batty          numerous corrections
 ;;    Laurent Bonnaud      suggestions regarding font-lock rules
 ;;    Markus Dickebohm     suggested `gnuplot-send-line-and-forward'
@@ -61,7 +59,6 @@
 ;;    Lars Hecking         gnuplot distribution and installation materials
 ;;    Maxime F. Treca      package update, XEmacs deprecation
 ;;    Daniel Mendler       package update, support for recent Emacs
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Code:
 

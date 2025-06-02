@@ -20,18 +20,16 @@
 ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 ;;; Commentary:
-;;
+
 ;; This file provides a graphical user interface to setting arguments
 ;; to gnuplot commands.  Positioning point near a command and invoking
 ;; `gnuplot-gui-set-options-and-insert' (C-c C-c or shift-mouse-2)
 ;; will pop open a frame with widgets for setting the various
 ;; arguments appropriate the the item that was near point.  The goal
 ;; is to provide point-and-click functionality to gnuplot-mode.
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
+
 ;;; To do:
-;;
+
 ;; Widgets I need:
 ;; -- 'position: two or three comma separated numbers used to denote a
 ;;               position or a tic start/end/increment (see arrow,
@@ -49,8 +47,7 @@
 ;; overall:
 ;; -- continuation lines (ugh!)
 ;; -- multiple frames end up displaying same window after setting options
-;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;;; Code:
 
 (require 'gnuplot)
