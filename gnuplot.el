@@ -1889,7 +1889,9 @@ following in your .emacs file:
   (gnuplot-show-comint-buffer))
 
 ;;;###autoload
-(add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode))
+(progn
+  (add-to-list 'auto-mode-alist '("\\.gp\\'" . gnuplot-mode))
+  (add-to-list 'interpreter-mode-alist '("gnuplot" . gnuplot-mode)))
 
 (provide 'gnuplot)
 ;;; gnuplot.el ends here
