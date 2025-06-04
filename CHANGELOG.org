@@ -1,6 +1,6 @@
 #+TITLE: Changelog for =gnuplot.el=
 
-* Development
+* Version 0.10 (2025-06-04)
 
 - Add =interactive= mode specifications to commands, such that only relevant
   commands are shown in =M-X=.
