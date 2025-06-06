@@ -625,6 +625,8 @@ These are set by `gnuplot--set-keywords-list' from the values in
 ;;; --- key bindings and menus
 
 (defvar-keymap gnuplot-mode-map
+  :doc "Keymap used by `gnuplot-mode'."
+  :parent prog-mode-map
   "C-c C-b"     #'gnuplot-send-buffer-to-gnuplot
   "C-c C-o"     #'gnuplot-gui-set-options-and-insert
   "C-c C-e"     #'gnuplot-show-comint-buffer
@@ -642,8 +644,6 @@ These are set by `gnuplot--set-keywords-list' from the values in
   "}"           #'gnuplot-electric-insert
   "M-TAB"       #'completion-at-point
   "S-<mouse-2>" #'gnuplot-gui-set-options-and-insert)
-
-(defvar gnuplot-mode-menu nil)
 
 (defvar gnuplot--display-options-menu
   (cl-flet ((make-image-setter (type)
@@ -666,7 +666,8 @@ These are set by `gnuplot--set-keywords-list' from the values in
       ,@(mapcar #'make-image-setter (list "png" "jpeg" "svg"))
       ["Other image type..." gnuplot-set-image-format])))
 
-(defvar gnuplot--menu
+(easy-menu-define gnuplot-mode-menu gnuplot-mode-map
+  "Menu used in `gnuplot-mode'."
   `("Gnuplot"
     ["Send line to gnuplot"             gnuplot-send-line-to-gnuplot   t]
     ["Send line & move forward"         gnuplot-send-line-and-forward (not (eobp))]
@@ -698,8 +699,7 @@ These are set by `gnuplot--set-keywords-list' from the values in
     "---"
     ["Customize gnuplot"                gnuplot-customize t]
     "---"
-    ["Kill gnuplot"                     gnuplot-kill-comint-buffer t])
-  "Menu for `gnuplot-mode'.")
+    ["Kill gnuplot"                     gnuplot-kill-comint-buffer t]))
 
 
 ;;; --- syntax colorization, syntax table
@@ -1156,8 +1156,22 @@ this function is attached to `gnuplot-after-plot-hook'"
 
 ;;; --- functions controlling the gnuplot process
 
-;; Menu for the comint-mode buffer
-(defvar gnuplot--comint-menu
+(defvar-keymap gnuplot-comint-mode-map
+  :doc "Keymap used by `gnuplot-comint-mode'."
+  :parent comint-mode-map
+  "C-M-p"   #'gnuplot-plot-from-comint
+  "C-M-f"   #'gnuplot-save-and-plot-from-comint
+  "C-d"      #'gnuplot-delchar-or-maybe-eof
+  "M-TAB"    #'completion-at-point
+  "C-c C-d"  #'gnuplot-info-lookup-symbol
+  "C-c C-i"  #'gnuplot-insert-filename
+  "C-c C-n"  #'gnuplot-negate-option
+  "C-c C-z"  #'gnuplot-customize
+  "C-c C-e"  #'gnuplot-pop-to-recent-buffer)
+
+(easy-menu-define
+  gnuplot-comint-mode-menu gnuplot-comint-mode-map
+  "Menu used in `gnuplot-comint-mode'."
   `("Gnuplot"
     ["Plot most recent gnuplot buffer"          gnuplot-plot-from-comint
      (buffer-live-p gnuplot--comint-recent-buffer)]
@@ -1209,27 +1223,7 @@ buffer."
   (add-hook 'comint-output-filter-functions
             #'gnuplot--protect-prompt-fn
             nil t)
-  (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t)
-
-  ;; Set up menu (see below)
-  (easy-menu-define
-    gnuplot-comint-mode-menu gnuplot-comint-mode-map "Menu used in gnuplot-comint-mode"
-    gnuplot--comint-menu))
-
-;; Key bindings for gnuplot-comint-mode
-(define-key gnuplot-comint-mode-map "\M-\C-p"   #'gnuplot-plot-from-comint)
-(define-key gnuplot-comint-mode-map "\M-\C-f"   #'gnuplot-save-and-plot-from-comint)
-(define-key gnuplot-comint-mode-map "\C-d"      #'gnuplot-delchar-or-maybe-eof)
-(define-key gnuplot-comint-mode-map "\M-\t"     #'completion-at-point)
-(define-key gnuplot-comint-mode-map "\C-c\C-d"  #'gnuplot-info-lookup-symbol)
-(define-key gnuplot-comint-mode-map "\C-c\C-i"  #'gnuplot-insert-filename)
-(define-key gnuplot-comint-mode-map "\C-c\C-n"  #'gnuplot-negate-option)
-(define-key gnuplot-comint-mode-map "\C-c\C-z"  #'gnuplot-customize)
-(define-key gnuplot-comint-mode-map "\C-c\C-e"  #'gnuplot-pop-to-recent-buffer)
-
-;; Menu for gnuplot-comint-mode
-(defvar gnuplot-comint-mode-menu nil
-  "Menu for `gnuplot-comint-mode'.")
+  (add-hook 'completion-at-point-functions #'gnuplot-completion-at-point-info-look nil t))
 
 (defun gnuplot--make-comint-buffer ()
   "Switch to the gnuplot program buffer or create one if none exists."
@@ -1779,29 +1773,25 @@ shown."
                "Help will be displayed after insertions."
              "Help no longer displayed after insertions.")))
 
-(defun gnuplot--setup-menubar ()
-  "Initial setup of gnuplot and insertions menus."
-  (unless gnuplot-mode-menu
-    (when gnuplot-insertions-menu-flag
-      (easy-menu-define gnuplot--insertions-menu gnuplot-mode-map
-        "Insertions menu used in Gnuplot-mode"
-        `("Insertions"
-          ,@gnuplot-insertions-top
-          ,gnuplot-insertions-adornments
-          ,gnuplot-insertions-plot-options
-          ,gnuplot-insertions-terminal
-          ,gnuplot-insertions-x-axis
-          ,gnuplot-insertions-y-axis
-          ,gnuplot-insertions-z-axis
-          ,gnuplot-insertions-x2-axis
-          ,gnuplot-insertions-y2-axis
-          ,gnuplot-insertions-parametric-plots
-          ,gnuplot-insertions-polar-plots
-          ,gnuplot-insertions-surface-plots
-          ,@gnuplot-insertions-bottom)))
-    (easy-menu-define                     ; set up gnuplot menu
-      gnuplot-mode-menu gnuplot-mode-map "Menu used in gnuplot-mode"
-      gnuplot--menu)))
+(defun gnuplot--setup-insertions-menu ()
+  "Initial setup of insertions menu."
+  (when (and gnuplot-insertions-menu-flag (not gnuplot--insertions-menu))
+    (easy-menu-define gnuplot--insertions-menu gnuplot-mode-map
+      "Insertions menu used in Gnuplot-mode"
+      `("Insertions"
+        ,@gnuplot-insertions-top
+        ,gnuplot-insertions-adornments
+        ,gnuplot-insertions-plot-options
+        ,gnuplot-insertions-terminal
+        ,gnuplot-insertions-x-axis
+        ,gnuplot-insertions-y-axis
+        ,gnuplot-insertions-z-axis
+        ,gnuplot-insertions-x2-axis
+        ,gnuplot-insertions-y2-axis
+        ,gnuplot-insertions-parametric-plots
+        ,gnuplot-insertions-polar-plots
+        ,gnuplot-insertions-surface-plots
+        ,@gnuplot-insertions-bottom))))
 
 (defun gnuplot--mark-active ()
   "Return non-nil if the mark is active and it is not equal to point."
@@ -1866,7 +1856,7 @@ a list:
   (add-hook 'syntax-propertize-extend-region-functions
             #'gnuplot--syntax-propertize-extend-region nil t)
   (setq gnuplot--comint-recent-buffer (current-buffer))
-  (gnuplot--setup-menubar))
+  (gnuplot--setup-insertions-menu))
 
 ;;;###autoload
 (defun gnuplot-make-buffer ()
