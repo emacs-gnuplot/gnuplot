@@ -1,6 +1,6 @@
 #+TITLE: Changelog for =gnuplot.el=
 
-* Development
+* Version 0.11 (2025-06-13)
 
 - Keymap and menu setup simplification.
 
