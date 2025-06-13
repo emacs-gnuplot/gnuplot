@@ -1,5 +1,9 @@
 #+TITLE: Changelog for =gnuplot.el=
 
+* Development
+
+- Keymap and menu setup simplification.
+
 * Version 0.10 (2025-06-04)
 
 - Add =interactive= mode specifications to commands, such that only relevant
