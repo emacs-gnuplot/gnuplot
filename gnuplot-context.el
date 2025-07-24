@@ -17,7 +17,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;;; Commentary:
 
@@ -84,7 +84,7 @@
 ;;
 ;; The parsing machine and compiler are partially based on the
 ;; description in Medeiros and Ierusalimschy 2008, "A Parsing Machine
-;; for PEGs" (http://dl.acm.org/citation.cfm?doid=1408681.1408683).
+;; for PEGs" (https://dl.acm.org/citation.cfm?doid=1408681.1408683).
 ;;
 ;; The pattern-matching language
 ;; =============================

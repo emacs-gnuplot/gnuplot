@@ -21,7 +21,7 @@ above.
 * Installation
 
 The easiest way to install =gnuplot= is to directly get it from [[https://elpa.nongnu.org/][NonGNU ELPA]] or
-[[http://melpa.org][MELPA]]. After configuring Emacs to use MELPA, you should be able to install
+[[https://melpa.org][MELPA]]. After configuring Emacs to use MELPA, you should be able to install
 =gnuplot= by typing
 
 : M-x install-package RET gnuplot RET

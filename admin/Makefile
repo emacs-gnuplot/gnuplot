@@ -2,7 +2,7 @@ src = gnuplot-source
 
 regen:
 	# Download and extract the Gnuplot source
-	[ -e $(src).tar.xz ] || curl -o $(src).tar.xz http://deb.debian.org/debian/pool/main/g/gnuplot/gnuplot_6.0.2+dfsg1.orig.tar.xz
+	[ -e $(src).tar.xz ] || curl -o $(src).tar.xz httpss://deb.debian.org/debian/pool/main/g/gnuplot/gnuplot_6.0.2+dfsg1.orig.tar.xz
 	rm -rf $(src)/
 	mkdir $(src)
 	tar --strip-components=1 -C $(src) -xf $(src).tar.xz
