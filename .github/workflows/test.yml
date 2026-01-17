@@ -22,7 +22,7 @@ jobs:
       with:
         version: ${{ matrix.emacs-version }}
     - name: Install Compat
-      run: emacs --batch --eval (package-refresh-contents) --eval "(ignore-errors (package-install 'compat))"
+      run: emacs --batch --eval "(ignore-errors (package-refresh-contents) (package-install 'compat))"
     - name: Install Gnuplot
       run: sudo apt update && sudo apt install gnuplot
     - name: Run tests
