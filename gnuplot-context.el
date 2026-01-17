@@ -472,7 +472,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
 
             (t              ; two patterns
              (let* ((pat1 (cadr pat))
-                    (pat2 (cl-caddr pat))
+                    (pat2 (caddr pat))
                     (pat1-c (gnuplot-context--compile-pattern pat1))
                     (pat2-c (gnuplot-context--compile-pattern pat2))
                     (pat1-l (length pat1-c))
@@ -509,7 +509,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           ;; Syntactic sugar for delimited lists
           ((delimited-list)
            (let* ((item (cadr pat))
-                  (sep (cl-caddr pat)))
+                  (sep (caddr pat)))
              (gnuplot-context--compile-pattern
               `(sequence ,item (many (sequence ,sep ,item))))))
 
@@ -1799,7 +1799,7 @@ there."
               ;; (literal LITERAL NO-COMPLETE)
               ((literal)
                (let ((expect (cadr inst))
-                     (no-complete (cl-caddr inst)))
+                     (no-complete (caddr inst)))
                  (cond (end-of-tokens
                         (unless no-complete
                           (gnuplot-context--trace "\tpushing \"%s\" to completions\n" expect)
@@ -1824,7 +1824,7 @@ there."
               ;; regexp-matches REGEXP, use NAME for completions
               ((keyword)
                (let ((regexp (cadr inst))
-                     (name (cl-caddr inst)))
+                     (name (caddr inst)))
                  (cond (end-of-tokens
                         (gnuplot-context--trace "\tpushing \"%s\" to completions\n" name)
                         (push name gnuplot-context--completions)
@@ -1901,7 +1901,7 @@ there."
               ;; onto the stack
               ((push)
                (let* ((type (cadr inst))
-                      (value (cl-caddr inst)))
+                      (value (caddr inst)))
                  (push `(,type ,value ,tokens) stack)))
 
               ;; (pop TYPE): pop something off the stack
@@ -1925,7 +1925,7 @@ there."
                       (record (assoc name gnuplot-context--captures)))
                  (if (not record)
                      (error "Gnuplot-match-tokens: no open capture group named %s" name)
-                   (setf (cl-caddr record) tokens)
+                   (setf (caddr record) tokens)
                    (gnuplot-context--debug (gnuplot-dump-captures)))))
 
               ;; (check-progress): make sure not stuck in an infinite loop
@@ -1975,7 +1975,7 @@ there."
                 (not (and gnuplot-context--info-at-point gnuplot-context--eldoc)))
       (let* ((item (car stack))
              (type (car item))
-             (position (cl-caddr item))) ; must progress by at least one token
+             (position (caddr item))) ; must progress by at least one token
         (if (and (memq type '(info eldoc no-scan))
                  (not (eq position tokens)))
             (cl-case type
@@ -2013,7 +2013,7 @@ there."
   (let ((record (assoc name gnuplot-context--captures)))
     (if (not record) nil
       (let ((begin (cadr record))
-            (end (cl-caddr record))
+            (end (caddr record))
             (accum '()))
         (while (and begin (not (eq begin end)))
           (push (pop begin) accum))

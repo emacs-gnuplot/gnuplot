@@ -63,7 +63,7 @@
                          (if (eq (car x) 'return)
                              x
                            (list (car x) (cadr x)
-                                 (gnuplot-simplify-tokens (cl-caddr x)))))))
+                                 (gnuplot-simplify-tokens (caddr x)))))))
        (insert "-- end backtrace  --\n"))))
 
 (defun gnuplot-dump-backtrack (backtrack)
@@ -71,7 +71,7 @@
       (gnuplot-context--with-trace-buffer
        (insert "\n-- * backtrack records: * --\n")
        (dolist (x backtrack)
-         (insert (format "%s\t%s\n" (cl-caddr x) (gnuplot-simplify-tokens (cadr x)))))
+         (insert (format "%s\t%s\n" (caddr x) (gnuplot-simplify-tokens (cadr x)))))
        (insert "-- end backtrack records  --\n\n"))))
 
 (defun gnuplot-dump-progress (progress)

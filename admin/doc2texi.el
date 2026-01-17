@@ -470,7 +470,7 @@ the end of `d2t-get-terminals'.")
             (add-to-list 'd2t-terminal-list term)))))
 
     (unless (member* system-configuration '("pc" "windows")
-                     :test 'string-match)
+                     :test #'string-match)
       (dolist (term '("x11" "tgif" "gpic" "regis" "t410x" "tex" "xlib"))
         (add-to-list 'd2t-terminal-list term)))
 
@@ -630,10 +630,10 @@ appropriate sectioning and @node commands."
       (unless (eobp)
         (let* ((number (match-string 1))
                (word (match-string 2))
-               (node (apply #'string (append (substitute ?_ ?  word :test 'char-equal) nil)))
+               (node (apply #'string (append (substitute ?_ ?  word :test #'char-equal) nil)))
                (eol  (save-excursion (end-of-line) (point-marker))))
           ;; some node names appear twice.  make them unique.
-          (while (member* node d2t-node-list :test 'string=)
+          (while (member* node d2t-node-list :test #'string=)
             (setq node (concat node "_")))
           (setq d2t-node-list (append d2t-node-list (list node)))
           (beginning-of-line)
@@ -704,7 +704,7 @@ Dumps the resulting data into gnuplot-eldoc.el"
             "\n\n%S\n%S\n(provide 'gnuplot-eldoc)\n;;; gnuplot-eldoc.el ends here\n"
             '(eval-when-compile (defvar gnuplot-eldoc-hash nil))
             `(setq gnuplot-eldoc-hash
-                   (let ((tbl (make-hash-table :test 'equal))
+                   (let ((tbl (make-hash-table :test #'equal))
                          (alist ',alist))
                      (while alist
                        (puthash (caar alist) (cdar alist) tbl)
@@ -871,7 +871,7 @@ This must be run after `d2t-first-column'."
                                          (match-string 1)
                                          ","
                                          (remove* ?^ (match-string 2)
-                                                  :test 'char-equal)
+                                                  :test #'char-equal)
                                          "}"))
                   (insert "@c ")))
              ;; translate <ul> </ul> to @itemize environment
