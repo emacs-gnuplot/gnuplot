@@ -1,3 +1,4 @@
+---
 name: CI
 on: [push, pull_request]
 jobs:
@@ -17,13 +18,13 @@ jobs:
           - 'release-snapshot'
           - 'snapshot'
     steps:
-    - uses: actions/checkout@v4
-    - uses: purcell/setup-emacs@master
-      with:
-        version: ${{ matrix.emacs-version }}
-    - name: Install Compat
-      run: emacs --batch --eval "(ignore-errors (package-refresh-contents) (package-install 'compat))"
-    - name: Install Gnuplot
-      run: sudo apt update && sudo apt install gnuplot
-    - name: Run tests
-      run: make && make test
+      - uses: actions/checkout@v4
+      - uses: purcell/setup-emacs@master
+        with:
+          version: ${{ matrix.emacs-version }}
+      - name: Install Compat
+        run: emacs --batch --eval "(ignore-errors (package-refresh-contents) (package-install 'compat))"
+      - name: Install Gnuplot
+        run: sudo apt update && sudo apt install gnuplot
+      - name: Run tests
+        run: make && make test
