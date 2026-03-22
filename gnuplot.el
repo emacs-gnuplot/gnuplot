@@ -10,8 +10,6 @@
 ;; URL:              https://github.com/emacs-gnuplot/gnuplot
 ;; Package-Requires: ((emacs "28.1") (compat "30"))
 
-;; This file is not part of GNU Emacs.
-
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation, either version 3 of the License, or

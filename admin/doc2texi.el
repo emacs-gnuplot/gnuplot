@@ -9,8 +9,6 @@
 ;; Version:    0.2
 ;; Keywords:   gnuplot, document, info
 
-;; This file is not part of GNU Emacs.
-
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; This lisp script is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
