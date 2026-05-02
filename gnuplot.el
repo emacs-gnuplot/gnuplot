@@ -8,7 +8,7 @@
 ;; Version:          0.11
 ;; Keywords:         data gnuplot plotting
 ;; URL:              https://github.com/emacs-gnuplot/gnuplot
-;; Package-Requires: ((emacs "28.1") (compat "30"))
+;; Package-Requires: ((emacs "28.1") (compat "31"))
 
 ;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by

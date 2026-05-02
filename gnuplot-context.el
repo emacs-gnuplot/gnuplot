@@ -612,7 +612,7 @@ name; otherwise continues tokenizing up to the token at point.  FIXME."
           (let ((name (car chunk))
                 (code (cdr chunk)))
             (setf (aref object-code i) `(label ,name))
-            (cl-incf i)
+            (incf i)
             (puthash name i name->offset)
             (while code
               (setf (aref object-code i) (car code)
@@ -1770,8 +1770,8 @@ there."
       (when start-symbol        ; HACK FIXME
         (let ((look-for `(label ,start-symbol)))
           (while (not (equal (aref instructions pc) look-for))
-            (cl-incf pc))
-          (cl-incf pc)))
+            (incf pc))
+          (incf pc)))
 
       (setq gnuplot-context--completions nil
             gnuplot-context--eldoc nil
