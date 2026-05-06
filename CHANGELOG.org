@@ -1,5 +1,9 @@
 #+TITLE: Changelog for =gnuplot.el=
 
+* Development
+
+- Require Compat 31.
+
 * Version 0.11 (2025-06-13)
 
 - Keymap and menu setup simplification.
