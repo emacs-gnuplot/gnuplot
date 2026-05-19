@@ -5,7 +5,7 @@
 ;; Author:           Jon Oddie, Bruce Ravel, Phil Type
 ;; Maintainer:       Maxime Tréca <maxime@gmail.com>, Daniel Mendler <mail@daniel-mendler.de>
 ;; Created:          1998
-;; Version:          0.11
+;; Version:          0.12
 ;; Keywords:         data gnuplot plotting
 ;; URL:              https://github.com/emacs-gnuplot/gnuplot
 ;; Package-Requires: ((emacs "28.1") (compat "31"))
